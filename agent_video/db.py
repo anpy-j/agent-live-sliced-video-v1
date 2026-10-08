@@ -172,6 +172,8 @@ class Store:
                 """
             )
             columns = {row[1] for row in con.execute("PRAGMA table_info(jobs)")}
+            if "remote_model_json" not in columns:
+                con.execute("ALTER TABLE jobs ADD COLUMN remote_model_json TEXT")
             if "job_type" not in columns:
                 con.execute("ALTER TABLE jobs ADD COLUMN job_type TEXT NOT NULL DEFAULT 'direct'")
             if "timeline_meta_json" not in columns:

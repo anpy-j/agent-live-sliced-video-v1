@@ -49,6 +49,11 @@ _AI_ENV_DEFAULTS = {
 }
 
 
+class JobPaused(RuntimeError):
+    def __init__(self, stage):
+        self.stage = stage
+
+
 class JobCancelled(RuntimeError):
     """用户显式取消，不应被记成失败。"""
 
@@ -114,13 +119,15 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
                         target_seconds: tuple[float, float],
                         only_stage: str | None = None,
                         output_stem: str | None = None,
-                        product_name: str | None = None) -> None:
+                        product_name: str | None = None, pause_event: Any = None) -> None:
     """在可强制终止的独立进程中执行重计算管线。"""
     job_handle = _windows_kill_on_close_job()
     if os.name != "nt":
         os.setsid()
 
     def on_stage(stage: str, status: str, message: str) -> None:
+        if status == "start" and pause_event is not None and pause_event.is_set():
+            raise JobPaused(stage)
         result_queue.put(("stage", stage, status, message))
 
     try:
@@ -151,6 +158,8 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
             manifest = run_pipeline(source, workspace, target_seconds=target_seconds,
                                     output_stem=output_stem, product_name=product_name,
                                     on_stage=on_stage, virtual_timeline=vt)
+    except JobPaused as exc:
+        result_queue.put(("paused", exc.stage))
     except PipelineError as exc:
         result_queue.put(("pipeline_error", str(exc)))
     except BaseException as exc:  # noqa: BLE001 - 跨进程回传未预期错误
@@ -171,6 +180,9 @@ class JobRunner:
         self._queue: list[str] = []
         self._queued: set[str] = set()
         self._cancelled: set[str] = set()
+        self._pause_requested: set[str] = set()
+        self._pause_event = None
+        self.control_lock = threading.RLock()
         self._active_stage: dict[str, str] = {}
         self._current: str | None = None
         self._condition = threading.Condition()
@@ -183,6 +195,9 @@ class JobRunner:
         if self._thread and self._thread.is_alive():
             return
         self._running = True
+        for job in self.store.list_jobs(limit=10000):
+            if job['status'] == 'pausing':
+                self.store.update_job(job['id'], status='paused', run_stage=job.get('current_stage'))
         for job in self.store.list_recoverable_jobs():
             if job.get("run_stage"):
                 self.store.prepare_stage_rerun(job["id"], job["run_stage"])
@@ -208,17 +223,53 @@ class JobRunner:
                 return
             self._queued.add(job_id)
             self._queue.append(job_id)
+            self.store.update_job(job_id, status="queued", error=None, finished_at=None)
             self._condition.notify_all()
-        self.store.update_job(job_id, status="queued", error=None, finished_at=None)
         if event:
             self.store.add_event(job_id, None, "info", "queued", "任务已加入执行队列")
+
+    def pause(self, job_id: str) -> None:
+        with self._condition:
+            job = self.store.get_job(job_id)
+            if not job or job['status'] not in {'queued', 'running', 'pausing', 'paused'}:
+                raise ValueError('仅排队或运行中的任务可以暂停')
+            if job['status'] in {'paused', 'pausing'}:
+                return
+            self._pause_requested.add(job_id)
+            if job_id in self._queued:
+                self._queued.discard(job_id)
+                self._queue.remove(job_id)
+                self.store.update_job(job_id, status='paused')
+            else:
+                self.store.update_job(job_id, status='pausing')
+                if self._current == job_id and self._pause_event is not None:
+                    self._pause_event.set()
+            self.store.add_event(job_id, None, 'info', 'pause_requested', '请求暂停：当前步骤完成后停止')
+
+    def resume(self, job_id: str) -> None:
+        job = self.store.get_job(job_id)
+        if not job or job['status'] != 'paused':
+            raise ValueError('仅已暂停任务可以继续')
+        with self._condition:
+            if self._current == job_id:
+                self._condition.wait_for(lambda: self._current != job_id, timeout=5)
+                if self._current == job_id:
+                    raise ValueError('任务仍在保存暂停状态，请稍后继续')
+        self._pause_requested.discard(job_id)
+        stage = job.get('run_stage')
+        if stage in {'filter', 'judge', 'order', 'render'} and job.get('job_type') != 'remix':
+            self.store.prepare_stage_rerun(job_id, stage)
+        else:
+            self.store.update_job(job_id, run_stage=None)
+        self.enqueue(job_id)
 
     def cancel(self, job_id: str) -> bool:
         job = self.store.get_job(job_id)
         if not job:
             return False
-        if job["status"] not in {"queued", "running"}:
+        if job["status"] not in {"queued", "running", "pausing", "paused"}:
             return False
+        self._pause_requested.discard(job_id)
         self._cancelled.add(job_id)
         with self._condition:
             if job_id in self._queued:
@@ -370,6 +421,9 @@ class JobRunner:
                 self._cancelled.discard(job_id)
                 continue
             self._current = job_id
+            if self.store.get_job(job_id)["status"] == "paused":
+                self._current = None
+                continue
             try:
                 self._run(job)
             finally:
@@ -392,6 +446,11 @@ class JobRunner:
 
     def _run(self, job: dict[str, Any]) -> None:
         job_id = job["id"]
+        if not job.get("remote_model_json"):
+            configuration = {key: self.store.get_setting(key) for key in ('ai_engine', 'ai_provider', 'ai_model')}
+            configuration = {key: value for key, value in configuration.items() if value is not None}
+            job['remote_model_json'] = json.dumps(configuration)
+            self.store.update_job(job_id, remote_model_json=job['remote_model_json'])
         source = Path(job["source_path"])
         workspace = Path(job["workspace"])
         workspace.mkdir(parents=True, exist_ok=True)
@@ -407,19 +466,26 @@ class JobRunner:
             self._active_stage[job_id] = stage
             if status == "start":
                 self.store.stage_start(job_id, stage, message)
+                if job_id in self._pause_requested:
+                    self.store.update_job(job_id, status="pausing")
             else:
                 self.store.stage_done(job_id, stage, message)
 
         output_stem = str(job.get("title") or "").strip() or None
         product_name = str(job.get("product_name") or "").strip() or None
         try:
-            with self._ai_environment():
+            with self._ai_environment(job):
                 manifest = self._execute_pipeline(
                     job_id, str(source), str(workspace), target_seconds, on_stage,
                     only_stage=only_stage, output_stem=output_stem,
                     product_name=product_name)
+        except JobPaused as exc:
+            self.store.update_job(job_id, status="paused", run_stage=exc.stage)
+            self.store.add_event(job_id, exc.stage, "info", "paused", "已暂停，当前步骤结果已保存")
         except JobCancelled:
-            if self.store.get_job(job_id):
+            if job_id in self._pause_requested and not self._running:
+                self.store.update_job(job_id, status="paused", run_stage=self._active_stage.get(job_id))
+            elif self.store.get_job(job_id):
                 self._finish(job_id, "cancelled", "任务已取消")
         except PipelineError as exc:
             stage = self._active_stage.get(job_id, "asr")
@@ -445,10 +511,13 @@ class JobRunner:
         """执行子进程并把阶段事件同步回主服务；取消时终止整棵进程树。"""
         context = multiprocessing.get_context("spawn")
         result_queue = context.Queue()
+        self._pause_event = context.Event()
+        if job_id in self._pause_requested:
+            self._pause_event.set()
         process = context.Process(
             target=_run_pipeline_child,
             args=(result_queue, source, workspace, target_seconds, only_stage,
-                  output_stem, product_name),
+                  output_stem, product_name, self._pause_event),
             name=f"pipeline-{job_id}",
         )
         process.start()
@@ -479,6 +548,8 @@ class JobRunner:
             process.join(timeout=2)
             if terminal[0] == "success":
                 return terminal[1]
+            if terminal[0] == "paused":
+                raise JobPaused(terminal[1])
             if terminal[0] == "pipeline_error":
                 raise PipelineError(terminal[1])
             raise RuntimeError(terminal[1])
@@ -488,6 +559,7 @@ class JobRunner:
             process.join(timeout=2)
             result_queue.close()
             self._process = None
+            self._pause_event = None
 
     def _terminate_active_process(self, job_id: str | None = None) -> None:
         process = self._process
@@ -515,7 +587,7 @@ class JobRunner:
             process.kill()
 
     @contextmanager
-    def _ai_environment(self) -> Iterator[None]:
+    def _ai_environment(self, job: dict[str, Any] | None = None) -> Iterator[None]:
         """把 DB 中的 AI 设置注入管线所需的环境变量，跑完恢复原值。
 
         未配置 DB 设置时，用 ``_AI_ENV_DEFAULTS`` 注入生产默认（S3 并发/重试）；DB
@@ -523,8 +595,9 @@ class JobRunner:
         """
         managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS)
         previous = {key: os.environ.get(key) for key in managed}
+        override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
-            value = self.store.get_setting(setting_key)
+            value = override.get(setting_key, self.store.get_setting(setting_key))
             if value:
                 os.environ[env_key] = str(value)
         for env_key, default in _AI_ENV_DEFAULTS.items():
@@ -620,6 +693,7 @@ class JobRunner:
                                             f"成片（导出）· {path.name}", path, "video/mp4")
                 self.store.add_event(job_id, "render", "success", "exported",
                                      f"已导出 {len(exported)} 个文件到 {export_dir}")
+        self._pause_requested.discard(job_id)
         self.store.bump_edit_count(job_id)
         self.store.update_job(job_id, status="completed", progress=100, run_stage=None,
                               current_stage="render", finished_at=utc_now(), error=None)
@@ -654,7 +728,10 @@ class JobRunner:
         # 单节点重跑不再停在 waiting_input：自动继续到下一个节点，直到渲染出片。
         next_stage = {"filter": "judge", "judge": "order", "order": "render"}[stage_id]
         self.store.prepare_stage_rerun(job_id, next_stage)
-        self._enqueue(job_id, event=False)
+        if job_id in self._pause_requested:
+            self.store.update_job(job_id, status="paused")
+        else:
+            self._enqueue(job_id, event=False)
 
     def _fail(self, job_id: str, stage: str, message: str) -> None:
         self.store.update_stage(job_id, stage, status="failed", progress=0, message=message,

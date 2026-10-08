@@ -154,3 +154,8 @@ V3 当前按内容画像的角色分布选择结构重心，使用 beam search �
 数据库预留 `feedback.decisions/order/deletion_reasons/human_retained_seconds/retention_ratio`，当前没有人工反馈编辑 UI。指标定义：人工最终保留时长 / 系统生成时长；无人工输入时为 null。
 
 验证命令：`python -m unittest discover -s tests -q`；前端：`node --check web/app.js` 和 `node --check web/smart-v3.js`。`tests/test_smart_v3.py` 使用可控 fake AI 覆盖上身效果型、穿搭型、面料品质型、多候选最高分选择、结构校验、复审替换和有限失败；HTTP 和真实 ffmpeg fixture 覆盖端到端闭环，旧数据库字节哈希覆盖执行/失败/重试/删除隔离。V3 脚本独立加载，入口和 app 脚本使用新的版本参数避免浏览器缓存。
+
+
+## 手机剪辑管理
+
+新增千川app剪辑管理与电脑主动同步连接，配置与操作语义见 [REMOTE_CLIPPING.md](REMOTE_CLIPPING.md)。

@@ -985,6 +985,12 @@ class Handler(BaseHTTPRequestHandler):
                 parts = path.strip("/").split("/")
                 if len(parts) == 4:
                     job_id, action = parts[2], parts[3]
+                    if action == "pause":
+                        self.app.runner.pause(job_id)
+                        return self.json_response({"status": self.app.store.get_job(job_id)["status"]})
+                    if action == "resume":
+                        self.app.runner.resume(job_id)
+                        return self.json_response({"queued": True})
                     if action == "cancel":
                         return self.json_response({"cancelled": self.app.runner.cancel(job_id)})
                     if action == "retry":
@@ -1178,6 +1184,10 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
             raise RuntimeError("已有一个 LiveCut 服务正在使用当前任务数据库") from None
     app = Application(root)
     app.runner.start()
+    from .remote_control import RemoteConnector
+    connector = RemoteConnector.from_environment(app)
+    if connector:
+        connector.start()
     server = Server((host, port), app)
     print(f"Agent Live Sliced Video: http://{host}:{port}")
     print(f"MCP endpoint: http://{host}:{port}/mcp")
@@ -1186,6 +1196,8 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
     except KeyboardInterrupt:
         pass
     finally:
+        if connector:
+            connector.stop()
         app.runner.stop()
         server.server_close()
         if fcntl is not None:
