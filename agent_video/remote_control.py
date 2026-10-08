@@ -1,4 +1,4 @@
-"""Outbound HTTPS relay; optional and disabled unless configured."""
+"""Outbound HTTP relay; optional and disabled unless configured."""
 import json
 import logging
 import os
@@ -13,10 +13,10 @@ log = logging.getLogger(__name__)
 
 
 class RemoteConnector:
-    def __init__(self, app, url, device_id, token):
-        if not url.startswith('https://'):
-            raise ValueError('LIVE_CUT_REMOTE_URL 必须使用 HTTPS')
-        self.app, self.url, self.device_id, self.token = app, url.rstrip('/'), device_id, token
+    def __init__(self, app, url, device_id):
+        if not url.startswith(('http://', 'https://')):
+            raise ValueError('LIVE_CUT_REMOTE_URL 必须使用 HTTP 或 HTTPS')
+        self.app, self.url, self.device_id = app, url.rstrip('/'), device_id
         self.stopping = threading.Event()
         self.path = Path(app.root) / 'data' / 'remote_commands.db'
         self.models = {}
@@ -32,10 +32,9 @@ class RemoteConnector:
         if not url:
             return None
         device = os.getenv('LIVE_CUT_DEVICE_ID', '').strip()
-        token = os.getenv('LIVE_CUT_DEVICE_TOKEN', '').strip()
-        if not device or not token:
-            raise ValueError('请配置 LIVE_CUT_DEVICE_ID 和 LIVE_CUT_DEVICE_TOKEN')
-        return cls(app, url, device, token)
+        if not device:
+            raise ValueError('请配置 LIVE_CUT_DEVICE_ID')
+        return cls(app, url, device)
 
     @contextmanager
     def journal(self):
@@ -130,7 +129,7 @@ class RemoteConnector:
             results = [dict(id=r[0], status=r[1], **json.loads(r[2])) for r in con.execute("SELECT id,status,result FROM receipts WHERE acknowledged=0 AND status!='running' LIMIT 100")]
         payload = json.dumps({'snapshot': self.snapshot(), 'results': results}, ensure_ascii=False).encode()
         req = urllib.request.Request(self.url+'/api/clipping/agent/'+self.device_id+'/exchange', data=payload,
-                headers={'Authorization': 'Bearer '+self.token, 'Content-Type': 'application/json'})
+                headers={'Content-Type': 'application/json'})
         with urllib.request.urlopen(req, timeout=10) as response:
             body = json.load(response)
         with self.journal() as con:

@@ -22,11 +22,17 @@ class ControlTests(unittest.TestCase):
         self.runner = JobRunner(self.store, self.root)
         self.app = SimpleNamespace(root=self.root, store=self.store, runner=self.runner,
             settings=lambda: {'ai_models': {'codex': [{'id': 'model', 'name': 'model'}]}})
-        self.connector = RemoteConnector(self.app, 'https://relay.example', 'pc', 'secret')
+        self.connector = RemoteConnector(self.app, 'http://relay.example', 'pc')
         self.connector.models = {'codex': [{'id': 'model'}]}
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_http_environment_needs_no_credentials(self):
+        with patch.dict(os.environ, {'LIVE_CUT_REMOTE_URL': 'http://relay.example',
+                                    'LIVE_CUT_DEVICE_ID': 'pc'}, clear=True):
+            connector = RemoteConnector.from_environment(self.app)
+            self.assertEqual(connector.url, 'http://relay.example')
 
     def test_queued_pause_resume_and_restart_persistence(self):
         self.runner.enqueue(self.job)
@@ -89,7 +95,7 @@ class ControlTests(unittest.TestCase):
             self.assertEqual(execute.call_count, 1)
         with self.connector.journal() as con:
             con.execute("INSERT INTO receipts(id,status,result) VALUES ('interrupted','running','{}')")
-        restarted = RemoteConnector(self.app, 'https://relay.example', 'pc', 'secret')
+        restarted = RemoteConnector(self.app, 'http://relay.example', 'pc')
         with restarted.journal() as con:
             self.assertEqual(con.execute("SELECT status FROM receipts WHERE id='interrupted'").fetchone()[0], 'unknown')
 

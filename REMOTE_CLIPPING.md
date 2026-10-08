@@ -1,6 +1,6 @@
 # 手机管理本地剪辑
 
-千川 Flutter 客户端新增「剪辑管理」。电脑剪辑助手主动通过 HTTPS 每约 3 秒同步到千川后端，上传状态、领取操作、回传执行回执。服务器不需要连接电脑的入站端口，原视频、模型密钥和渲染产物留在电脑。仅上传最近 100 个主队列任务，每任务最近 20 条日志。
+千川 Flutter 客户端新增「剪辑管理」。电脑剪辑助手主动通过 HTTP 每约 3 秒同步到千川后端，上传状态、领取操作、回传执行回执。服务器不需要连接电脑的入站端口，原视频、模型密钥和渲染产物留在电脑。仅上传最近 100 个主队列任务，每任务最近 20 条日志。
 
 ## 支持范围
 
@@ -10,52 +10,35 @@
 
 重试只允许失败、取消或暂停的任务，保留现有确定性素材缓存并重算后续步骤。模型切换只允许暂停、失败或取消状态，按任务记录模型，保持全局设置不变；有 S2 结果时继续会重算 S3 及下游，没有有效上游时重新开始。模型目录来自电脑当前配置；模型是否可调用仍取决于对应 CLI 的安装、登录、账号权限和网络。
 
-## 服务器配置
+## 服务器与电脑配置
 
-生成两个不同的随机长凭证（建议至少 32 字节）：一个手机凭证、一个电脑设备凭证。不要提交实际凭证到仓库。
+千川后端新增接口无需访问凭证。Docker Compose 持久化 `CLIPPING_DB_PATH=/app/data/clipping.db`，沿用现有 HTTP 服务部署。
 
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-部署千川后端时设置：
-
-```text
-CLIPPING_CLIENT_TOKEN=<手机凭证>
-CLIPPING_DEVICES_JSON={"editing-pc":"<电脑设备凭证>"}
-CLIPPING_DB_PATH=/app/data/clipping.db
-```
-
-Docker Compose 已转发这三个环境变量，数据库保存在持久化 data 卷。在 server 目录创建私有 `.env` 文件或通过部署系统注入；勿将真实凭证写进示例文件。保留千川已有部署方式，在反向代理提供有效证书的 HTTPS 地址，转发 `/api/clipping/*` 到千川后端。不支持手机通过明文 HTTP 发送凭证。
-
-## 电脑配置
-
-在启动剪辑助手的同一个终端配置：
+电脑启动剪辑助手前设置：
 
 ```powershell
-$env:LIVE_CUT_REMOTE_URL = "https://你的千川服务域名"
+$env:LIVE_CUT_REMOTE_URL = "http://你的服务器IP:端口"
 $env:LIVE_CUT_DEVICE_ID = "editing-pc"
 $env:LIVE_CUT_DEVICE_NAME = "剪辑电脑"
-$env:LIVE_CUT_DEVICE_TOKEN = "<电脑设备凭证>"
 python -m agent_video
 ```
 
-不配置 `LIVE_CUT_REMOTE_URL` 时保持本地运行，不开启同步。连接模块随剪辑服务启动/关闭，失败时自动重连。电脑需要保持开机、联网并避免休眠。不要同时启动两个连接同一设备 ID 的剪辑服务。
+无需手机凭证、设备凭证或设备预注册。不配置远程地址时保持本地运行。设备 ID 在多台电脑之间应保持唯一。
 
 ## 手机配置
 
-安装更新后的千川app，打开「剪辑管理」右上角设置，输入同一 HTTPS 服务地址与手机凭证。Android 使用应用私有设置保存；其余平台一期仅在内存保存，重启需重新填写。配置生效后等待电脑首次同步，展开任务查看阶段、日志并操作。
+安装更新后的千川app，打开「剪辑管理」右上角设置，输入同一 HTTP 服务地址。Android 使用应用私有设置保存；其余平台一期仅在内存保存，重启需重新填写。配置生效后等待电脑首次同步，展开任务查看阶段、日志并操作。
 
 电脑超过 20 秒未同步显示离线；离线禁止下发操作，仍显示最后记录。连接异常时页面立即禁用操作。操作区分已提交、电脑已接收、成功、失败、过期和结果未知。请求有唯一 ID，服务器与电脑持久化去重；未领取的指令 30 秒过期，已领取指令不会被自动重复下发。电脑在操作期间崩溃时结果标记未知，需要人工核对后重新操作。
 
-这是个人使用的专用凭证方案：手机凭证能管理服务器上配置的全部剪辑设备，不是多用户权限系统。新剪辑接口独立鉴权，不改变原千川接口。更换泄露的凭证需要同时更新对应客户端/电脑，重启服务器使配置生效。
+接口按个人使用要求免鉴权：能够访问服务器地址的客户端可以查看设备、提交操作和上报状态。
 
 ## 接口
 
-- `GET /api/clipping/devices`：设备及任务快照（手机凭证）。
+- `GET /api/clipping/devices`：设备及任务快照。
 - `POST /api/clipping/devices/{device_id}/commands`：带 `request_id/job_id/action` 的操作，action 为 `pause/resume/retry/set-model`；模型操作另传 `provider/model`。
-- `GET /api/clipping/commands/{id}`：操作回执（手机凭证）。
-- `POST /api/clipping/agent/{device_id}/exchange`：电脑上传快照、回执并领取指令（该设备凭证）。
+- `GET /api/clipping/commands/{id}`：操作回执。
+- `POST /api/clipping/agent/{device_id}/exchange`：电脑上传快照、回执并领取指令。
 
 本地剪辑接口新增 `POST /api/jobs/{id}/pause` 和 `/resume`，沿用本机 Web 服务的访问方式。
 
