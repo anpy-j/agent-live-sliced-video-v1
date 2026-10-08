@@ -770,7 +770,8 @@ class WorkBuddyCli(CliProvider):
         self.validate_vision_model(model)
         image_paths = "\n".join(f"- {path.resolve()}" for path in images)
         command = [
-            *self._command_prefix(), "-p", "--output-format", "json",
+            *self._command_prefix(), "--host", "127.0.0.1", "--port", "0",
+            "-p", "--output-format", "json",
             "--json-schema", json.dumps(VISUAL_PLAN_SCHEMA, ensure_ascii=False,
                                          separators=(",", ":")),
             "--model", model, "--max-turns", "4", "--tools", "Read,StructuredOutput",
@@ -800,7 +801,8 @@ class WorkBuddyCli(CliProvider):
         self._ensure_available()
         self.validate_model(model)
         command = [
-            *self._command_prefix(), "-p", "--output-format", "json",
+            *self._command_prefix(), "--host", "127.0.0.1", "--port", "0",
+            "-p", "--output-format", "json",
             "--json-schema", json.dumps(schema, ensure_ascii=False, separators=(",", ":")),
             "--model", model, "--max-turns", "4", "--tools", "StructuredOutput",
             "--permission-mode", "dontAsk", "--no-session-persistence",
@@ -827,7 +829,8 @@ class WorkBuddyCli(CliProvider):
         self.validate_model(model)
         required = tuple(schema.get("required") or ())
         command = [
-            *self._command_prefix(), "-p", "--output-format", "json",
+            *self._command_prefix(), "--host", "127.0.0.1", "--port", "0",
+            "-p", "--output-format", "json",
             "--json-schema", json.dumps(schema, ensure_ascii=False, separators=(",", ":")),
             "--model", model, "--max-turns", "4", "--tools", "StructuredOutput",
             "--permission-mode", "dontAsk", "--no-session-persistence",
