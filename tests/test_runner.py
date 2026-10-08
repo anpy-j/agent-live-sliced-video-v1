@@ -277,10 +277,75 @@ class StageCascadeTest(unittest.TestCase):
                 runner._succeed_stage(job_id, workspace, "judge",
                                       {"stage": "judge", "usable": 1},
                                       store.get_job(job_id))
-            enqueue.assert_called_once()
+            enqueue.assert_called_once_with(job_id, event=False, prepend=True)
             updated = store.get_job(job_id)
             self.assertEqual(updated["run_stage"], "order")
             self.assertEqual(updated["status"], "queued")
+
+    def test_batch_recovery_prioritizes_current_job_downstream_stages(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            store = Store(root / "agent.db")
+            ws_a = root / "ws_a"
+            ws_b = root / "ws_b"
+            ws_a.mkdir()
+            ws_b.mkdir()
+            (ws_a / "clauses.judged.json").write_text("{}", encoding="utf-8")
+            job_a = self._job(store, ws_a)
+            job_b = self._job(store, ws_b)
+            runner = JobRunner(store, root)
+            runner._queue = [job_b]
+            runner._queued = {job_b}
+            runner._succeed_stage(job_a, ws_a, "judge", {"stage": "judge", "usable": 1},
+                                  store.get_job(job_a))
+            # job_a must be prepended before job_b in queue
+            self.assertEqual(runner._queue, [job_a, job_b])
+
+    def test_two_jobs_cascade_completes_first_job_before_second(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            store = Store(root / "agent.db")
+            ws_a = root / "ws_a"
+            ws_b = root / "ws_b"
+            ws_a.mkdir()
+            ws_b.mkdir()
+            (ws_a / "clauses.judged.json").write_text("{}", encoding="utf-8")
+            (ws_a / "order.json").write_text("{}", encoding="utf-8")
+            (ws_b / "clauses.judged.json").write_text("{}", encoding="utf-8")
+            (ws_b / "order.json").write_text("{}", encoding="utf-8")
+            job_a = self._job(store, ws_a)
+            job_b = self._job(store, ws_b)
+            runner = JobRunner(store, root)
+            runner._queue = [job_a, job_b]
+            runner._queued = {job_a, job_b}
+            execution_order = []
+
+            def fake_execute_pipeline(job_id, source, workspace, target_seconds, on_stage,
+                                  only_stage=None, output_stem=None, product_name=None):
+                execution_order.append((job_id, only_stage))
+                return {"output": "out.mp4", "segments": []}
+
+            runner._execute_pipeline = fake_execute_pipeline
+            store.prepare_stage_rerun(job_a, "judge")
+            store.prepare_stage_rerun(job_b, "judge")
+            runner._running = True
+            while runner._queue:
+                job_id = runner._queue.pop(0)
+                runner._queued.discard(job_id)
+                job = store.get_job(job_id)
+                runner._run(job)
+
+            self.assertEqual(execution_order, [
+                (job_a, "judge"),
+                (job_a, "order"),
+                (job_a, "render"),
+                (job_b, "judge"),
+                (job_b, "order"),
+                (job_b, "render"),
+            ])
+            self.assertEqual(store.get_job(job_a)["status"], "completed")
+            self.assertEqual(store.get_job(job_b)["status"], "completed")
+
 
     def test_render_stage_finalizes_job_without_waiting(self):
         with tempfile.TemporaryDirectory() as temp:

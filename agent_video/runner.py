@@ -217,12 +217,18 @@ class JobRunner:
     def enqueue(self, job_id: str) -> None:
         self._enqueue(job_id, event=True)
 
-    def _enqueue(self, job_id: str, *, event: bool) -> None:
+    def _enqueue(self, job_id: str, *, event: bool, prepend: bool = False) -> None:
         with self._condition:
-            if job_id in self._queued:
-                return
-            self._queued.add(job_id)
-            self._queue.append(job_id)
+            if prepend:
+                if job_id in self._queue:
+                    self._queue.remove(job_id)
+                self._queue.insert(0, job_id)
+                self._queued.add(job_id)
+            else:
+                if job_id in self._queued:
+                    return
+                self._queued.add(job_id)
+                self._queue.append(job_id)
             self.store.update_job(job_id, status="queued", error=None, finished_at=None)
             self._condition.notify_all()
         if event:
@@ -725,13 +731,14 @@ class JobRunner:
             self.store.add_artifact(job_id, stage_id, "json", title, path, "application/json")
         self.store.add_event(job_id, stage_id, "success", "single_stage_completed",
                              "单节点重新执行完成", result)
-        # 单节点重跑不再停在 waiting_input：自动继续到下一个节点，直到渲染出片。
+        # 单节点重跑不再停在 waiting_input：自动优先推进当前计划的下游节点直到出片，
+        # 批量恢复时优先完成当前计划，再执行下一个计划。
         next_stage = {"filter": "judge", "judge": "order", "order": "render"}[stage_id]
         self.store.prepare_stage_rerun(job_id, next_stage)
         if job_id in self._pause_requested:
             self.store.update_job(job_id, status="paused")
         else:
-            self._enqueue(job_id, event=False)
+            self._enqueue(job_id, event=False, prepend=True)
 
     def _fail(self, job_id: str, stage: str, message: str) -> None:
         self.store.update_stage(job_id, stage, status="failed", progress=0, message=message,
