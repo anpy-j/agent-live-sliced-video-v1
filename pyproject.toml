@@ -5,6 +5,7 @@ description = "Observable local agent for live-stream video slicing"
 requires-python = ">=3.11"
 dependencies = [
   "Pillow>=10,<13",
+  "psutil>=6,<8",
   "pypinyin>=0.50,<1",
   "zhconv>=1.4,<2",
 ]

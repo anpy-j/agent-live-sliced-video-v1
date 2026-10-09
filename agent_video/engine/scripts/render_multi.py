@@ -18,6 +18,7 @@ from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ffmpeg_graph import filter_complex_args  # noqa: E402
+from render_resources import admit_render, run_render  # noqa: E402
 
 SEEK_PREROLL_SECONDS = 5.0
 
@@ -181,7 +182,15 @@ def main():
     args.width, args.height = output_size(
         sources[int(timeline[0].get("src", 1))], args.width, args.height)
 
-    command = ["ffmpeg", "-y", "-v", "error"]
+    sizes = {key: source_size(path) for key, path in sources.items()}
+    decoder_bytes = sum(max(64 * 1024 ** 2,
+                            sizes[int(row.get("src", 1))][0] *
+                            sizes[int(row.get("src", 1))][1] * 4 * 8)
+                        for row in timeline)
+    budget, initial_state = admit_render(decoder_bytes)
+    command = ["ffmpeg", "-y", "-v", "error",
+               "-filter_threads", str(budget.filter_threads),
+               "-filter_complex_threads", str(budget.filter_threads)]
     input_windows = []
     for row in timeline:
         start, end = float(row["start"]), float(row["end"])
@@ -189,7 +198,8 @@ def main():
             raise SystemExit(f"Invalid segment bounds: {start}-{end}")
         seek_start, input_duration, trim_start, raw_duration = input_window(start, end)
         input_windows.append((trim_start, raw_duration))
-        command += ["-ss", f"{seek_start:.6f}", "-t", f"{input_duration:.6f}",
+        command += ["-threads", str(budget.decoder_threads),
+                    "-ss", f"{seek_start:.6f}", "-t", f"{input_duration:.6f}",
                     "-i", sources[int(row.get("src", 1))]]
 
     frame_counts = segment_frame_counts(timeline, fps)
@@ -215,12 +225,13 @@ def main():
     partial_output = final_output + ".partial.mp4"
     filter_args, filter_script = filter_complex_args(filters)
     command += [*filter_args, "-map", "[vcat]", "-map", "[aout]",
-                "-c:v", "libx264", "-crf", str(args.crf), "-preset", args.preset,
+                "-c:v", "libx264", "-threads:v", str(budget.encoder_threads),
+                "-threads:a", "1", "-crf", str(args.crf), "-preset", args.preset,
                 "-pix_fmt", "yuv420p", "-r", f"{fps:.6f}",
                 "-c:a", "aac", "-b:a", args.audio_bitrate, "-ar", "48000", "-ac", "2",
                 "-movflags", "+faststart", partial_output]
     try:
-        run(command)
+        run_render(command, budget, initial_state, final_output)
     finally:
         if os.path.exists(filter_script):
             os.unlink(filter_script)
