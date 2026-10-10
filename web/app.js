@@ -438,7 +438,7 @@ async function renderMcp(){
   app.innerHTML=`<div class="hero"><div><span class="eyebrow">MODEL-AGNOSTIC BRIDGE</span><h1>MCP 接入</h1><p>WorkBuddy、Codex、Antigravity、OpenCode 等客户端共享同一套剪辑能力与任务状态。</p></div>${status(data.enabled?'completed':'failed')}</div><div class="detail-grid"><div><div class="panel"><div class="panel-head"><div><h2>客户端配置</h2><p>${escapeHtml(data.url)}</p></div><button class="button ghost small" id="rotateToken">轮换密钥</button></div><div class="connection-tabs">${Object.keys(data.configs).map((k,i)=>`<button class="tab-button ${i===0?'active':''}" data-config="${escapeHtml(k)}">${escapeHtml(k)}</button>`).join('')}</div><div class="config-box"><pre id="configText">${escapeHtml(JSON.stringify(data.configs[first],null,2))}</pre><button class="button ghost small copy-button" id="copyConfig">复制</button></div></div><div class="panel"><div class="panel-head"><div><h2>公开工具</h2><p>${data.tools.length} 个业务级动作</p></div></div><div class="tools-list">${data.tools.map(t=>`<div class="tool-card"><code>${escapeHtml(t.name)}</code><p>${escapeHtml(t.description)}</p></div>`).join('')}</div></div></div><div class="panel"><div class="panel-head"><div><h2>连接状态</h2><p>本地 Streamable HTTP</p></div></div><div class="info-list"><div class="info-item"><span>Endpoint</span><code>${escapeHtml(data.url)}</code></div><div class="info-item"><span>认证</span><b>Bearer Token</b></div><div class="info-item"><span>当前密钥</span><code>${escapeHtml(data.token)}</code></div><div class="info-item"><span>安全边界</span><b>默认只监听 127.0.0.1</b></div></div></div></div>`;
   $$('[data-config]').forEach(btn=>btn.addEventListener('click',()=>{$$('[data-config]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$('#configText').textContent=JSON.stringify(data.configs[btn.dataset.config],null,2)}));
   $('#copyConfig').addEventListener('click',()=>navigator.clipboard.writeText($('#configText').textContent).then(()=>toast('配置已复制')));
-  $('#rotateToken').addEventListener('click',async()=>{if(!confirm('旧密钥会立即失效，继续吗？'))return;await api('/api/mcp/token',{method:'POST',body:'{}'});toast('密钥已轮换');renderMcp()});
+  $('#rotateToken').addEventListener('click',async()=>{if(!confirm('旧密钥会立即失效，继续吗？'))return;await api('/api/mcp/token',{method:'POST',body:'{}'});toast('密钥已轮换');renderSettingsPage('mcp')});
 }
 
 async function renderSettings(){
@@ -657,9 +657,10 @@ async function route(){
     if(hash==='#/viral-v2')return await renderViralV2();
     if(hash==='#/smart-v3')return await window.renderSmartV3();
     if(hash==='#/label')return await renderLabel();
-    if(hash==='#/skill')return await renderSkill();
-    if(hash==='#/mcp')return await renderMcp();
-    if(hash==='#/settings')return await renderSettings();
+    if(hash==='#/skill'){location.replace('#/settings/skill');return;}
+    if(hash==='#/mcp'){location.replace('#/settings/mcp');return;}
+    if(hash.startsWith('#/settings'))return await renderSettingsPage(hash.split('/')[2]||'runtime');
+    if(hash.startsWith('#/editor'))return await window.LiveCutEditor.mount(app);
     return await renderDashboard();
   }catch(e){app.innerHTML=`<div class="danger-box">${escapeHtml(e.message)}</div>`;}
 }
@@ -934,3 +935,31 @@ window.addEventListener('hashchange',()=>{$('.sidebar').classList.remove('open')
 setInterval(()=>{$('#clock').textContent=new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());updateLiveTimes()},1000);
 api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · MCP online`).catch(()=>$('#systemVersion').textContent='连接失败');
 route();
+
+async function renderSettingsPage(tab='runtime') {
+  const tabs={runtime:'运行环境',ai:'AI 配置',skill:'Skill 管理',mcp:'MCP 接入',editor:'剪辑与导出',desktop:'桌面应用'};
+  if(!tabs[tab])tab='runtime';
+  if(tab==='skill')await renderSkill();
+  else if(tab==='mcp')await renderMcp();
+  else if(tab==='editor'&&window.LiveCutEditor)await window.LiveCutEditor.settings(app);
+  else if(tab==='desktop') {
+    app.innerHTML='<div class="hero"><div><h1>桌面应用</h1><p>LiveCut 支持 Windows 和 macOS，本地素材与项目保存在本机。</p></div></div><div class="panel" id="desktopInfo"></div>';
+    const info=window.livecutDesktop?await window.livecutDesktop.info():null;
+    $('#desktopInfo').textContent=info?`LiveCut ${info.version} · ${info.platform} · 工作目录：${info.workspace}`:'当前通过浏览器访问。桌面版本使用同一套剪辑项目与本地服务。';
+  } else {
+    await renderSettings();
+    const form=$('#settingsForm');
+    const groups=[...form.children];
+    for(const el of groups){
+      if(el.matches('button,.form-error'))continue;
+      const names=[...el.querySelectorAll('[name]')].map(x=>x.name);
+      const ai=names.some(x=>x.startsWith('ai_')||x.startsWith('jev_'));
+      const section=el.classList.contains('settings-section');
+      el.hidden=section||((tab==='ai')?!ai:ai);
+    }
+  }
+  setCrumb('系统设置');
+  const nav=document.createElement('nav');nav.className='settings-tabs';nav.setAttribute('aria-label','系统设置分类');
+  nav.innerHTML=Object.entries(tabs).map(([id,label])=>`<a class="tab-button ${tab===id?'active':''}" href="#/settings/${id}" ${tab===id?'aria-current="page"':''}>${label}</a>`).join('');
+  app.prepend(nav);
+}

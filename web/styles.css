@@ -106,3 +106,5 @@ button.status:hover{transform:none;background:rgba(168,255,53,.08)}
 .viral-reference-choice .viral-dna small{margin-top:2px}
 .viral-reference-tag{display:inline-block;margin:2px 5px 2px 0;padding:3px 7px;border:1px solid rgba(104,167,255,.28);border-radius:99px;background:rgba(104,167,255,.07);color:var(--blue);font-size:10px}
 @media(max-width:680px){.viral-source-row{align-items:stretch;flex-direction:column}.viral-reference-picker{grid-template-columns:1fr}}
+
+.settings-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}.settings-tabs a{text-decoration:none}.settings-form [hidden]{display:none!important}
