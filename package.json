@@ -13,7 +13,8 @@
     "dist:mac": "npm run build:runtime && electron-builder --mac dmg --publish never",
     "pack:desktop": "npm run build:runtime && electron-builder --dir --publish never",
     "postinstall": "install-electron",
-    "test:desktop": "node tests/desktop-ui.test.cjs"
+    "test:desktop": "node tests/desktop-ui.test.cjs",
+    "test:desktop-native": "node tests/desktop-native.test.cjs"
   },
   "build": {
     "appId": "app.livecut.desktop",

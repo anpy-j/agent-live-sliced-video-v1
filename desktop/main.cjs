@@ -13,7 +13,8 @@ function startBackend(){
   workspace=process.env.LIVECUT_WORKSPACE||config.workspace||path.join(app.getPath('userData'),'workspace');fs.mkdirSync(workspace,{recursive:true});
   const source=path.resolve(__dirname,'..');
   const runtime=path.join(process.resourcesPath,'runtime');
-  const executable=app.isPackaged?path.join(runtime,'livecut-backend',process.platform==='win32'?'livecut-backend.exe':'livecut-backend'):(process.env.LIVECUT_PYTHON||(process.platform==='win32'?'python':'python3'));
+  const localPython=path.join(source,'.runtime','desktop-build',process.platform==='win32'?'Scripts/python.exe':'bin/python');
+  const executable=app.isPackaged?path.join(runtime,'livecut-backend',process.platform==='win32'?'livecut-backend.exe':'livecut-backend'):(process.env.LIVECUT_PYTHON||(fs.existsSync(localPython)?localPython:process.platform==='win32'?'python':'python3'));
   const args=app.isPackaged?[]:['-m','agent_video'];
   const port=Number(process.env.LIVECUT_DESKTOP_PORT??config.port??0);
   if(!Number.isInteger(port)||port<0||port>65535)throw new Error('本地服务端口需要在 0–65535 之间');
