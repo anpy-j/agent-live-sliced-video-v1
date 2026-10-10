@@ -25,7 +25,7 @@ async function run(){
   },{id:projectId,output:path.join(work,'output')});
   await page.reload();await page.locator('.edit-clip').waitFor();
   await page.locator('#editSeek').evaluate(e=>{e.value='1';e.dispatchEvent(new Event('input'));});
-  await page.locator('.edit-clip').click();await page.locator('[data-action="split"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
+  await page.locator('.edit-clip').click();await page.locator('[data-action="split"]').click();assert.equal(await page.locator('.edit-clip').count(),2);await page.keyboard.press(process.platform==='darwin'?'Meta+z':'Control+z');await page.waitForFunction(()=>document.querySelectorAll('.edit-clip').length===1,null,{timeout:2000});await page.locator('[data-action="redo"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
   await page.locator('#addSubtitle').click();await answer('桌面字幕');await page.locator('[data-property="font_size"]').fill('20');await page.locator('[data-property="font_size"]').dispatchEvent('change');
   await page.locator('#postProgress').check();await page.locator('#exportEdit').click();
   await page.waitForFunction(()=>document.querySelector('#exportList').textContent.includes('已完成'),null,{timeout:30000});
