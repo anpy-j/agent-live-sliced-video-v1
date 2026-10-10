@@ -3,12 +3,20 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from agent_video.editor.transcribe import main
+from agent_video.editor.speech import SpeechQueue
 
 
 class EditorSpeechTest(unittest.TestCase):
+    def test_cancel_terminates_windows_process_tree(self):
+        process = MagicMock(pid=4321)
+        process.poll.return_value = None
+        with patch("agent_video.editor.speech.os.name", "nt"), patch("agent_video.editor.speech.subprocess.run") as run:
+            SpeechQueue.terminate(process)
+        self.assertEqual(run.call_args.args[0], ["taskkill", "/PID", "4321", "/T", "/F"])
+
     def test_trimmed_speech_maps_to_sped_up_timeline(self):
         with tempfile.TemporaryDirectory() as directory:
             request = Path(directory) / "speech.json"
