@@ -86,8 +86,10 @@ def decrypt_jianying_file(
     directory = find_jianying_install_dir(install_dir)
     with tempfile.TemporaryDirectory(prefix="livecut-jianying-") as temporary:
         output = Path(temporary) / "draft.dec.json"
+        launcher = ([sys.executable, "--jianying-decrypt"] if getattr(sys, "frozen", False)
+                    else [sys.executable, "-m", "agent_video.jianying_crypto"])
         command = [
-            sys.executable, "-m", "agent_video.jianying_crypto", "--worker-decrypt",
+            *launcher, "--worker-decrypt",
             str(source_path), str(output), "--install-dir", str(directory),
         ]
         flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0

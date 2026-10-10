@@ -212,7 +212,7 @@ async function renderJianyingDrafts(force=false){
   const drafts=data.drafts||[],defaults=data.defaults||{};
   const cards=drafts.map(draft=>{
     const timeline=draft.recommended_timeline;
-    const recommendation=timeline?`最长时间线：${escapeHtml(timeline.name||timeline.title||timeline.timeline_id)} · ${durationText(timeline.timeline_duration)}`:(draft.timeline_error?'时间线解析失败':'未发现有效时间线');
+    const recommendation=timeline?`最长时间线：${escapeHtml(timeline.name||timeline.title||timeline.timeline_id)} · ${durationText(timeline.timeline_duration)}`:(draft.timeline_error?`时间线解析失败：${escapeHtml(draft.timeline_error)}`:'未发现有效时间线');
     const activeCount=Number(draft.active_job_count||0);
     return `<article class="jianying-card"><div class="jianying-card-body"><div class="jianying-card-head"><h2>${escapeHtml(draft.name)}</h2><span>${formatTime(draft.modified_at)}</span></div><p>${recommendation}</p><div class="jianying-card-foot"><div class="jianying-title-preview"><span>成片名称</span><b>${escapeHtml(draft.suggested_title)}</b></div><div class="jianying-action">${activeCount?`<span class="jianying-running">剪辑中 ${activeCount}</span>`:''}<button type="button" class="button primary small" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'}>剪辑</button></div></div></div></article>`;
   }).join('');

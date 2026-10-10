@@ -13,7 +13,11 @@ if __name__ == "__main__":
             stream.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
     assets = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     os.environ.setdefault("LIVECUT_ASSET_ROOT", str(assets))
-    if "--render-multi" in sys.argv:
+    if "--jianying-decrypt" in sys.argv:
+        sys.argv.remove("--jianying-decrypt")
+        from agent_video.jianying_crypto import _main
+        raise SystemExit(_main())
+    elif "--render-multi" in sys.argv:
         sys.argv.remove("--render-multi")
         from agent_video.engine.scripts.render_multi import main
     elif "--editor-transcribe" in sys.argv:

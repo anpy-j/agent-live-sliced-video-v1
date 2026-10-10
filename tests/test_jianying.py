@@ -73,6 +73,20 @@ class JianyingDraftsTest(unittest.TestCase):
         self.assertEqual(discover.call_count, 1)
         self.assertEqual(drafts[0]["timeline_count"], 1)
 
+    @patch("agent_video.timeline.discover_virtual_timelines")
+    def test_pre_desktop_fix_failure_cache_is_invalidated(self, discover):
+        import hashlib
+        draft_id = hashlib.sha256(str(self.draft.resolve()).casefold().encode("utf-8")).hexdigest()[:20]
+        cache_path = self.root / "draft-cache.json"
+        cache_path.write_text(json.dumps({draft_id: {
+            "sig": "1700000000000000", "timelines": [], "error": "unrecognized arguments: -m"
+        }}), encoding="utf-8")
+        discover.return_value = {"timelines": [{"timeline_id": "one", "timeline_duration": 20}]}
+        drafts = list_jianying_drafts(self.root, cache_path=cache_path)
+        self.assertEqual(discover.call_count, 1)
+        self.assertIsNotNone(drafts[0]["recommended_timeline"])
+        self.assertNotIn("timeline_error", drafts[0])
+
     def test_unique_title_checks_jobs_and_exported_files(self):
         export_dir = self.root / "exports"
         export_dir.mkdir()
