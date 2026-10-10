@@ -15,6 +15,11 @@ async function main(){
   await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('Backend start timeout')),20000);let buffer='';backend.stdout.on('data',b=>{buffer+=b.toString();const match=buffer.match(/LIVECUT_READY (\{.*\})/);if(match){clearTimeout(timeout);origin='http://127.0.0.1:'+JSON.parse(match[1]).port;resolve();}});backend.once('exit',code=>{clearTimeout(timeout);reject(new Error('Backend exited '+code+'; see '+path.join(work,'backend.log')));});backend.on('error',reject);backend.stderr.on('data',b=>fs.appendFileSync(path.join(work,'backend.log'),b));});
   browser=await chromium.launch({headless:true,...(process.env.LIVECUT_BROWSER?{executablePath:process.env.LIVECUT_BROWSER}:process.platform==='win32'?{channel:'msedge'}:{})});
   const page=await browser.newPage({viewport:{width:1500,height:1100},extraHTTPHeaders:{'X-LiveCut-Desktop':token}});
+  // A second service must not operate the same database/workspace.
+  const second=spawn(frozen||process.env.LIVECUT_PYTHON||'python',[...(frozen?[]:['-m','agent_video']),'--root',work,'--port','0'],{cwd:root,env:{...process.env,PYTHONIOENCODING:'utf-8',LIVECUT_ASSET_ROOT:root},windowsHide:true});
+  let secondError='';second.stderr.on('data',b=>secondError+=b.toString());
+  const secondCode=await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{second.kill();reject(new Error('Workspace lock did not reject the second service'));},15000);second.once('exit',code=>{clearTimeout(timeout);resolve(code);});second.once('error',reject);});
+  assert.notEqual(secondCode,0);assert.match(secondError,/已有一个 LiveCut 服务/);
   page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept(d.message().includes('字幕')?'测试字幕':'UI 测试项目'));
   await page.goto(origin+'/#/editor');await page.locator('#newEdit').click();await page.locator('#addMedia').waitFor();
   const projectId=page.url().split('/').at(-1);

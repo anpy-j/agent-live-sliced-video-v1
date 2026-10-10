@@ -103,6 +103,13 @@ class EditorTest(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as error:
                 urllib.request.urlopen(urllib.request.Request(url, headers={"Range": "bytes=999999999-"}))
             self.assertEqual(error.exception.code, 416)
+            with patch.dict("os.environ", {"LIVECUT_DESKTOP_TOKEN": "desktop-secret"}):
+                with self.assertRaises(urllib.error.HTTPError) as denied:
+                    urllib.request.urlopen(url)
+                self.assertEqual(denied.exception.code, 403)
+                with urllib.request.urlopen(urllib.request.Request(url, headers={"X-LiveCut-Desktop": "desktop-secret", "Range": "bytes=0-3"})) as response:
+                    self.assertEqual(response.status, 206)
+                    self.assertEqual(len(response.read()), 4)
         finally:
             server.shutdown()
             server.server_close()
