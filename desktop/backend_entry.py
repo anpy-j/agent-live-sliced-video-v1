@@ -7,6 +7,10 @@ from pathlib import Path
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
+    # Frozen Python ignores PYTHONIOENCODING; logs must remain readable in Chinese.
+    for stream in (sys.stdout, sys.stderr):
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
     assets = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     os.environ.setdefault("LIVECUT_ASSET_ROOT", str(assets))
     if "--render-multi" in sys.argv:
