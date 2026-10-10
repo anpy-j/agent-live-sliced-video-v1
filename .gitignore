@@ -25,3 +25,11 @@ AGENTS.md
 
 # opencode agent runtime
 .opencode/
+
+# Independent editor runtime and desktop artifacts
+data/editor/
+node_modules/
+desktop/runtime/
+desktop/dist/
+dist/
+build/

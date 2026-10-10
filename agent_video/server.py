@@ -53,10 +53,20 @@ class Application:
         self._viral: ViralPipelineService | None = None
         self._smart: SmartService | None = None
         self._smart_init_lock = threading.Lock()
+        self._editor = None
+        self._editor_init_lock = threading.Lock()
         self._defaults()
         self.label_overrides = self.store.get_setting("label_overrides", {}) or {}
         self.label_profile = activate_labels(self.label_overrides)
         self.mcp = McpEndpoint(self.invoke_tool)
+
+    @property
+    def editor(self):
+        from .editor import EditorService
+        with self._editor_init_lock:
+            if self._editor is None:
+                self._editor = EditorService(self.root)
+        return self._editor
 
     @property
     def smart(self) -> SmartService:
@@ -867,9 +877,104 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"[http] {self.address_string()} {fmt % args}")
 
+    def editor_route(self, method, path, payload=None):
+        if not path.startswith("/api/editor/"):
+            return False
+        from .editor.service import Conflict
+        try:
+            service = self.app.editor
+            parts = path.strip("/").split("/")[2:]
+            payload = payload or {}
+            result = None
+            if parts == ["settings"]:
+                result = service.settings(payload if method == "PUT" else None)
+            elif parts == ["projects"]:
+                result = service.create(payload) if method == "POST" else service.list_projects()
+            elif parts == ["exports"] and method == "GET":
+                result = service.exports()
+            elif len(parts) == 3 and parts[0] == "exports" and parts[2] == "cancel" and method == "POST":
+                result = service.cancel(parts[1])
+            elif len(parts) == 2 and parts[0] == "projects":
+                result = service.save(parts[1], payload) if method == "PUT" else service.get(parts[1])
+            elif len(parts) == 3 and parts[0] == "projects" and method == "POST":
+                if parts[2] == "assets":
+                    result = service.register(parts[1], str(payload.get("path") or ""))
+                elif parts[2] == "export":
+                    result = service.export(parts[1], payload)
+            elif len(parts) in {4, 5} and parts[0] == "projects" and parts[2] == "assets" and method == "GET":
+                asset = service.asset(parts[1], parts[3])
+                if len(parts) == 4:
+                    self.send_media(Path(asset["path"]))
+                    return True
+                if parts[4] in {"thumbnail", "waveform"}:
+                    cached = service.cache(parts[1], parts[3], parts[4])
+                    if parts[4] == "waveform":
+                        result = {"peaks": json.loads(cached.read_text(encoding="utf-8"))}
+                    else:
+                        self.send_file(cached)
+                        return True
+            if result is None:
+                self.json_response({"error": "剪辑接口不存在"}, 404)
+            else:
+                self.json_response(result, 201 if method == "POST" else 200)
+        except Conflict as exc:
+            self.json_response({"error": str(exc)}, 409)
+        except KeyError as exc:
+            self.json_response({"error": str(exc)}, 404)
+        except (ValueError, FileNotFoundError) as exc:
+            self.json_response({"error": str(exc)}, 400)
+        except Exception as exc:
+            self.json_response({"error": str(exc)}, 500)
+        return True
+
+    def send_media(self, path):
+        """Stream registered local media, including valid suffix/seek ranges."""
+        size = path.stat().st_size
+        start, end, code = 0, size - 1, 200
+        spec = self.headers.get("Range", "")
+        if spec:
+            match = re.fullmatch(r"bytes=(\d*)-(\d*)", spec)
+            if not match or not any(match.groups()):
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            left, right = match.groups()
+            start = int(left) if left else max(0, size - int(right))
+            end = min(size - 1, int(right)) if left and right else size - 1
+            if start >= size or end < start:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            code = 206
+        self.send_response(code)
+        self.send_header("Content-Type", mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(end - start + 1))
+        if code == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.end_headers()
+        try:
+            with path.open("rb") as handle:
+                handle.seek(start)
+                remaining = end - start + 1
+                while remaining > 0:
+                    chunk = handle.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def do_GET(self) -> None:
         try:
             path, _, query = self.path.partition("?")
+            if self.editor_route("GET", path):
+                return
             if path == "/api/smart-v3/jobs":
                 return self.json_response(self.app.smart.list_jobs())
             if path.startswith("/api/smart-v3/jobs/"):
@@ -956,6 +1061,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if self.editor_route("POST", path, payload):
+                return
             if path == "/api/smart-v3/drafts/timelines":
                 return self.json_response(self.app.smart.list_draft_timelines(payload))
             if path == "/api/smart-v3/jobs":
@@ -1035,6 +1142,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if self.editor_route("PUT", path, payload):
+                return
             if path == "/api/settings":
                 return self.json_response(self.app.update_settings(payload))
             if path == "/api/skill":
@@ -1199,6 +1308,8 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
         if connector:
             connector.stop()
         app.runner.stop()
+        if app._editor is not None:
+            app._editor.close()
         server.server_close()
         if fcntl is not None:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
