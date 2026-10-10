@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import os
+import json
 import re
 import shutil
 import sys
@@ -183,6 +184,16 @@ def resolve_provider(provider: str | None = None) -> tuple[str, str]:
 
 def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
               timeout: int) -> dict[str, Any]:
+    if os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
+        from ..api_transport import json_completion
+        chosen = model or os.environ.get('PIPELINE_AI_MODEL', '')
+        contract = prompt + '\nRequired JSON contract: ' + json.dumps(json_schema, ensure_ascii=False)
+        try:
+            result, _ = json_completion(base_url=os.environ.get('LIVE_CUT_API_BASE_URL', 'https://api.openai.com/v1'),
+                api_key=os.environ.get('LIVE_CUT_API_KEY', ''), model=chosen, prompt=contract, timeout=timeout)
+            return result
+        except (ValueError, RuntimeError) as exc:
+            raise AIReturnError(str(exc)) from exc
     provider_id, executable = resolve_provider()
     provider = _CLI_BUILDERS[provider_id](Path(executable))
     chosen_model = (model or os.environ.get("PIPELINE_AI_MODEL") or "auto").strip() or "auto"

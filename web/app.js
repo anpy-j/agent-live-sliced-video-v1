@@ -451,13 +451,27 @@ async function renderSettings(){
   };
   const selectedProvider=data.ai_provider||'auto';
   app.innerHTML=`<div class="hero"><div><span class="eyebrow">SYSTEM CONFIGURATION</span><h1>系统设置</h1><p>配置执行内核、AI 提供方和本地接入策略。</p></div></div>
+  <div class="panel" style="margin-bottom:20px"><div class="panel-head"><div><h2>连接 AI</h2><p>登录账号或填写 API Key，连接后即可开始剪辑。</p></div></div>
+  <div class="settings-form">
+    <div class="settings-section"><b>Codex 账号</b><small id="codexConnection">正在检查登录状态…</small></div>
+    <div class="job-row-actions"><button class="button primary" id="codexLogin" type="button">登录 Codex</button><button class="button" id="codexCancel" type="button">取消登录</button><button class="button" id="codexLogout" type="button">退出登录</button></div>
+    <p id="codexLoginMessage" role="status"></p><a id="codexLoginLink" target="_blank" rel="noopener" hidden>打开官方登录页面</a>
+    <div class="settings-section"><b>API Key 接入</b><small id="apiKeyState">正在检查配置…</small></div>
+    <form id="aiConnectionForm" class="settings-form">
+      <label>服务地址<input name="base_url" value="https://api.openai.com/v1" placeholder="https://服务地址/v1"></label>
+      <label>模型名称<input name="model" placeholder="填写服务商提供的具体模型名称" required></label>
+      <label>API Key<input name="api_key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"><small>密钥保存在本机系统安全存储中，不显示原文。</small></label>
+      <div class="job-row-actions"><button class="button primary" type="submit">保存并使用 API</button><button class="button" id="testAI" type="button">测试连接</button><button class="button" id="clearAIKey" type="button">删除密钥</button></div>
+    </form>
+    <p class="form-error" id="aiConnectionError" role="status"></p>
+  </div></div>
   <div class="panel"><div class="panel-head"><div><h2>运行配置</h2><p>内置引擎随应用版本一起升级</p></div></div>
   <form class="settings-form" id="settingsForm">
     <label>内置切片内核<input value="${escapeHtml(data.engine_path||'')}" readonly><small>${data.engine_bundled?'当前项目自带，不再依赖外部旧引擎目录。':'当前使用外部引擎路径。'}</small></label>
     <label>引擎 Python<input name="engine_python" value="${escapeHtml(data.engine_python||'')}"><small>建议使用项目独立的 Python 3.13 环境。</small></label>
     <div class="settings-section"><b>AI 执行策略</b><small>选择编排的引擎与提供方。</small></div>
-    <label>AI 引擎<select name="ai_engine">${opts({llm:'LLM（本地 CLI）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>LLM 走本地 CLI，JEV 走云端判定服务。</small></label>
-    <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
+    <label>AI 引擎<select name="ai_engine">${opts({llm:'AI 模型（账号或 API Key）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>AI 模型支持账号登录或 API Key；JEV 使用独立云端服务。</small></label>
+    <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
     <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型选项会根据 AI 提供方自动更新。</small></label>
     <div class="settings-section"><b>JEV 云端</b><small>${data.jev_api_key_configured?'已配置密钥。':'尚未配置密钥。'}</small></div>
     <label>JEV API Key<input name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥"><small>仅为安全展示，留空或保持掩码不会覆盖现有密钥。</small></label>
@@ -468,6 +482,7 @@ async function renderSettings(){
     <p class="form-error" id="settingsError" role="alert"></p>
     <button class="button primary" type="submit">保存设置</button>
   </form></div>`;
+  setupAIConnection();
   $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto')});
   $('#settingsForm').addEventListener('submit',async e=>{
     e.preventDefault();const f=new FormData(e.target),error=$('#settingsError');error.textContent='';
@@ -648,7 +663,7 @@ function bindCommon(){
   }));
 }
 async function route(){
-  clearTimeout(state.poll);const hash=location.hash||'#/dashboard';
+  clearTimeout(state.poll);clearTimeout(state.aiPoll);const hash=location.hash||'#/dashboard';
   if(!hash.startsWith('#/jianying')&&state.jianyingAbort){state.jianyingAbort.abort();state.jianyingAbort=null;}
   try{
     if(hash.startsWith('#/jobs/'))return await renderJob(hash.split('/')[2]);
@@ -934,3 +949,59 @@ window.addEventListener('hashchange',()=>{$('.sidebar').classList.remove('open')
 setInterval(()=>{$('#clock').textContent=new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());updateLiveTimes()},1000);
 api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · MCP online`).catch(()=>$('#systemVersion').textContent='连接失败');
 route();
+
+
+async function setupAIConnection() {
+  const error = $('#aiConnectionError');
+  const show = message => { if (error?.isConnected) error.textContent = message; };
+  const refresh = async (fill=false) => {
+    const connection = await api('/api/ai/access');
+    if (!$('#codexConnection')) return;
+    $('#codexConnection').textContent = connection.codex.logged_in ? '已登录' : connection.codex.available ? '尚未登录' : '未找到内置 Codex 工具';
+    $('#codexLogin').disabled = !connection.codex.available || connection.codex.login.status === 'waiting';
+    $('#codexCancel').disabled = connection.codex.login.status !== 'waiting';
+    $('#codexLogout').disabled = !connection.codex.logged_in;
+    $('#codexLoginMessage').textContent = connection.codex.login.message || '';
+    const link = $('#codexLoginLink'); link.hidden = !connection.codex.login.url;
+    if (connection.codex.login.url) link.href = connection.codex.login.url;
+    $('#apiKeyState').textContent = connection.api.api_key_configured ? '已有密钥；测试连接会发起一次小请求。' : '尚未配置密钥';
+    if (fill) {
+      $('#aiConnectionForm [name="base_url"]').value = connection.api.base_url || '';
+      $('#aiConnectionForm [name="model"]').value = connection.api.model || '';
+    }
+    if (connection.codex.login.status === 'success' && connection.provider === 'codex') {
+      $('#aiProvider').value = 'codex'; $('#aiModel').innerHTML = modelOpts('codex', 'auto');
+    }
+    clearTimeout(state.aiPoll);
+    if (connection.codex.login.status === 'waiting') state.aiPoll = setTimeout(() => refresh().catch(e=>show(e.message)), 2000);
+  };
+  const action = async (path, button) => {
+    button.disabled = true; show('');
+    try { await api(path, {method:'POST', body:'{}'}); await refresh(); }
+    catch(e) { show(e.message); if (button.isConnected) button.disabled = false; }
+    finally { if (button.isConnected && button.id !== 'codexLogin') button.disabled = false; }
+  };
+  $('#codexLogin').onclick = e => action('/api/ai/codex/login', e.currentTarget);
+  $('#codexCancel').onclick = e => action('/api/ai/codex/cancel', e.currentTarget);
+  $('#codexLogout').onclick = e => action('/api/ai/codex/logout', e.currentTarget);
+  $('#testAI').onclick = async e => {
+    const button = e.currentTarget; button.disabled = true; show('正在测试连接…');
+    try { const result = await api('/api/ai/test', {method:'POST',body:'{}'}); show(result.message); }
+    catch(e) { show(e.message); } finally { button.disabled = false; }
+  };
+  $('#clearAIKey').onclick = async e => {
+    if (!confirm('删除本机保存的 API Key？')) return;
+    await action('/api/ai/key/clear', e.currentTarget);
+  };
+  $('#aiConnectionForm').onsubmit = async e => {
+    e.preventDefault(); const form = e.currentTarget; const button = form.querySelector('[type="submit"]');
+    button.disabled = true; show('');
+    try {
+      await api('/api/ai/config', {method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(form)))});
+      form.querySelector('[name="api_key"]').value = '';
+      toast('已保存，当前剪辑使用 API 模型');
+      await renderSettings();
+    } catch(e) { show(e.message); } finally { button.disabled = false; }
+  };
+  try { await refresh(true); } catch(e) { show(e.message); }
+}

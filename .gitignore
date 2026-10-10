@@ -25,3 +25,8 @@ AGENTS.md
 
 # opencode agent runtime
 .opencode/
+
+# Desktop build outputs (never commit tools, user data, or runtime packages)
+dist/
+build/
+*.spec

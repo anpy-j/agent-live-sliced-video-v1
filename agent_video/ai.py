@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Callable
 
 
@@ -746,7 +746,7 @@ class WorkBuddyCli(CliProvider):
             # event_loop_drain 以 0 退出。保持事件循环直到 CLI 显式退出，
             # 超时仍由 _complete 的进程树终止机制约束。
             return ["node", "-e", "setInterval(() => {}, 1000); require(process.argv[1]);",
-                    str(self.executable)]
+                    str(PureWindowsPath(self.executable)) if PureWindowsPath(self.executable).drive else str(self.executable)]
         return [str(self.executable)]
 
     def _parse_response(self, stdout: str, stderr: str) -> Any:

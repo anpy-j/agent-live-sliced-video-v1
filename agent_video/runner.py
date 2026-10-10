@@ -34,6 +34,7 @@ _AI_ENV_KEYS = {
     "ai_engine": "PIPELINE_AI_ENGINE",
     "ai_provider": "PIPELINE_AI_PROVIDER",
     "ai_model": "PIPELINE_AI_MODEL",
+    "api_base_url": "LIVE_CUT_API_BASE_URL",
     "judge_concurrency": "PIPELINE_JUDGE_CONCURRENCY",
     "judge_retries": "PIPELINE_JUDGE_RETRIES",
     "jev_api_key": "TYPESAFE_API_KEY",
@@ -174,8 +175,9 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
 class JobRunner:
     """串行执行精简管线的本地工作进程。"""
 
-    def __init__(self, store: Store, project_root: Path):
+    def __init__(self, store: Store, project_root: Path, *, vault=None):
         self.store = store
+        self.vault = vault
         self.project_root = Path(project_root)
         self._queue: list[str] = []
         self._queued: set[str] = set()
@@ -599,13 +601,15 @@ class JobRunner:
         未配置 DB 设置时，用 ``_AI_ENV_DEFAULTS`` 注入生产默认（S3 并发/重试）；DB
         设置或调用方已有的环境变量优先，仍可回退成串行。
         """
-        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS)
+        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY"}
         previous = {key: os.environ.get(key) for key in managed}
         override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
             value = override.get(setting_key, self.store.get_setting(setting_key))
             if value:
                 os.environ[env_key] = str(value)
+        if self.vault and os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
+            os.environ['LIVE_CUT_API_KEY'] = self.vault.get('model-api-key')
         for env_key, default in _AI_ENV_DEFAULTS.items():
             if not os.environ.get(env_key):
                 os.environ[env_key] = default
