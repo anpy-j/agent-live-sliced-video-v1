@@ -1,5 +1,6 @@
 import json
 import os
+import signal
 import subprocess
 import sys
 import threading
@@ -9,6 +10,20 @@ from .model import ident
 
 
 class SpeechQueue:
+    @staticmethod
+    def terminate(process):
+        if process.poll() is not None:
+            return
+        try:
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                               capture_output=True, timeout=5, creationflags=subprocess.CREATE_NO_WINDOW)
+            else:
+                os.killpg(process.pid, signal.SIGTERM)
+        except (OSError, subprocess.TimeoutExpired):
+            if process.poll() is None:
+                process.terminate()
+
     def __init__(self, service):
         self.service = service
         self.stop = threading.Event()
@@ -67,7 +82,7 @@ class SpeechQueue:
                 job.update(status="cancelled")
                 self.put(job)
                 if self.process and self.process[0] == job_id and self.process[1].poll() is None:
-                    self.process[1].terminate()
+                    self.terminate(self.process[1])
         return job
 
     def close(self):
@@ -75,7 +90,7 @@ class SpeechQueue:
         self.wake.set()
         with self.lock:
             if self.process and self.process[1].poll() is None:
-                self.process[1].terminate()
+                self.terminate(self.process[1])
         self.thread.join(timeout=5)
 
     def run(self):
@@ -97,7 +112,8 @@ class SpeechQueue:
                         if self.get(job["id"])["status"] == "cancelled" or self.stop.is_set():
                             continue
                         process = subprocess.Popen(cmd + ["--request", str(request)], stdout=log, stderr=log,
-                                                   creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+                                                   creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                                                   start_new_session=os.name != "nt")
                         self.process = (job["id"], process)
                     code = process.wait()
                 if code:
