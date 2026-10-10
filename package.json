@@ -1,0 +1,57 @@
+{
+  "name": "livecut-desktop",
+  "version": "0.2.0",
+  "private": true,
+  "description": "LiveCut local editing workstation",
+  "author": "LiveCut",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "desktop": "electron .",
+    "test:editor": "node --test tests/editor-core.test.cjs",
+    "build:runtime": "node desktop/build-runtime.cjs",
+    "dist:win": "npm run build:runtime && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "npm run build:runtime && electron-builder --mac dmg --publish never",
+    "pack:desktop": "npm run build:runtime && electron-builder --dir --publish never",
+    "postinstall": "install-electron",
+    "test:desktop": "node tests/desktop-ui.test.cjs"
+  },
+  "build": {
+    "appId": "app.livecut.desktop",
+    "productName": "LiveCut",
+    "directories": {
+      "output": "desktop/dist"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop/runtime",
+        "to": "runtime"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "LiveCut-Setup-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.video",
+      "artifactName": "LiveCut-${version}-${arch}.${ext}",
+      "identity": null
+    }
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.64.0"
+  }
+}

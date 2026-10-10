@@ -206,6 +206,13 @@ class EditorService:
             rows = con.execute("SELECT data FROM exports ORDER BY updated DESC LIMIT 100").fetchall()
         return {"exports": [json.loads(r[0]) for r in rows]}
 
+    def get_export(self, job_id):
+        with self.connect() as con:
+            row = con.execute("SELECT data FROM exports WHERE id=?", (job_id,)).fetchone()
+        if not row:
+            raise KeyError("导出任务不存在")
+        return json.loads(row[0])
+
     def export(self, project_id: str, payload: dict):
         p = self.get(project_id)
         if payload.get("revision") != p["revision"]:
@@ -240,9 +247,7 @@ class EditorService:
 
     def cancel(self, job_id: str):
         with self.lock:
-            job = next((j for j in self.exports()["exports"] if j["id"] == job_id), None)
-            if not job:
-                raise KeyError("导出任务不存在")
+            job = self.get_export(job_id)
             if job["status"] in {"queued", "running"}:
                 job.update(status="cancelled", error="已取消")
                 self._update_export(job)
@@ -257,7 +262,9 @@ class EditorService:
             self.wake.wait(1)
             self.wake.clear()
             with self.lock:
-                jobs = [j for j in reversed(self.exports()["exports"]) if j["status"] == "queued"]
+                with self.connect() as con:
+                    rows = con.execute("SELECT data FROM exports ORDER BY updated").fetchall()
+                jobs = [j for row in rows for j in [json.loads(row[0])] if j["status"] == "queued"]
                 if not jobs:
                     continue
                 job = jobs[0]
@@ -265,7 +272,7 @@ class EditorService:
                 self._update_export(job)
             def progress(value):
                 with self.lock:
-                    current = next(j for j in self.exports()["exports"] if j["id"] == job["id"])
+                    current = self.get_export(job["id"])
                     if current["status"] == "cancelled" or self.stop_event.is_set():
                         raise RuntimeError("已取消")
                     job["progress"] = value
@@ -273,20 +280,20 @@ class EditorService:
             def process_started(process):
                 with self.lock:
                     self.processes[job["id"]] = process
-                    current = next(j for j in self.exports()["exports"] if j["id"] == job["id"])
+                    current = self.get_export(job["id"])
                     if current["status"] == "cancelled" or self.stop_event.is_set():
                         process.terminate()
             try:
                 snapshot = json.loads(Path(job["snapshot"]).read_text(encoding="utf-8"))
                 render(snapshot, Path(job["output"]), progress, process_started)
                 with self.lock:
-                    current = next(j for j in self.exports()["exports"] if j["id"] == job["id"])
+                    current = self.get_export(job["id"])
                     if current["status"] != "cancelled":
                         job.update(status="completed", progress=100)
                         self._update_export(job)
             except Exception as exc:
                 with self.lock:
-                    current = next(j for j in self.exports()["exports"] if j["id"] == job["id"])
+                    current = self.get_export(job["id"])
                     if current["status"] != "cancelled":
                         job.update(status="failed", error=str(exc)[-2000:])
                         self._update_export(job)

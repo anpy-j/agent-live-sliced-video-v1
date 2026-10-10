@@ -112,7 +112,8 @@ def _run_render_multi(rows: list[dict[str, Any]], output: str, workdir: str,
         if not media:
             raise RenderError("必须提供 media 或 src_args")
         src_args = ["--src", f"1={os.path.abspath(media)}"]
-    command = [sys.executable, RENDER_MULTI, timeline_path, os.path.abspath(output),
+    entry = [sys.executable, "--render-multi"] if getattr(sys, "frozen", False) else [sys.executable, RENDER_MULTI]
+    command = [*entry, timeline_path, os.path.abspath(output),
                *src_args, "--force"]
     if no_loudnorm:
         command.append("--no-loudnorm")

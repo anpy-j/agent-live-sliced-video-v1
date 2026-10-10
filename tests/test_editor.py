@@ -49,6 +49,18 @@ class EditorTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate(p, {})
 
+    def test_cancel_can_find_jobs_outside_recent_export_list(self):
+        self.service.stop_event.set()
+        self.service.wake.set()
+        self.service.worker.join(timeout=3)
+        with self.service.connect() as con:
+            for i in range(105):
+                job = {"id": str(i), "status": "queued", "progress": 0}
+                con.execute("INSERT INTO exports VALUES (?,?,?,?)", (str(i), "p", json.dumps(job), i))
+        self.assertEqual(len(self.service.exports()["exports"]), 100)
+        self.assertEqual(self.service.cancel("0")["status"], "cancelled")
+        self.assertEqual(self.service.get_export("0")["status"], "cancelled")
+
     @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "FFmpeg required")
     def test_real_multitrack_render_and_media_ranges(self):
         source = self.root / "source.mp4"

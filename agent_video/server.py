@@ -86,7 +86,7 @@ class Application:
         is_windows = sys.platform == "win32"
         venv_python = self.root / ".venv" / ("Scripts/python.exe" if is_windows else "bin/python")
         defaults = {
-            "engine_python": str(venv_python),
+            "engine_python": sys.executable if getattr(sys, "frozen", False) else str(venv_python),
             "skill_path": str(self.root / "integrations" / "skill" / "SKILL.md"),
             "mcp_enabled": True,
             "mcp_token": secrets.token_urlsafe(24),
@@ -1316,6 +1316,18 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
         except BlockingIOError:
             lock_handle.close()
             raise RuntimeError("已有一个 LiveCut 服务正在使用当前任务数据库") from None
+    elif os.name == "nt":
+        import msvcrt
+        lock_handle.seek(0, 2)
+        if lock_handle.tell() == 0:
+            lock_handle.write("0")
+            lock_handle.flush()
+        lock_handle.seek(0)
+        try:
+            msvcrt.locking(lock_handle.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            lock_handle.close()
+            raise RuntimeError("已有一个 LiveCut 服务正在使用当前任务数据库") from None
     app = Application(root)
     app.runner.start()
     from .remote_control import RemoteConnector
@@ -1340,4 +1352,8 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
         server.server_close()
         if fcntl is not None:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+        elif os.name == "nt":
+            import msvcrt
+            lock_handle.seek(0)
+            msvcrt.locking(lock_handle.fileno(), msvcrt.LK_UNLCK, 1)
         lock_handle.close()

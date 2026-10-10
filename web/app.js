@@ -946,6 +946,7 @@ async function renderSettingsPage(tab='runtime') {
     app.innerHTML='<div class="hero"><div><h1>桌面应用</h1><p>LiveCut 支持 Windows 和 macOS，本地素材与项目保存在本机。</p></div></div><div class="panel" id="desktopInfo"></div>';
     const info=window.livecutDesktop?await window.livecutDesktop.info():null;
     $('#desktopInfo').textContent=info?`LiveCut ${info.version} · ${info.platform} · 工作目录：${info.workspace}`:'当前通过浏览器访问。桌面版本使用同一套剪辑项目与本地服务。';
+    if(info){const button=document.createElement('button');button.className='button ghost';button.textContent='切换工作目录并重启';button.onclick=()=>window.livecutDesktop.changeWorkspace();$('#desktopInfo').append(document.createElement('br'),button);}
   } else {
     await renderSettings();
     const form=$('#settingsForm');
