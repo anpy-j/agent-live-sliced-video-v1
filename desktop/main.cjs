@@ -49,7 +49,7 @@ app.whenReady().then(async()=>{
   ipcMain.handle('livecut:directory',async event=>{trusted(event);const result=await dialog.showOpenDialog(window,{properties:['openDirectory','createDirectory']});return {cancelled:result.canceled,path:result.filePaths[0]};});
   ipcMain.handle('livecut:workspace',async event=>{trusted(event);const result=await dialog.showOpenDialog(window,{title:'选择工作目录（随后重启 LiveCut）',properties:['openDirectory','createDirectory']});if(result.canceled)return false;let config={};try{config=JSON.parse(fs.readFileSync(configPath(),'utf8'));}catch{}fs.mkdirSync(app.getPath('userData'),{recursive:true});fs.writeFileSync(configPath(),JSON.stringify({...config,workspace:result.filePaths[0]}));app.relaunch();app.quit();return true;});
   ipcMain.handle('livecut:reveal',(event,file)=>{trusted(event);if(typeof file!=='string'||!path.isAbsolute(file)||!fs.existsSync(file))throw new Error('文件不存在');shell.showItemInFolder(file);});
-  window=new BrowserWindow({width:1500,height:1000,minWidth:1000,minHeight:700,show:!process.env.LIVECUT_SMOKE,
+  window=new BrowserWindow({width:1500,height:1000,minWidth:1000,minHeight:700,show:!(process.env.LIVECUT_SMOKE||process.env.LIVECUT_TEST_WINDOW),
     title:'LiveCut',backgroundColor:'#101722',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   window.webContents.on('will-navigate',(event,url)=>{if(new URL(url).origin!==origin)event.preventDefault();});

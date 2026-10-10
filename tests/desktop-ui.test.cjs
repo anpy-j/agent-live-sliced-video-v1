@@ -20,8 +20,8 @@ async function main(){
   let secondError='';second.stderr.on('data',b=>secondError+=b.toString());
   const secondCode=await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{second.kill();reject(new Error('Workspace lock did not reject the second service'));},15000);second.once('exit',code=>{clearTimeout(timeout);resolve(code);});second.once('error',reject);});
   assert.notEqual(secondCode,0);assert.match(secondError,/已有一个 LiveCut 服务/);
-  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept(d.message().includes('字幕')?'测试字幕':'UI 测试项目'));
-  await page.goto(origin+'/#/editor');await page.locator('#newEdit').click();await page.locator('#addMedia').waitFor();
+  page.on('pageerror',e=>errors.push(e.message));const answer=async text=>{await page.locator('#editorPromptValue').fill(text);await page.locator('#editorPromptConfirm').click();};
+  await page.goto(origin+'/#/editor');await page.locator('#newEdit').click();await answer('UI 测试项目');await page.locator('#addMedia').waitFor();
   const projectId=page.url().split('/').at(-1);
   const imported=await api(`projects/${projectId}/assets`,'POST',{path:video});
   imported.project.width=160;imported.project.height=240;
@@ -31,7 +31,7 @@ async function main(){
   await page.locator('[data-action="split"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
   await page.locator('[data-action="undo"]').click();assert.equal(await page.locator('.edit-clip').count(),1);
   await page.locator('[data-action="redo"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
-  await page.locator('#addSubtitle').click();assert.equal(await page.locator('.edit-clip').count(),3);
+  await page.locator('#addSubtitle').click();await answer('测试字幕');await page.waitForFunction(()=>document.querySelectorAll('.edit-clip').length===3);
   await page.locator('[data-property="style"]').selectOption('yellow');
   await page.locator('[data-property="font_size"]').fill('20');await page.locator('[data-property="font_size"]').dispatchEvent('change');
   await page.locator('#copyTimeline').click();assert.equal(await page.locator('[data-timeline]').count(),2);
