@@ -14,6 +14,7 @@
     "pack:desktop": "npm run build:runtime && electron-builder --dir --publish never",
     "postinstall": "install-electron",
     "test:desktop": "node tests/desktop-ui.test.cjs",
+    "test:product-ui": "node tests/product-ui.test.cjs",
     "test:desktop-native": "node tests/desktop-native.test.cjs"
   },
   "build": {

@@ -1,7 +1,7 @@
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const app = $('#app');
-const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
+const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, draftLibrary:{query:''}, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
 const labels = {queued:'排队中',running:'执行中',waiting_input:'待继续',completed:'已完成',failed:'执行失败',cancelled:'已取消',pending:'等待',succeeded:'完成'};
 const stageLabels = {asr:'语音转写与切分',filter:'规则粗筛',judge:'AI 可用性判定',order:'AI 排序编排',render:'渲染成片'};
 const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
@@ -79,7 +79,7 @@ async function renderDashboard(){
   setCrumb('任务总览');loading();const data=await api('/api/dashboard');state.dashboard=data;
   $('#queueBadge').textContent=data.active;
   const counts=data.counts||{},running=counts.running||0,done=counts.completed||0,failed=counts.failed||0;
-  app.innerHTML=`<div class="hero"><div><span class="eyebrow">LIVE PRODUCTION CONTROL</span><h1>生产控制台</h1><p>素材转写、规则粗筛、AI 判定与排序，一次渲染成片。</p></div><button class="button primary" data-new-job>${icons.video}添加直播素材</button></div>
+  app.innerHTML=`<div class="hero"><div><span class="eyebrow">创作工作空间</span><h1>任务总览</h1><p>掌握剪辑进度，管理每一次创作与成片。</p></div><button class="button primary" data-new-job>${icons.video}添加直播素材</button></div>
   <div class="stat-grid"><div class="stat-card"><span>队列任务</span><strong>${data.active}</strong><small>等待或正在执行</small></div><div class="stat-card"><span>执行中</span><strong>${running}</strong><small>本地工作进程</small></div><div class="stat-card"><span>已完成</span><strong>${done}</strong><small>可查看与播放</small></div><div class="stat-card"><span>失败</span><strong>${failed}</strong><small>需要重新开始</small></div></div>
   <div class="panel"><div class="panel-head"><div><h2>最近任务</h2><p>按创建时间排列</p></div><a class="link-button" href="#/queue">查看全部</a></div>${jobRows(data.jobs.slice(0,8))}</div>`;
   bindCommon();
@@ -87,8 +87,33 @@ async function renderDashboard(){
 
 async function renderQueue(){
   setCrumb('剪辑队列');loading();const data=await api('/api/jobs');
-  app.innerHTML=`<div class="hero"><div><span class="eyebrow">PRODUCTION QUEUE</span><h1>剪辑队列</h1><p>任务串行调度，实时展示节点状态、进度和异常。</p></div><button class="button primary" data-new-job>添加任务</button></div><div class="panel"><div class="panel-head"><div><h2>全部任务</h2><p>${data.jobs.length} 个任务</p></div></div>${jobRows(data.jobs)}</div>`;
+  app.innerHTML=`<div class="queue-toolbar"><button class="icon-button queue-mobile-menu" id="queueMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="button primary small" data-new-job><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加任务</button></div>${compactQueueRows(data.jobs)}`;
+  $('#queueBadge').textContent=data.jobs.filter(j=>['queued','running'].includes(j.status)).length;
+  $('#queueMenu').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
   bindCommon();
+  $$('[data-queue-menu]').forEach(button=>{
+    const menu=document.getElementById(button.dataset.queueMenu);
+    button.addEventListener('click',()=>{
+      if(menu.matches(':popover-open')){menu.hidePopover();return;}
+      menu.showPopover();
+      const rect=button.getBoundingClientRect(),height=menu.offsetHeight;
+      menu.style.left=`${Math.max(8,Math.min(innerWidth-menu.offsetWidth-8,rect.right-menu.offsetWidth))}px`;
+      menu.style.top=`${rect.bottom+height+8>innerHeight?Math.max(8,rect.top-height-6):rect.bottom+6}px`;
+    });
+    menu.addEventListener('toggle',()=>button.setAttribute('aria-expanded',String(menu.matches(':popover-open'))));
+    $$('button',menu).forEach(action=>action.addEventListener('click',()=>menu.hidePopover()));
+  });
+}
+
+function compactQueueRows(jobs){
+  if(!jobs.length)return `<div class="empty">${icons.empty}<h3>还没有剪辑任务</h3><p>点击右上角「添加任务」，开始剪辑第一段素材。</p></div>`;
+  return `<div class="queue-table-wrap"><table class="queue-table"><colgroup><col class="queue-name-col"><col class="queue-status-col"><col class="queue-progress-col"><col class="queue-time-col"><col class="queue-actions-col"></colgroup><thead><tr><th scope="col">任务 <span class="queue-total">${jobs.length}</span></th><th scope="col">状态</th><th scope="col">剪辑进度</th><th scope="col">更新时间</th><th scope="col" class="queue-actions-heading">操作</th></tr></thead><tbody>${jobs.map((j,index)=>{
+    const id=escapeHtml(j.id),title=escapeHtml(j.title),percent=Math.round(Math.max(0,Math.min(100,Number(j.progress)||0)));
+    const type=j.job_type==='timeline'?'剪映草稿':j.job_type==='remix'?'成片重组':'直播素材';
+    const source=String(j.source_path||'').split(/[\\/]/).pop()||'未指定素材';
+    const progressText=j.status==='completed'?'成片已生成':j.status==='failed'?'剪辑中断':j.status==='cancelled'?'已停止':j.status==='queued'?'等待开始':j.current_stage?jobStageLabel(j,j.current_stage):'等待处理';
+    return `<tr class="queue-row ${escapeHtml(j.status)}"><td><div class="queue-job"><span class="queue-job-icon">${icons.video}</span><div class="queue-job-text"><button class="queue-title" data-open-job="${id}" title="${title}">${title}</button><div class="queue-job-meta"><span>${type}</span><span class="queue-source" title="${escapeHtml(j.source_path||'')}">${escapeHtml(source)}</span>${j.target_seconds&&j.job_type!=='remix'?`<span class="queue-target">${escapeHtml(j.target_seconds)}s</span>`:''}</div></div></div></td><td>${statusCell(j)}</td><td><div class="queue-progress"><span>${escapeHtml(progressText)}</span>${['running','waiting_input'].includes(j.status)?`<b>${percent}%</b><div class="progress-line" role="progressbar" aria-label="${title}剪辑进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>`:''}</div></td><td><time class="queue-updated">${formatTime(j.updated_at)}</time></td><td><div class="queue-row-actions"><button class="link-button" data-open-job="${id}">详情</button><button class="queue-more" data-queue-menu="queueActions${index}" aria-label="${title}的更多操作" aria-expanded="false" aria-controls="queueActions${index}"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div><div id="queueActions${index}" class="queue-action-menu" popover="auto" aria-label="${title}的操作">${j.status==='completed'&&j.deliverables?.exists?`<button data-open-folder="${id}">${icons.folder}打开成片文件夹</button>`:''}<button data-restart-job="${id}" data-job-title="${title}"><svg viewBox="0 0 24 24"><path d="M4 5v6h6M4 11a8 8 0 1 1 2 7"/></svg>重置任务</button><button class="text-danger" data-delete-job="${id}" data-job-title="${title}"><svg viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>删除任务</button></div></td></tr>`;
+  }).join('')}</tbody></table></div>`;
 }
 
 function viralDnaSummary(reference){
@@ -210,32 +235,45 @@ async function renderJianyingDrafts(force=false){
   }
   const data=state.jianying;
   const drafts=data.drafts||[],defaults=data.defaults||{};
-  const cards=drafts.map(draft=>{
-    const timeline=draft.recommended_timeline;
-    const recommendation=timeline?`最长时间线：${escapeHtml(timeline.name||timeline.title||timeline.timeline_id)} · ${durationText(timeline.timeline_duration)}`:(draft.timeline_error?`时间线解析失败：${escapeHtml(draft.timeline_error)}`:'未发现有效时间线');
-    const activeCount=Number(draft.active_job_count||0);
-    return `<article class="jianying-card"><div class="jianying-card-body"><div class="jianying-card-head"><h2>${escapeHtml(draft.name)}</h2><span>${formatTime(draft.modified_at)}</span></div><p>${recommendation}</p><div class="jianying-card-foot"><div class="jianying-title-preview"><span>成片名称</span><b>${escapeHtml(draft.suggested_title)}</b></div><div class="jianying-action">${activeCount?`<span class="jianying-running">剪辑中 ${activeCount}</span>`:''}<button type="button" class="button primary small" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'}>剪辑</button></div></div></div></article>`;
-  }).join('');
-  app.innerHTML=`<div class="hero"><div><span class="eyebrow">JIANYING DRAFTS</span><h1>剪映草稿</h1><p>点击“剪辑”即按最长时间线、120–180 秒深度和分段版直接加入队列。</p></div><button class="button ghost" data-refresh-jianying>刷新草稿</button></div><div class="jianying-defaults"><span>默认导出目录</span><b>${escapeHtml(defaults.export_dir||'—')}</b></div>${drafts.length?`<div class="jianying-grid">${cards}</div>`:`<div class="panel"><div class="empty">${icons.empty}<h3>没有找到剪映草稿</h3><p>请确认本机已安装剪映专业版并保存过草稿。</p></div></div>`}`;
-  $('[data-refresh-jianying]')?.addEventListener('click',()=>renderJianyingDrafts(true));
-  $$('[data-edit-jianying]').forEach(button=>button.addEventListener('click',()=>{
-    const draft=drafts.find(item=>item.id===button.dataset.editJianying);
-    if(draft)enqueueJianyingDraft(draft,defaults,button);
-  }));
+  const prefs=state.draftLibrary;
+  app.innerHTML=`<div class="compact-library-toolbar"><button class="icon-button compact-menu" id="draftMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="all-drafts" data-refresh-jianying title="点击刷新本机草稿">全部草稿 <span id="draftResultCount" role="status"></span></button><label class="library-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="draftSearch" aria-label="搜索草稿" placeholder="搜索草稿…" value="${escapeHtml(prefs.query)}" type="search"></label></div><div id="draftResults"></div>`;
+  const draw=()=>{
+    const visible=drafts.filter(d=>`${d.name} ${d.suggested_title}`.toLocaleLowerCase().includes(prefs.query.trim().toLocaleLowerCase())).sort((a,b)=>new Date(b.modified_at||0)-new Date(a.modified_at||0));
+    const cards=visible.map(draft=>{
+      const timeline=draft.recommended_timeline;
+      const activeCount=Number(draft.active_job_count||0);
+      const seconds=Math.max(0,Math.floor(Number(timeline?.timeline_duration)||0));
+      const clock=`${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;
+      const info=timeline?`最长时间线：${timeline.name||timeline.title||'时间线'} · ${durationText(seconds)}\n成片名称：${draft.suggested_title}\n更新：${formatTime(draft.modified_at)}`:draft.timeline_error||'未发现有效时间线';
+      return `<article class="compact-draft" title="${escapeHtml(info)}"><div class="compact-cover"><div class="draft-placeholder">${icons.video}</div>${draft.cover_url?`<img loading="lazy" decoding="async" src="${escapeHtml(draft.cover_url)}" alt="${escapeHtml(draft.name)}封面">`:''}${activeCount?`<span class="draft-state busy">剪辑中 · ${activeCount}</span>`:!timeline?'<span class="draft-state unavailable">需检查</span>':''}<button type="button" class="draft-edit" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'} aria-label="剪辑 ${escapeHtml(draft.name)}"><span>${timeline?'开始剪辑':'无法剪辑'}</span></button></div><h2 title="${escapeHtml(draft.name)}">${escapeHtml(draft.name)}</h2><div class="compact-draft-meta"><span>${timeline?clock:'无法读取'}</span><span>${draft.modified_at?escapeHtml(formatTime(draft.modified_at).split(' ')[0]):'—'}</span></div></article>`;
+    }).join('');
+    $('#draftResultCount').textContent=prefs.query.trim()?`${visible.length} / ${drafts.length}`:String(drafts.length);
+    $('#draftResults').innerHTML=visible.length?`<div class="compact-draft-grid">${cards}</div>`:`<div class="empty">${icons.empty}<h3>${drafts.length?'没有匹配的草稿':'还没有剪映草稿'}</h3><p>${drafts.length?'试试其他关键词。':'在剪映专业版保存草稿后，点击「全部草稿」刷新。'}</p>${drafts.length?'<button class="button ghost" id="clearDraftFilters">清除搜索</button>':''}</div>`;
+    $$('.compact-cover img').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
+    $('#clearDraftFilters')?.addEventListener('click',()=>{prefs.query='';$('#draftSearch').value='';draw()});
+    $$('[data-edit-jianying]').forEach(button=>button.addEventListener('click',()=>{
+      const draft=drafts.find(item=>item.id===button.dataset.editJianying);
+      if(draft)enqueueJianyingDraft(draft,defaults,button);
+    }));
+  };
+  $('#draftSearch').addEventListener('input',e=>{prefs.query=e.target.value;draw()});
+  $('#draftMenu').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
+  $('[data-refresh-jianying]').addEventListener('click',()=>renderJianyingDrafts(true));
+  draw();
 }
 
 function nextSuggestedTitle(title){const match=String(title).match(/-(\d+)$/);return match?`${title.slice(0,-match[0].length)}-${Number(match[1])+1}`:`${title}-1`;}
 async function enqueueJianyingDraft(draft,defaults,button){
   const timeline=draft.recommended_timeline;
   if(!timeline)return;
-  button.disabled=true;button.textContent='加入中…';
+  button.disabled=true;button.classList.add('is-queuing');button.innerHTML='<span>加入中…</span>';
   try{
     const job=await api('/api/jobs',{method:'POST',body:JSON.stringify({job_type:'timeline',draft_path:timeline.path,title:draft.suggested_title,draft_name:draft.name,auto_title:true,product_name:'',export_mode:defaults.export_mode||'segments',export_dir:defaults.export_dir||'',target_min:defaults.target_min||120,target_max:defaults.target_max||180})});
     draft.active_job_count=Number(draft.active_job_count||0)+1;
     draft.suggested_title=nextSuggestedTitle(job.title||draft.suggested_title);
     renderJianyingDrafts();
     toast(`“${draft.name}”已加入剪辑队列`);
-  }catch(err){button.disabled=false;button.textContent='剪辑';toast(err.message)}
+  }catch(err){button.disabled=false;button.classList.remove('is-queuing');button.innerHTML='<span>开始剪辑</span>';toast(err.message)}
 }
 
 function artifactCard(a){
@@ -649,6 +687,8 @@ function bindCommon(){
 }
 async function route(){
   clearTimeout(state.poll);const hash=location.hash||'#/dashboard';
+  document.body.classList.toggle('draft-library-page',hash==='#/jianying');
+  document.body.classList.toggle('queue-page',hash==='#/queue');
   if(!hash.startsWith('#/jianying')&&state.jianyingAbort){state.jianyingAbort.abort();state.jianyingAbort=null;}
   try{
     if(hash.startsWith('#/jobs/'))return await renderJob(hash.split('/')[2]);
@@ -931,9 +971,11 @@ $('#newJobForm').addEventListener('submit',async e=>{
 });
 $('#previewDialog .preview-close').addEventListener('click',()=>{$('#previewDialog video')?.pause();$('#previewDialog').close()});
 $('#menuButton').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.sidebar').classList.remove('open')});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('.sidebar,#menuButton,#draftMenu,#queueMenu'))$('.sidebar').classList.remove('open')});
 window.addEventListener('hashchange',()=>{$('.sidebar').classList.remove('open');route()});
 setInterval(()=>{$('#clock').textContent=new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());updateLiveTimes()},1000);
-api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · MCP online`).catch(()=>$('#systemVersion').textContent='连接失败');
+api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · 已连接`).catch(()=>{$('#systemVersion').textContent='请重启本地服务';$('.system-card b').textContent='本地服务未连接';$('.system-card').classList.add('offline')});
 route();
 
 async function renderSettingsPage(tab='runtime') {

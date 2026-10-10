@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>LiveCut Production OS</title>
+  <title>LiveCut · 直播剪辑工作台</title>
   <link rel="stylesheet" href="/styles.css?v=9402b61">
   <link rel="stylesheet" href="/forms.css?v=9402b61">
   <link rel="stylesheet" href="/enterprise.css?v=9402b61">
   <link rel="stylesheet" href="/editor.css?v=editor-2">
+  <link rel="stylesheet" href="/product.css?v=product-3">
 </head>
 <body>
   <a class="skip-link" href="#app">跳到主要内容</a>
@@ -16,8 +17,9 @@
     <aside class="sidebar" aria-label="主导航">
       <a class="brand" href="#/dashboard" aria-label="LiveCut Agent 首页">
         <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5 12 2l8 4.5v11L12 22l-8-4.5z"/><path d="m9 8 7 4-7 4z"/></svg></span>
-        <span><b>LiveCut</b><small>Production OS</small></span>
+        <span><b>LiveCut<span class="brand-dot">.</span></b><small>直播剪辑工作台</small></span>
       </a>
+      <div class="nav-caption">工作空间</div>
       <nav class="nav-list">
         <a href="#/dashboard" data-nav="dashboard" title="任务总览"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>任务总览</span></a>
         <a href="#/queue" data-nav="queue" title="剪辑队列"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/><circle cx="4" cy="7" r=".5"/><circle cx="4" cy="12" r=".5"/><circle cx="4" cy="17" r=".5"/></svg><span>剪辑队列</span><em id="queueBadge">0</em></a>
@@ -26,6 +28,7 @@
         <a href="#/editor" data-nav="editor" title="人工剪辑"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM8 5v14M3 12h18"/></svg><span>人工剪辑</span></a>
         <a href="#/settings" data-nav="settings" title="系统设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg><span>系统设置</span></a>
       </nav>
+      <div class="sidebar-note"><span>从直播素材，到精彩成片</span><small>让每一个卖点被看见。</small></div>
       <div class="system-card"><span class="pulse"></span><div><b>本地服务运行中</b><small id="systemVersion">正在连接…</small></div></div>
     </aside>
 
@@ -42,7 +45,7 @@
   <dialog id="newJobDialog" class="modal">
     <form id="newJobForm">
       <header class="modal-head">
-        <div class="modal-title"><span class="eyebrow">NEW PRODUCTION</span><h2>创建剪辑任务</h2><p>支持原素材直接切片或剪映虚拟时间线切片，加入队列后自动完成分析、判定与渲染。</p></div>
+        <div class="modal-title"><span class="eyebrow">开始创作</span><h2>创建剪辑任务</h2><p>选择素材和成片时长，LiveCut 会自动分析内容、精选卖点并生成视频。</p></div>
         <button class="icon-button" type="button" data-close-new-job aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
       <div class="modal-body">
@@ -50,17 +53,17 @@
           <label class="mode-card" id="modeCardDirect">
             <input type="radio" name="job_mode_select" value="direct" checked>
             <b>原素材直接切片</b>
-            <small>选择本机视频素材，直接进行转写与切片（原有业务流程）</small>
+            <small>导入直播录像，自动精选内容并生成成片</small>
           </label>
           <label class="mode-card" id="modeCardTimeline">
             <input type="radio" name="job_mode_select" value="timeline">
             <b>剪映虚拟时间线</b>
-            <small>导入剪映草稿/时间线，AI 仅在筛选范围内编排并双时间轴换算</small>
+            <small>导入剪映草稿，仅从你保留的内容中精选片段</small>
           </label>
           <label class="mode-card" id="modeCardRemix">
             <input type="radio" name="job_mode_select" value="remix">
             <b>已发布成片重组</b>
-            <small>导入同商品集合时间线，仅按口播文字去重、分类并重排</small>
+            <small>导入同商品的成片集合，去除重复内容并重新编排</small>
           </label>
         </div>
 
@@ -179,6 +182,6 @@
   <script src="/editor-core.js?v=editor-2" defer></script>
   <script src="/editor.js?v=editor-2" defer></script>
   <script src="/smart-v3.js?v=lari32-v3-picker-3" defer></script>
-  <script src="/app.js?v=lari32-v3-1" defer></script>
+  <script src="/app.js?v=product-3" defer></script>
 </body>
 </html>

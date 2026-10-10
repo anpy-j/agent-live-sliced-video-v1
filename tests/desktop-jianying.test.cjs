@@ -18,6 +18,7 @@ async function run(){
   const disabled=await page.locator('[data-edit-jianying]:disabled').count();
   assert.equal(disabled,0,'Local draft parsing failed: '+await page.locator('.jianying-card p').allTextContents());
   await page.screenshot({path:path.join(work,'jianying.png'),fullPage:true});
+  await page.screenshot({path:path.join(work,'jianying-viewport.png')});
   console.log(JSON.stringify({passed:true,drafts:await cards.count(),disabled,screenshot:path.join(work,'jianying.png')}));
 }
 run().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await app?.close();});
