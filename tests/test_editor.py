@@ -8,6 +8,8 @@ import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from PIL import Image
+from unittest.mock import patch
 
 from agent_video.editor.model import ident, new_project, validate
 from agent_video.editor.render import render
@@ -92,6 +94,28 @@ class EditorTest(unittest.TestCase):
         finally:
             server.shutdown()
             server.server_close()
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "FFmpeg required")
+    def test_rotated_sticker_wipe_slide_and_reserved_progress(self):
+        source = self.root / "sticker.png"
+        Image.new("RGBA", (80, 40), (0, 255, 0, 255)).save(source)
+        p = self.service.create({"title": "角落贴纸"})
+        imported = self.service.register(p["id"], str(source))
+        p, a = imported["project"], imported["asset"]
+        p["width"], p["height"] = 160, 240
+        p["timelines"][0]["tracks"][0]["clips"] = [
+            {"id": ident(), "asset_id": a["id"], "start": 0, "duration": .5, "rotation": 22, "scale": .5, "transition": "wipe"},
+            {"id": ident(), "asset_id": a["id"], "start": .4, "duration": .5, "transition": "slide", "scale": .4}]
+        p["postprocess"].update(progress=True, pip_asset=a["id"], pip_opacity=.01, sticker_asset=a["id"])
+        p = self.service.save(p["id"], p)
+        out = self.root / "corners.mp4"
+        render(p, out)
+        self.assertTrue(out.exists())
+        graph = next(self.root.glob(".livecut-*/render.filter")).read_text()
+        self.assertIn("scale=160:234,pad=160:240", graph)
+        self.assertIn("geq=", graph)
+        self.assertIn("rotw(", graph)
+        self.assertEqual(graph.count("eof_action=pass"), 7)
 
 
 if __name__ == "__main__":

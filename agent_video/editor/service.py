@@ -46,6 +46,8 @@ class EditorService:
         self.worker = threading.Thread(target=self._work, name="editor-export", daemon=True)
         self.worker.start()
         self.wake.set()
+        from .speech import SpeechQueue
+        self.speech = SpeechQueue(self)
 
     @contextmanager
     def connect(self):
@@ -58,6 +60,7 @@ class EditorService:
             con.close()
 
     def close(self):
+        self.speech.close()
         self.stop_event.set()
         self.wake.set()
         with self.lock:
@@ -189,6 +192,11 @@ class EditorService:
                 if bitrate not in {"128k", "192k", "256k", "320k"}:
                     raise ValueError("不支持的音频码率")
                 data.update(output_dir=str(Path(directory).expanduser()), audio_bitrate=bitrate)
+                con.execute("INSERT OR REPLACE INTO settings VALUES (1,?)", (json.dumps(data),))
+        data.setdefault("asr_model", "small")
+        if payload is not None:
+            data["asr_model"] = str(payload.get("asr_model") or data["asr_model"]).strip()
+            with self.connect() as con:
                 con.execute("INSERT OR REPLACE INTO settings VALUES (1,?)", (json.dumps(data),))
         return {**data, "subtitle_styles": SUBTITLE_STYLES,
                 "ffmpeg_available": bool(shutil.which("ffmpeg")), "ffprobe_available": bool(shutil.which("ffprobe"))}

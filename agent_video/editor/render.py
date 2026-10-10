@@ -93,9 +93,12 @@ def build_command(project, output: Path):
                         "opacity": post.get("pip_opacity", .01), "loop": True}))
     if post.get("sticker_asset"):
         a = assets[post["sticker_asset"]]
-        # A tiny visible corner; the rest of the sticker is outside the canvas.
-        entries.append(({"kind": "image", "muted": True}, {"asset_id": a["id"], "start": 0, "in": 0,
-                        "duration": duration, "speed": 1, "scale": .2, "x": -.18, "y": -.09, "loop": True}))
+        sticker_w = max(2, int(w * .2) // 2 * 2)
+        sticker_h = round(sticker_w * a["height"] / max(1, a["width"]))
+        for x in ((-sticker_w + w * .02) / w, .98):
+            for y in ((-sticker_h + h * .02) / h, .98):
+                entries.append(({"kind": "image", "muted": True}, {"asset_id": a["id"], "start": 0, "in": 0,
+                                "duration": duration, "speed": 1, "scale": .2, "x": x, "y": y, "loop": True}))
     for track, clip in entries:
         a = assets[clip["asset_id"]]
         path = Path(a["path"])
@@ -155,9 +158,10 @@ def build_command(project, output: Path):
         filters.append(f"[{base}]subtitles=filename='{escape_filter_path(subtitles)}'[subtitled]")
         base = "subtitled"
     if post.get("progress"):
-        # Thin overlay at the bottom, explicitly opt-in in the UI.
-        filters += [f"color=c=0x58d5b0:s={w}x6:r={fps}:d={duration}[bar]",
-                    f"[{base}][bar]overlay=x='-W+W*t/{duration}':y=H-6:shortest=1[progress]"]
+        # Keep the full picture visible; reserve a bottom band instead of covering it.
+        filters += [f"[{base}]scale={w}:{h-6},pad={w}:{h}:0:0:color=black[reserved]",
+                    f"color=c=0x58d5b0:s={w}x6:r={fps}:d={duration}[bar]",
+                    f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-6:shortest=1[progress]"]
         base = "progress"
     filters.append(f"{''.join(audio_labels)}amix=inputs={len(audio_labels)}:duration=longest:normalize=0,alimiter=limit=.95:level=disabled,atrim=duration={duration}[audio]")
     graph = work / "render.filter"

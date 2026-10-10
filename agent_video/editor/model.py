@@ -119,6 +119,10 @@ def validate(project: dict[str, Any], assets: dict[str, dict]) -> dict[str, Any]
     for key in ("pip_asset", "sticker_asset"):
         if post.get(key) and post[key] not in assets:
             raise ValueError("后处理素材未导入")
+    if post.get("pip_asset") and assets[post["pip_asset"]]["kind"] == "audio":
+        raise ValueError("画中画需要视频或图片")
+    if post.get("sticker_asset") and assets[post["sticker_asset"]]["kind"] != "image":
+        raise ValueError("角落贴纸需要图片")
     return p
 
 

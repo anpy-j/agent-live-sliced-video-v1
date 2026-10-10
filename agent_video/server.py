@@ -45,7 +45,8 @@ class Application:
         self.root = Path(root).resolve()
         self.data_dir = self.root / "data"
         self.workspace_root = self.root / "workspaces"
-        self.web_root = self.root / "web"
+        self.asset_root = Path(os.environ.get("LIVECUT_ASSET_ROOT", str(self.root))).resolve()
+        self.web_root = self.asset_root / "web"
         self.store = Store(self.data_dir / "agent.db")
         self.runner = JobRunner(self.store, self.root)
         # V2 is lazy so its database/filesystem can never block legacy startup.
@@ -892,6 +893,10 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.create(payload) if method == "POST" else service.list_projects()
             elif parts == ["exports"] and method == "GET":
                 result = service.exports()
+            elif len(parts) == 2 and parts[0] == "speech" and method == "GET":
+                result = service.speech.get(parts[1])
+            elif len(parts) == 3 and parts[0] == "speech" and parts[2] == "cancel" and method == "POST":
+                result = service.speech.cancel(parts[1])
             elif len(parts) == 3 and parts[0] == "exports" and parts[2] == "cancel" and method == "POST":
                 result = service.cancel(parts[1])
             elif len(parts) == 2 and parts[0] == "projects":
@@ -901,6 +906,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = service.register(parts[1], str(payload.get("path") or ""))
                 elif parts[2] == "export":
                     result = service.export(parts[1], payload)
+                elif parts[2] == "speech":
+                    result = service.speech.start(parts[1], payload)
             elif len(parts) in {4, 5} and parts[0] == "projects" and parts[2] == "assets" and method == "GET":
                 asset = service.asset(parts[1], parts[3])
                 if len(parts) == 4:
@@ -972,6 +979,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path, _, query = self.path.partition("?")
             if self.editor_route("GET", path):
                 return
@@ -1059,8 +1068,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path == "/api/desktop/shutdown" and os.environ.get("LIVECUT_DESKTOP_TOKEN"):
+                self.json_response({"stopping": True})
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
+                return
             if self.editor_route("POST", path, payload):
                 return
             if path == "/api/smart-v3/drafts/timelines":
@@ -1140,6 +1155,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_PUT(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
             if self.editor_route("PUT", path, payload):
@@ -1159,6 +1176,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             if path.startswith("/api/smart-v3/jobs/"):
                 parts = path.strip("/").split("/")
@@ -1192,6 +1211,12 @@ class Handler(BaseHTTPRequestHandler):
             return False
         expected = self.app.store.get_setting("mcp_token", "")
         return secrets.compare_digest(self.headers.get("Authorization", ""), f"Bearer {expected}")
+
+    def desktop_authorized(self) -> bool:
+        token = os.environ.get("LIVECUT_DESKTOP_TOKEN")
+        # MCP clients retain their separate Bearer authentication.
+        return not token or self.path.partition("?")[0] == "/mcp" or secrets.compare_digest(
+            self.headers.get("X-LiveCut-Desktop", ""), token)
 
     def read_json(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -1298,6 +1323,8 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
     if connector:
         connector.start()
     server = Server((host, port), app)
+    if os.environ.get("LIVECUT_DESKTOP_TOKEN"):
+        print("LIVECUT_READY " + json.dumps({"port": server.server_port}), flush=True)
     print(f"Agent Live Sliced Video: http://{host}:{port}")
     print(f"MCP endpoint: http://{host}:{port}/mcp")
     try:
