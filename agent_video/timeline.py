@@ -20,6 +20,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .jianying_paths import resolve_draft_media_placeholder
+
 
 @dataclass
 class TimelineSegment:
@@ -260,7 +262,7 @@ def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = No
     for idx, seg in enumerate(raw_segments):
         material_id = seg.get("material_id")
         video_material = video_map.get(material_id) or {}
-        raw_path = video_material.get("path") or ""
+        raw_path = resolve_draft_media_placeholder(video_material.get("path") or "", draft_dir)
         if not raw_path and draft_dir:
             # 检查是否有同名或 Resources 里的文件
             name = video_material.get("material_name") or ""

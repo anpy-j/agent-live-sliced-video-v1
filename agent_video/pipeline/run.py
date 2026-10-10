@@ -273,9 +273,9 @@ def _order_prompt(candidates: list[dict[str, Any]],
         "- ordered_ids = 各 section 的 ids 依次拼接，必须与 sections 完全一致"
         "（不新增、不遗漏、不重复）；\n"
         "- 所有 id 只能取自输入，不得越界；\n"
-        f"- 总时长（所选 id 的 seconds 之和）落在 {low:g}~{high:g} 秒；单个超过 "
-        f"{LONG_UNIT_SECONDS:g} 秒的句单元可正常选中，此时总时长允许相应超出上限"
-        "（超出的部分交人工再剪）；\n"
+        f"- 总时长（所选 id 的 seconds 之和）尽量接近 {low:g}~{high:g} 秒，"
+        "这是软目标，低于下限或超过上限均可正常输出；优先保证内容完整、连贯且不重复，"
+        "不要为凑时长填充或拆散完整句单元；\n"
         f"{short_note}"
         "- 全片围绕 main_product，面向目标人群；\n"
         "- 相邻段主题要承接，不得主题跳跃；同一卖点、同一颜色、同一价格类信息不得重复；\n"
@@ -325,6 +325,7 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
 
     hook 必须开头，cta 若存在必须收尾；其余角色的先后不做过细限制，避免规则过死
     导致模型反复失败。合规/去噪不在这里判断（由 S2/S3 负责）。
+    时长仅为编排软目标，不因偏离目标范围拒绝有效排序。
     """
     main_product = data.get("main_product")
     if not isinstance(main_product, str) or not main_product.strip():
@@ -373,19 +374,14 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
     if seen != flat:
         raise AIReturnError("S4 ordered_ids 与 sections 的 ids 拼接不一致")
     total = sum(_duration(by_id[cid]) for cid in seen)
-    low, high = target
-    # 超过 6s 的句单元不拆散：它带来的超长允许顶高总时长上限，交由人工再剪。
-    overflow = sum(max(0.0, _duration(by_id[cid]) - LONG_UNIT_SECONDS)
-                   for cid in seen if _duration(by_id[cid]) > LONG_UNIT_SECONDS)
-    # 可用素材本身就不够目标下限时，不允许因"时长不足"中断任务：把下限放宽到实际可用量。
-    floor = low - tolerance
-    if available is not None and available < floor:
-        floor = available
-    if total < floor or total > high + tolerance + overflow:
-        raise AIReturnError(
-            f"S4 排序总时长 {total:.2f}s 不在目标 {low:g}~{high:g}s 内"
-            f"（长单元溢出容忍 {overflow:.2f}s）")
     return main_product.strip(), seen, total, sections
+
+
+def _order_duration_note(total: float, target: tuple[float, float]) -> str:
+    if target[0] <= total <= target[1]:
+        return ""
+    return (f"；时长偏离软目标 {target[0]:g}~{target[1]:g}s，"
+            "按实际时长继续渲染")
 
 
 def run_pipeline_stage(media: str, workdir: str, stage: str, *,
@@ -566,7 +562,8 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
               "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3)}
     _dump(os.path.join(workdir, "order.json"), result)
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；上游数据保持不变")
+          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；上游数据保持不变"
+          + _order_duration_note(total_seconds, target_seconds))
     return result
 
 
@@ -766,7 +763,8 @@ def run_pipeline(media: str, workdir: str, *,
         "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
     })
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s")
+          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s"
+          + _order_duration_note(total_seconds, target_seconds))
 
     # S6 —— 渲染（确定性）
     _emit(on_stage, "render", "start", "ffmpeg 逐段剪切并拼接")

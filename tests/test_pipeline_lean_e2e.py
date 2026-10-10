@@ -100,6 +100,24 @@ class LeanPipelineEndToEndTest(unittest.TestCase):
         self.assertTrue(all(clause["usable"] for clause in judged["clauses"]))
         self.assertEqual(len(judged["clauses"]), len(timeline["clauses"]))
 
+    def test_duration_soft_target_renders_in_full_and_stage_runs(self):
+        events = []
+        with patch.object(pipeline_run, "ai_call", side_effect=fake_ai):
+            manifest = self.run_pipeline(
+                target_seconds=(120.0, 180.0),
+                on_stage=lambda *event: events.append(event))
+            # 素材充分但模型选择低于目标，以及超过上限，都不阻断单节点重跑。
+            for target in ((9.0, 10.0), (1.0, 2.0)):
+                ordered = pipeline_run.run_pipeline_stage(
+                    self.media, self.workdir, "order", target_seconds=target)
+                rendered = pipeline_run.run_pipeline_stage(
+                    self.media, self.workdir, "render", target_seconds=target)
+                self.assertAlmostEqual(ordered["total_seconds"], 8.4)
+                self.assertGreater(os.path.getsize(
+                    os.path.join(self.workdir, rendered["output"])), 0)
+        self.assertAlmostEqual(manifest["total_seconds"], 8.4)
+        self.assertTrue(any("时长偏离软目标" in event[2] for event in events))
+
     def test_judge_batch_retry_recovers_and_counts_calls(self):
         state = {"failed": False}
 

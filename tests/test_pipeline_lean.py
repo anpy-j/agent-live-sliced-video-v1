@@ -336,10 +336,18 @@ class OrderContractTest(unittest.TestCase):
         self.assertEqual(ids, [0])
         self.assertAlmostEqual(total, 3.0)
 
-    def test_out_of_range_total_is_rejected(self):
-        with self.assertRaises(AIReturnError):
-            _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
-                            self.candidates(), (5.0, 7.0), 1.0)
+    def test_below_target_is_accepted_even_when_material_is_sufficient(self):
+        result = _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
+                                 self.candidates(), (5.0, 7.0), 1.0, available=6.0)
+        self.assertEqual(result[1], [0])
+        self.assertEqual(result[2], 3.0)
+
+    def test_reported_76_second_order_is_accepted(self):
+        candidates = [{"id": 0, "start": 0.0, "end": 76.38},
+                      {"id": 1, "start": 80.0, "end": 180.0}]
+        result = _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
+                                 candidates, (120.0, 180.0), 1.0, available=176.38)
+        self.assertEqual(result[2], 76.38)
 
     def test_out_of_range_id_is_rejected(self):
         with self.assertRaises(AIReturnError):
@@ -353,12 +361,12 @@ class OrderContractTest(unittest.TestCase):
         self.assertEqual(ids, [0])
         self.assertAlmostEqual(total, 12.0)
 
-    def test_overshoot_beyond_long_unit_overflow_is_rejected(self):
+    def test_overshoot_beyond_long_unit_overflow_is_accepted(self):
         candidates = [{"id": 0, "text": "a", "start": 0.0, "end": 12.0},
                       {"id": 1, "text": "b", "start": 12.0, "end": 15.0}]
-        with self.assertRaises(AIReturnError):
-            _validate_order(self.order([{"role": "hook", "ids": [0, 1]}], [0, 1]),
-                            candidates, (5.0, 7.0), 1.0)
+        result = _validate_order(self.order([{"role": "hook", "ids": [0, 1]}], [0, 1]),
+                                 candidates, (5.0, 7.0), 1.0)
+        self.assertEqual(result[2], 15.0)
 
     def test_hook_must_open_the_order(self):
         with self.assertRaises(AIReturnError):
