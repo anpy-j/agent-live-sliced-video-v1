@@ -47,52 +47,94 @@ def finish(service):
     raise AssertionError("watch export timeout")
 
 
-def test_actual_auto_export_no_material_reuse_exhaustion_and_restart(tmp_path):
+def test_actual_all_pairs_once_then_restart_round(tmp_path):
+    service, config = setup(tmp_path)
+    Image.new("RGB", (80, 80), "blue").save(tmp_path / "images" / "c.png")
+    records = []
+    colors = ["blue", "yellow", "white", "black", "purple", "cyan", "orange"]
+    try:
+        for index, color in enumerate(colors):
+            if index == 2:
+                service.close()
+                service = PostprocessService(tmp_path)
+                service.watcher.close()
+                service.watcher = FolderWatcher(service, interval=100, stable_seconds=0)
+                assert service.watcher.status()["config"]["enabled"]
+                assert service.watcher.status()["cycle"]["round"] == 1
+            source = tmp_path / "input" / f"{index}.mp4"
+            video(source, color)
+            original = source.read_bytes()
+            service.watcher.tick()
+            record = finish(service)
+            records.append(record)
+            assert Path(record["output"]).parent == tmp_path / "out"
+            assert Path(record["output"]).exists()
+            assert source.read_bytes() == original
+            if index == 0:
+                snapshot = json.loads(Path(service.get_export(record["export_id"])["snapshot"]).read_text(encoding="utf-8"))
+                assert snapshot["postprocess"]["progress"] and snapshot["postprocess"]["sticker_asset"]
+                assert snapshot["postprocess"]["pip_video_asset"] and snapshot["postprocess"]["pip_image_asset"]
+                shutil.copyfile(source, tmp_path / "input" / "renamed.mp4")
+                # Copied overlays do not create extra combinations.
+                shutil.copyfile(record["video"]["path"], tmp_path / "videos" / "renamed.mp4")
+                shutil.copyfile(record["image"]["path"], tmp_path / "images" / "renamed.png")
+        pairs = {(r["video"]["hash"], r["image"]["hash"]) for r in records[:6]}
+        assert len(pairs) == 6
+        assert {r["round"] for r in records[:6]} == {1}
+        assert records[6]["round"] == 2
+        assert (records[6]["video"]["hash"], records[6]["image"]["hash"]) in pairs
+        status = service.watcher.status()
+        assert status["used"] == {"video": 2, "image": 3}
+        assert status["available"] == {"video": 2, "image": 3}
+        assert status["cycle"] == {"round": 2, "total": 6, "used": 1, "remaining": 5, "allocated": 7}
+        assert len(status["records"]) == 7
+    finally:
+        service.close()
+
+
+def test_empty_pool_waits_then_continues_after_adding_material(tmp_path):
+    service, config = setup(tmp_path)
+    try:
+        for path in (tmp_path / "images").glob("*.png"):
+            path.unlink()
+        video(tmp_path / "input" / "one.mp4", "blue")
+        service.watcher.tick()
+        service.watcher.tick()
+        assert service.watcher.status()["state"] == "exhausted"
+        assert service.watcher.status()["records"] == []
+        Image.new("RGB", (80, 80), "purple").save(tmp_path / "images" / "new.png")
+        record = finish(service)
+        assert record["round"] == 1
+    finally:
+        service.close()
+
+
+def test_migrates_legacy_selections_without_resetting_history(tmp_path):
     service, config = setup(tmp_path)
     try:
         video(tmp_path / "input" / "one.mp4", "blue")
-        original = (tmp_path / "input" / "one.mp4").read_bytes()
         service.watcher.tick()
         first = finish(service)
-        assert Path(first["output"]).parent == tmp_path / "out"
-        assert Path(first["output"]).exists()
-        assert (tmp_path / "input" / "one.mp4").read_bytes() == original
-        snapshot = json.loads(Path(service.get_export(first["export_id"])["snapshot"]).read_text(encoding="utf-8"))
-        assert snapshot["postprocess"]["progress"] and snapshot["postprocess"]["sticker_asset"]
-        assert snapshot["postprocess"]["pip_video_asset"] and snapshot["postprocess"]["pip_image_asset"]
-        shutil.copyfile(tmp_path / "input" / "one.mp4", tmp_path / "input" / "renamed.mp4")
-        # Copied overlays with new names must not provide extra usable entries.
-        shutil.copyfile(first["video"]["path"], tmp_path / "videos" / "renamed.mp4")
-        shutil.copyfile(first["image"]["path"], tmp_path / "images" / "renamed.png")
-        video(tmp_path / "input" / "two.mp4", "yellow")
-        service.watcher.tick()
-        second = finish(service)
-        assert second["source"] != first["source"]
-        assert second["video"]["hash"] != first["video"]["hash"]
-        assert second["image"]["hash"] != first["image"]["hash"]
-        video(tmp_path / "input" / "three.mp4", "white")
-        service.watcher.tick()
-        service.watcher.tick()
-        status = service.watcher.status()
-        assert status["state"] == "exhausted"
-        assert status["used"] == {"video": 2, "image": 2}
-        assert len(status["records"]) == 2
     finally:
         service.close()
+    # Recreate the pre-pair schema, retaining its source/material audit records.
+    import sqlite3
+    with sqlite3.connect(tmp_path / "data" / "postprocess" / "editor.db") as con:
+        con.execute("DROP TABLE watch_pairs")
+        con.execute("DROP TABLE watch_round")
+        first.pop("round")
+        con.execute("UPDATE watch_records SET data=? WHERE id=?", (json.dumps(first), first["id"]))
     reopened = PostprocessService(tmp_path)
     reopened.watcher.close()
     reopened.watcher = FolderWatcher(reopened, interval=100, stable_seconds=0)
     try:
-        assert reopened.watcher.status()["config"]["enabled"]
+        assert reopened.watcher.status()["cycle"]["allocated"] == 1
+        assert reopened.watcher.status()["records"][0]["round"] == 1
+        video(tmp_path / "input" / "two.mp4", "yellow")
         reopened.watcher.tick()
-        reopened.watcher.tick()
-        assert reopened.watcher.status()["state"] == "exhausted"
-        assert len(reopened.watcher.status()["records"]) == 2
-        video(tmp_path / "videos" / "new.mp4", "purple")
-        Image.new("RGB", (80, 80), "purple").save(tmp_path / "images" / "new.png")
-        third = finish(reopened)
-        assert third["source"].endswith("three.mp4")
-        assert reopened.watcher.status()["used"] == {"video": 3, "image": 3}
+        record = finish(reopened)
+        assert record["round"] == 1
+        assert (record["video"]["hash"], record["image"]["hash"]) != (first["video"]["hash"], first["image"]["hash"])
     finally:
         reopened.close()
 
@@ -120,6 +162,7 @@ def test_file_stability_pause_and_failed_retry_keeps_reservations(tmp_path, monk
         retried = finish(service)
         assert retried["id"] == failed["id"] and retried["video"] == failed["video"] and retried["image"] == failed["image"]
         assert service.watcher.status()["used"] == {"video": 1, "image": 1}
+        assert service.watcher.status()["cycle"]["allocated"] == 1
     finally:
         service.close()
 

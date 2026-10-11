@@ -1,4 +1,4 @@
-"""Persistent folder intake and content-based, single-use overlay reservations."""
+"""Persistent folder intake; use every content-based overlay pair once per round."""
 import hashlib
 import json
 import random
@@ -26,12 +26,26 @@ class FolderWatcher:
         self.observed, self.hashes = {}, {}
         self.state, self.error = "stopped", ""
         self.available = {"video": 0, "image": 0}
+        self.pool_hashes = {"video": set(), "image": set()}
         with service.connect() as con:
             con.executescript("""
                 CREATE TABLE IF NOT EXISTS watch_config(id INTEGER PRIMARY KEY,data TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS watch_records(id TEXT PRIMARY KEY,source_hash TEXT UNIQUE,data TEXT NOT NULL,created REAL);
                 CREATE TABLE IF NOT EXISTS watch_used(kind TEXT,hash TEXT,record_id TEXT,path TEXT,PRIMARY KEY(kind,hash));
+                CREATE TABLE IF NOT EXISTS watch_pairs(round INTEGER,video_hash TEXT,image_hash TEXT,record_id TEXT,
+                    PRIMARY KEY(round,video_hash,image_hash));
+                CREATE TABLE IF NOT EXISTS watch_round(id INTEGER PRIMARY KEY,round INTEGER NOT NULL);
             """)
+            # Preserve selections made by the former single-use allocator as round one.
+            if not con.execute("SELECT round FROM watch_round WHERE id=1").fetchone():
+                con.execute("INSERT INTO watch_round VALUES (1,1)")
+                for row in con.execute("SELECT data FROM watch_records").fetchall():
+                    record = json.loads(row[0])
+                    if record.get("video") and record.get("image"):
+                        record["round"] = 1
+                        con.execute("INSERT OR IGNORE INTO watch_pairs VALUES (1,?,?,?)",
+                                    (record["video"]["hash"], record["image"]["hash"], record["id"]))
+                        con.execute("UPDATE watch_records SET data=? WHERE id=?", (json.dumps(record), record["id"]))
             row = con.execute("SELECT data FROM watch_config WHERE id=1").fetchone()
             self.config = json.loads(row[0]) if row else {"enabled": False, "input_dir": "", "output_dir": DEFAULT_OUTPUT,
                 "video_dir": "", "image_dir": "", "options": {}}
@@ -66,10 +80,16 @@ class FolderWatcher:
         with self.lock:
             records = self._records()
             with self.service.connect() as con:
-                used = {kind: con.execute("SELECT COUNT(*) FROM watch_used WHERE kind=?", (kind,)).fetchone()[0]
+                used = {kind: con.execute(f"SELECT COUNT(DISTINCT {kind}_hash) FROM watch_pairs").fetchone()[0]
                         for kind in ("video", "image")}
+                current_round = con.execute("SELECT round FROM watch_round WHERE id=1").fetchone()[0]
+                pairs = con.execute("SELECT video_hash,image_hash FROM watch_pairs WHERE round=?", (current_round,)).fetchall()
+                count = sum(v in self.pool_hashes["video"] and i in self.pool_hashes["image"] for v, i in pairs)
+                total = self.available["video"] * self.available["image"]
+                cycle = {"round": current_round, "total": total, "used": count, "remaining": total-count,
+                         "allocated": con.execute("SELECT COUNT(*) FROM watch_pairs").fetchone()[0]}
             return {"config": self.config, "state": self.state, "error": self.error,
-                    "available": self.available, "used": used, "records": records[:100]}
+                    "available": self.available, "used": used, "cycle": cycle, "records": records[:100]}
 
     def configure(self, payload):
         config = {key: str(payload.get(key) or "").strip() for key in ("input_dir", "output_dir", "video_dir", "image_dir")}
@@ -135,8 +155,6 @@ class FolderWatcher:
         if len(paths) > 500:
             raise ValueError("单个素材文件夹最多支持 500 个文件")
         library = {a["path"]: a for a in self.service.library()["assets"]}
-        with self.service.connect() as con:
-            used = {r[0] for r in con.execute("SELECT hash FROM watch_used WHERE kind=?", (kind,))}
         pool = {}
         for path in paths:
             if self.stop.is_set():
@@ -151,10 +169,33 @@ class FolderWatcher:
             if asset["kind"] != kind:
                 continue
             sha = self._hash(asset["path"])
-            if sha not in used:
-                pool[sha] = {"hash": sha, "asset_id": asset["id"], "path": asset["path"]}
+            pool[sha] = {"hash": sha, "asset_id": asset["id"], "path": asset["path"]}
         self.available[kind] = len(pool)
+        self.pool_hashes[kind] = set(pool)
         return list(pool.values())
+
+    def _reserve_pair(self, record, candidates):
+        # Select and commit the source, pair and round together. Never reset history.
+        with self.service.connect() as con:
+            con.execute("BEGIN IMMEDIATE")
+            current_round = con.execute("SELECT round FROM watch_round WHERE id=1").fetchone()[0]
+            used = set(con.execute("SELECT video_hash,image_hash FROM watch_pairs WHERE round=?", (current_round,)).fetchall())
+            # Reservoir sampling avoids storing N*M combinations (up to 500*500).
+            selected, count = None, 0
+            rng = random.SystemRandom()
+            for video in candidates["video"]:
+                for image in candidates["image"]:
+                    if (video["hash"], image["hash"]) not in used:
+                        count += 1
+                        if rng.randrange(count) == 0:
+                            selected = (video, image)
+            if selected is None:
+                current_round += 1
+                con.execute("UPDATE watch_round SET round=? WHERE id=1", (current_round,))
+                selected = (rng.choice(candidates["video"]), rng.choice(candidates["image"]))
+            record.update(video=selected[0], image=selected[1], round=current_round)
+            con.execute("INSERT INTO watch_records VALUES (?,?,?,?)", (record["id"], record["source_hash"], json.dumps(record), record["created"]))
+            con.execute("INSERT INTO watch_pairs VALUES (?,?,?,?)", (current_round, record["video"]["hash"], record["image"]["hash"], record["id"]))
 
     def _enqueue(self, record):
         try:
@@ -243,20 +284,12 @@ class FolderWatcher:
                 if self.stop.is_set():
                     return
                 if any(not values for values in candidates.values()):
-                    self.state, self.error = "exhausted", "未使用的画中画视频或图片已用完，请向素材文件夹补充新素材"
+                    self.state, self.error = "exhausted", "画中画视频或图片文件夹没有可用素材，请补充素材"
                     return
                 record = {"id": ident(), "source": str(path), "source_hash": sha, "created": time.time(),
                           "status": "preparing", "error": "", "export_id": "", "output": "",
                           "options": self.config["options"], "output_dir": self.config["output_dir"]}
-                for kind, values in candidates.items():
-                    record[kind] = random.SystemRandom().choice(values)
-                # The source and both single-use reservations are committed together.
-                with self.service.connect() as con:
-                    con.execute("INSERT INTO watch_records VALUES (?,?,?,?)", (record["id"], sha, json.dumps(record), record["created"]))
-                    for kind in candidates:
-                        chosen = record[kind]
-                        con.execute("INSERT INTO watch_used VALUES (?,?,?,?)", (kind, chosen["hash"], record["id"], chosen["path"]))
-                        self.available[kind] -= 1
+                self._reserve_pair(record, candidates)
                 self._enqueue(record)
                 self.state = "processing"
                 return
