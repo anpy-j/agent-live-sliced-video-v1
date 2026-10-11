@@ -1,6 +1,6 @@
 altgraph==0.17.5
 anyio==4.15.1
-av==19.0.1
+av==18.1.0
 click==8.5.0
 colorama==0.4.6
 ctranslate2==4.8.2
