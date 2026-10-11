@@ -73,3 +73,12 @@ class CpuMusicRuntime:
                     self.process.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     self.process.kill()
+
+    def stop(self):
+        if self.process is None:
+            raise ValueError("只能停止本应用启动的 CPU 服务")
+        if any(j["status"] == "running" for j in self.service.music.jobs()["jobs"]):
+            raise ValueError("音乐正在生成，请完成后再停止服务")
+        self.close()
+        self.process = None
+        return self.status()

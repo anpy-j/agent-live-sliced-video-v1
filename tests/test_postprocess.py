@@ -140,3 +140,19 @@ def test_empty_folder_and_invalid_pair_do_not_queue(service, tmp_path):
     assert not service.scan_folder({"path": str(tmp_path), "kind": "image"})["assets"]
     result = service.submit({"paths": [str(source)], "options": {"pip_enabled": True, "pip_video_pool": [], "pip_image_pool": []}})
     assert not result["jobs"] and result["errors"]
+
+
+def test_animated_pattern_repeats_without_stretching(service, tmp_path):
+    from agent_video.editor.render import render
+    import numpy as np
+    source = tmp_path / "source.mp4"
+    video(source)
+    project = service.prepare(str(source), {"progress": True, "progress_style": "animated",
+                              "progress_asset": service.library()["progress_ids"][0], "progress_height": 6})
+    output = tmp_path / "repeat.mp4"
+    render(project, output)
+    data = subprocess.check_output(["ffmpeg", "-v", "error", "-ss", "1.9", "-i", str(output),
+                                    "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
+    frame = np.frombuffer(data, dtype=np.uint8).reshape(240,160,3)
+    # A scaled row is 144px wide; visible colored detail beyond that is the repeated row.
+    assert frame[-6:,144:,0].max()>60

@@ -52,3 +52,20 @@ def test_launch_rejects_remote_address(tmp_path, monkeypatch):
     item = runtime(tmp_path, monkeypatch, "https://example.com")
     with pytest.raises(ValueError, match="启动本机 CPU 服务"):
         item.start()
+
+
+def test_stop_protects_external_service_and_active_music(tmp_path, monkeypatch):
+    item = runtime(tmp_path, monkeypatch)
+    with pytest.raises(ValueError, match="本应用启动"):
+        item.stop()
+    item.process = Mock()
+    item.service.music = SimpleNamespace(jobs=lambda: {"jobs": [{"status": "running"}]})
+    close = Mock()
+    monkeypatch.setattr(item, "close", close)
+    with pytest.raises(ValueError, match="音乐正在生成"):
+        item.stop()
+    close.assert_not_called()
+    item.service.music = SimpleNamespace(jobs=lambda: {"jobs": [{"status": "completed"}]})
+    item.stop()
+    close.assert_called_once()
+    assert item.process is None

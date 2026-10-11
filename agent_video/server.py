@@ -924,6 +924,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.music.start(payload) if method == "POST" else service.music.jobs()
             elif parts == ["music-runtime"] and method in {"GET", "POST"}:
                 result = service.runtime.start() if method == "POST" else service.runtime.status()
+            elif parts == ["music-runtime", "stop"] and method == "POST":
+                result = service.runtime.stop()
             if result is None:
                 self.json_response({"error": "后处理接口不存在"}, 404)
             else:
