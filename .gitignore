@@ -28,6 +28,7 @@ AGENTS.md
 
 # Independent editor runtime and desktop artifacts
 data/editor/
+data/postprocess/
 node_modules/
 desktop/runtime/
 desktop/dist/
