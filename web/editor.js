@@ -75,7 +75,8 @@
     for(const lane of el.querySelectorAll('.editor-lane')){lane.onclick=e=>{if(!e.target.closest('[data-clip]'))seek((e.clientX-lane.getBoundingClientRect().left)/s.zoom);};lane.ondragover=e=>e.preventDefault();lane.ondrop=e=>{e.preventDefault();const id=e.dataTransfer.getData('application/livecut-asset');if(id&&lane.dataset.track)edit(()=>{const t=tl().tracks.find(t=>t.id===lane.dataset.track);s.selected=C.addClip(t,asset(id),(e.clientX-lane.getBoundingClientRect().left)/s.zoom).id;});};}
     for(const el of document.querySelectorAll('[data-clip]')){el.onpointerdown=e=>drag(e,el);const {c}=find(el.dataset.clip),a=asset(c.asset_id),canvas=el.querySelector('canvas');if(canvas&&a?.has_audio)wave(a,canvas,c);}
   }
-  function drag(e,el){if(e.button!==0)return;e.preventDefault();const {t,c}=find(el.dataset.clip);s.selected=c.id;properties();for(const x of document.querySelectorAll('.edit-clip'))x.classList.toggle('selected',x.dataset.clip===c.id);if(t.locked)return;
+  function drag(e,el){if(e.button!==0)return;e.preventDefault();const {t,c}=find(el.dataset.clip);s.selected=c.id;for(const x of document.querySelectorAll('.edit-clip'))x.classList.toggle('selected',x.dataset.clip===c.id);if(t.locked){properties();return;}
+    // Refresh the inspector after release: expanding it now can move the lanes under the pointer.
     const before=C.clone(s.p),initial={...c},x=e.clientX,y=e.clientY,trim=e.target.dataset.trim;let moved=false,target=t;
     const destination=ev=>{const lane=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.editor-lane[data-track]');return tl().tracks.find(track=>track.id===lane?.dataset.track);};
     const move=ev=>{let d=Math.round((ev.clientX-x)/s.zoom*s.p.fps)/s.p.fps;

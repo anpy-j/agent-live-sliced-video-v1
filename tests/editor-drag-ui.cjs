@@ -7,6 +7,8 @@ module.exports=async function verifyCrossTrackDrag(page){
   async function dragTo(from,to){
     await page.locator('#timelineRows').scrollIntoViewIfNeeded();
     const clip=await from.locator('.edit-clip').boundingBox(),lane=await to.boundingBox();
+    const hit=await page.evaluate(({x,y,startY})=>({end:document.elementFromPoint(x,y)?.closest('[data-track]')?.dataset.track,start:document.elementFromPoint(x,startY)?.closest('[data-clip]')?.dataset.clip,height:innerHeight}),{x:clip.x+clip.width/2,y:lane.y+25,startY:clip.y+15});
+    assert.ok(hit.start&&hit.end===await to.getAttribute('data-track'),JSON.stringify({clip,lane,hit}));
     await page.mouse.move(clip.x+clip.width/2,clip.y+15);await page.mouse.down();
     await page.mouse.move(clip.x+clip.width/2,lane.y+25,{steps:8});await page.mouse.up();
   }
