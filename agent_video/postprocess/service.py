@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..editor.model import ident, number
 from ..editor.service import EditorService
-from .resources import animated_sticker, texture
+from .resources import animated_sticker, animated_progress, texture
 
 
 class PostprocessService(EditorService):
@@ -25,6 +25,16 @@ class PostprocessService(EditorService):
             for style in ("stars", "rings"):
                 self.register(self.library_id, str(animated_sticker(folder, style)))
             self.register(self.library_id, str(texture(folder, 20261011)))
+        # Migrate existing libraries without replacing user resources.
+        self.progress_ids = []
+        known = {a["path"]: a for a in self.get(self.library_id)["assets"]}
+        names = {"hearts": "跳动爱心", "floating": "漂浮爱心", "sparkles": "闪耀星光"}
+        for style in ("hearts", "floating", "sparkles"):
+            path = folder / f"进度条-{names[style]}.gif"
+            if not path.exists():
+                path = animated_progress(folder, style)
+            asset = known.get(str(path.resolve())) or self.register(self.library_id, str(path))["asset"]
+            self.progress_ids.append(asset["id"])
         from .music import MusicQueue
         self.music = MusicQueue(self)
         from .runtime import CpuMusicRuntime
@@ -41,13 +51,37 @@ class PostprocessService(EditorService):
         if payload is not None:
             from .music import validate_url
             data["acestep_url"] = validate_url(payload.get("acestep_url", data["acestep_url"]))
+            if "postprocess_recipe" in payload:
+                if not isinstance(payload["postprocess_recipe"], dict):
+                    raise ValueError("后处理方案格式无效")
+                data["postprocess_recipe"] = payload["postprocess_recipe"]
             # API keys are read from the environment, never returned to the browser.
             with self.connect() as con:
                 con.execute("INSERT OR REPLACE INTO settings VALUES (1,?)", (json.dumps(data),))
         return data
 
     def library(self):
-        return {"id": self.library_id, "assets": self.get(self.library_id)["assets"]}
+        return {"id": self.library_id, "assets": self.get(self.library_id)["assets"], "progress_ids": self.progress_ids}
+
+    def scan_folder(self, payload):
+        folder = Path(str(payload.get("path") or "")).expanduser()
+        kind = payload.get("kind")
+        extensions = {"video": {".mp4", ".mov", ".mkv", ".webm", ".avi"},
+                      "image": {".png", ".jpg", ".jpeg", ".webp", ".gif"}}
+        if kind not in extensions or not str(payload.get("path") or "").strip() or not folder.is_dir():
+            raise ValueError("请选择有效的视频或图片文件夹")
+        files = sorted(p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in extensions[kind])
+        if len(files)>500:
+            raise ValueError("单个素材文件夹最多支持 500 个文件")
+        assets, errors = [], []
+        for path in files:
+            try:
+                asset = self.import_asset({"path": str(path.resolve())})
+                if asset["kind"] == kind:
+                    assets.append(asset)
+            except (ValueError, OSError) as exc:
+                errors.append({"path": str(path), "error": str(exc)})
+        return {"assets": assets, "errors": errors, "path": str(folder.resolve())}
 
     def import_asset(self, payload):
         return self.register(self.library_id, str(payload.get("path") or ""))["asset"]
@@ -59,7 +93,16 @@ class PostprocessService(EditorService):
     def prepare(self, source, options):
         library = {a["id"]: a for a in self.get(self.library_id)["assets"]}
         paths = {}
-        for key, kinds in (("pip_asset", {"video", "image"}), ("sticker_asset", {"image"}), ("music_asset", {"audio"})):
+        options = dict(options)
+        if options.get("pip_enabled"):
+            for key, kind in (("pip_video_asset", "video"), ("pip_image_asset", "image")):
+                pool = options.get(key.replace("_asset", "_pool")) or []
+                if not isinstance(pool, list) or not pool or any(x not in library or library[x]["kind"] != kind for x in pool):
+                    raise ValueError("画中画需要扫描一个视频文件夹和一个图片文件夹")
+                options[key] = random.SystemRandom().choice(pool)
+        for key, kinds in (("pip_asset", {"video", "image"}), ("pip_video_asset", {"video"}),
+                           ("pip_image_asset", {"image"}), ("progress_asset", {"image"}),
+                           ("sticker_asset", {"image"}), ("music_asset", {"audio"})):
             selected = options.get(key)
             if selected:
                 asset = library.get(selected)
@@ -83,6 +126,7 @@ class PostprocessService(EditorService):
                 "pip_rotation": options.get("pip_rotation", 15), "sticker_visible": options.get("sticker_visible", .02),
                 "progress_style": options.get("progress_style", "solid"), "progress_height": options.get("progress_height", 6),
                 "progress_color": options.get("progress_color", "58d5b0")}
+        post["pip_rotation_end"] = options.get("pip_rotation_end", 999)
         for key, path in paths.items():
             imported = self.register(p["id"], path)
             p["revision"] = imported["project"]["revision"]

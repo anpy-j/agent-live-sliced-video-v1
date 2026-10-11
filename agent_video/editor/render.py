@@ -91,7 +91,12 @@ def build_command(project, output: Path):
         entries.append(({"kind": "video", "muted": True}, {"asset_id": a["id"], "start": 0, "in": 0,
                         "duration": duration, "speed": 1, "scale": .18, "x": .8, "y": .05,
                         "opacity": post.get("pip_opacity", .01), "rotation": post.get("pip_rotation", 0), "loop": True}))
-    if post.get("sticker_asset"):
+    for key in ("pip_video_asset", "pip_image_asset"):
+        if post.get(key):
+            entries.append(({"kind": "video", "muted": True}, {"asset_id": post[key], "start": 0, "in": 0,
+                            "duration": duration, "speed": 1, "loop": True, "screen_full": True,
+                            "rotation_end": post.get("pip_rotation_end", 999) if key == "pip_image_asset" else 0}))
+    if post.get("sticker_asset") and post.get("sticker_visible", .02)>0:
         a = assets[post["sticker_asset"]]
         sticker_w = max(2, int(w * .2) // 2 * 2)
         sticker_h = round(sticker_w * a["height"] / max(1, a["width"]))
@@ -114,6 +119,21 @@ def build_command(project, output: Path):
         command += ["-threads", "1", "-ss", str(clip.get("in", 0)), "-t", f"{dur*speed:.9f}", "-i", str(path)]
         if track["kind"] != "audio":
             idx = overlay_index
+            if clip.get("screen_full"):
+                geometry = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
+                if clip.get("rotation_end"):
+                    side = math.ceil(math.hypot(w, h)/2)*2
+                    angle = clip["rotation_end"]*math.pi/180
+                    geometry = (f"scale={side}:{side}:force_original_aspect_ratio=increase,crop={side}:{side},"
+                                f"rotate='min(t/{duration},1)*{angle:.9f}':ow=iw:oh=ih:c=black,crop={w}:{h}")
+                filters.append(f"[{input_index}:v]setpts=PTS-STARTPTS,fps={fps},setsar=1,{geometry},format=gbrp[screen{idx}]")
+                filters.append(f"[{base}]format=gbrp[screenbase{idx}]")
+                # Screen: B + opacity * S * (1-B); black is neutral, no solid overlay.
+                filters.append(f"[screenbase{idx}][screen{idx}]blend=all_mode=screen:all_opacity={post.get('pip_opacity',.01)}:shortest=1[v{idx}]")
+                base = f"v{idx}"
+                overlay_index += 1
+                input_index += 1
+                continue
             scale = clip.get("scale", 1)
             if track["kind"] == "video" and scale == 1 and not clip.get("rotation"):
                 geometry = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=black"
@@ -163,11 +183,30 @@ def build_command(project, output: Path):
         band = int(post.get("progress_height", 6))
         color = str(post.get("progress_color", "58d5b0"))
         style = post.get("progress_style", "solid")
-        bar = f"color=c=0x{color}:s={w}x{band}:r={fps}:d={duration}"
-        if style == "striped":
-            bar += ",format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='255*gte(mod(X+Y,20),5)'"
-        filters += [f"[{base}]scale={w}:{h-band},pad={w}:{h}:0:0:color=black[reserved]", f"{bar}[bar]",
-                    f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-{band}:shortest=1[progress]"]
+        filters.append(f"[{base}]scale={w}:{h-band},pad={w}:{h}:0:0:color=black[reserved]")
+        if style == "animated":
+            a = assets[post["progress_asset"]]
+            path = Path(a["path"])
+            stat = path.stat()
+            if stat.st_size != a["size"] or stat.st_mtime_ns != a["mtime_ns"]:
+                raise ValueError(f"素材已修改：{a['name']}")
+            command += (["-stream_loop", "-1"] if path.suffix.lower() == ".gif" else ["-loop", "1"])
+            command += ["-threads", "1", "-t", str(duration), "-i", str(path)]
+            tile_width = max(2, round(a["width"]*band/max(1,a["height"])/2)*2)
+            repeats = max(1, math.ceil(w/tile_width))
+            filters.append(f"[{input_index}:v]setpts=PTS-STARTPTS,fps={fps},scale={tile_width}:{band},format=rgba[pattern]")
+            if repeats>1:
+                filters.append(f"[pattern]split={repeats}"+"".join(f"[tile{i}]" for i in range(repeats)))
+                filters.append("".join(f"[tile{i}]" for i in range(repeats))+f"hstack=inputs={repeats}[patternrow]")
+            pattern_label = "patternrow" if repeats>1 else "pattern"
+            filters.append(f"[{pattern_label}]crop={w}:{band}:0:0,"
+                           f"geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='alpha(X,Y)*lte(X,W*T/{duration})'[bar]")
+            filters.append(f"[reserved][bar]overlay=x=0:y=H-{band}:shortest=1[progress]")
+        else:
+            bar = f"color=c=0x{color}:s={w}x{band}:r={fps}:d={duration}"
+            if style == "striped":
+                bar += ",format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='255*gte(mod(X+Y,20),5)'"
+            filters += [f"{bar}[bar]", f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-{band}:shortest=1[progress]"]
         if style == "glow":
             filters[-1] = f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-{band}:shortest=1[barbase]"
             filters += [f"[barbase]drawbox=x=0:y={h-band}:w=iw:h=2:color=white@0.4:t=fill[progress]"]

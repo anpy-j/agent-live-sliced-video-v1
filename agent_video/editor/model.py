@@ -119,20 +119,26 @@ def validate(project: dict[str, Any], assets: dict[str, dict]) -> dict[str, Any]
     post = p.setdefault("postprocess", {})
     post["pip_opacity"] = number(post.get("pip_opacity", .01), 0, 1, "画中画不透明度")
     post["pip_rotation"] = number(post.get("pip_rotation", 0), -360, 360, "画中画旋转")
-    post["sticker_visible"] = number(post.get("sticker_visible", .02), .005, .05, "贴纸露出比例")
-    post["progress_height"] = int(number(post.get("progress_height", 6), 2, min(30, p["height"]-2), "进度条高度"))
-    if post.get("progress_style", "solid") not in {"solid", "striped", "glow"}:
+    post["pip_rotation_end"] = number(post.get("pip_rotation_end", 999), 0, 999, "图片旋转终点")
+    post["sticker_visible"] = number(post.get("sticker_visible", .002), 0, .05, "贴纸露出比例")
+    post["progress_height"] = int(number(post.get("progress_height", 6), 2, min(240, p["height"]//4), "进度条高度"))
+    if post.get("progress_style", "solid") not in {"solid", "striped", "glow", "animated"}:
         raise ValueError("不支持的进度条样式")
     import re
     if not re.fullmatch(r"[0-9a-fA-F]{6}", str(post.get("progress_color", "58d5b0"))):
         raise ValueError("进度条颜色格式无效")
-    for key in ("pip_asset", "sticker_asset"):
+    for key in ("pip_asset", "pip_video_asset", "pip_image_asset", "progress_asset", "sticker_asset"):
         if post.get(key) and post[key] not in assets:
             raise ValueError("后处理素材未导入")
     if post.get("pip_asset") and assets[post["pip_asset"]]["kind"] == "audio":
         raise ValueError("画中画需要视频或图片")
     if post.get("sticker_asset") and assets[post["sticker_asset"]]["kind"] != "image":
         raise ValueError("角落贴纸需要图片")
+    for key, kind in (("pip_video_asset", "video"), ("pip_image_asset", "image"), ("progress_asset", "image")):
+        if post.get(key) and assets[post[key]]["kind"] != kind:
+            raise ValueError("后处理素材类型不匹配")
+    if post.get("progress") and post.get("progress_style") == "animated" and not post.get("progress_asset"):
+        raise ValueError("请选择动态进度条图案")
     return p
 
 

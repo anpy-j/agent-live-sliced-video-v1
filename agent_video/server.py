@@ -900,6 +900,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.library()
             elif parts == ["assets"] and method == "POST":
                 result = service.import_asset(payload)
+            elif parts == ["folder"] and method == "POST":
+                result = service.scan_folder(payload)
             elif parts == ["texture"] and method == "POST":
                 result = service.generate_texture()
             elif parts == ["jobs"]:

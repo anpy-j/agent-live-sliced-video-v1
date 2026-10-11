@@ -40,7 +40,8 @@ def test_library_survives_restart_and_dynamic_assets_are_original(tmp_path):
     reopened = PostprocessService(tmp_path)
     try:
         assert reopened.library()["id"] == library["id"]
-        assert len(reopened.library()["assets"]) == 4
+        assert len(reopened.library()["assets"]) == 7
+        assert reopened.library()["progress_ids"] == library["progress_ids"]
         assert not (tmp_path / "data" / "editor").exists()
     finally:
         reopened.close()
@@ -88,3 +89,54 @@ def test_invalid_resource_and_injection_do_not_queue(service, tmp_path):
     for url in ("file:///tmp/a", "http://user:secret@localhost", "javascript:test"):
         with pytest.raises(ValueError):
             validate_url(url)
+
+
+@pytest.mark.parametrize("template_index", [0, 1, 2])
+def test_folder_pair_screen_rotation_and_actual_animated_progress(service, tmp_path, template_index):
+    from agent_video.editor.render import render
+    from PIL import ImageDraw
+    source = tmp_path / "source.mp4"
+    video(source)
+    vf, pf = tmp_path / "视频", tmp_path / "图片"
+    vf.mkdir()
+    pf.mkdir()
+    # A shorter video must repeat, and its audio must stay muted.
+    subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=red:s=80x120:r=30:d=0.5",
+                    "-f", "lavfi", "-i", "sine=frequency=900:duration=0.5", "-c:v", "libx264", "-c:a", "aac", str(vf / "pip.mp4")], check=True)
+    image = Image.new("RGB", (180, 180), "black")
+    ImageDraw.Draw(image).rectangle((0, 0, 85, 180), fill="green")
+    image.save(pf / "image.png")
+    videos = service.scan_folder({"path": str(vf), "kind": "video"})["assets"]
+    images = service.scan_folder({"path": str(pf), "kind": "image"})["assets"]
+    progress_id = service.library()["progress_ids"][template_index]
+    options = {"pip_enabled": True, "pip_video_pool": [a["id"] for a in videos],
+               "pip_image_pool": [a["id"] for a in images], "pip_rotation_end": 999,
+               "pip_opacity": .5, "progress": True, "progress_style": "animated",
+               "progress_asset": progress_id, "progress_height": 24, "sticker_visible": .001}
+    project = service.prepare(str(source), options)
+    assert project["postprocess"]["pip_video_asset"]
+    assert project["postprocess"]["pip_image_asset"]
+    output = tmp_path / f"new-{template_index}.mp4"
+    render(project, output)
+    pixels = subprocess.check_output(["ffmpeg", "-v", "error", "-i", str(output), "-vf", "fps=4", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
+    import numpy as np
+    frames = np.frombuffer(pixels, dtype=np.uint8).reshape(-1, 240, 160, 3)
+    # Full-screen red raises R, while screen blending preserves the original blue.
+    assert frames[-1, :200, :, 0].mean()>90
+    assert frames[-1, :200, :, 2].mean()>220
+    # Rotating asymmetric image changes green over time, beyond static compression noise.
+    assert np.abs(frames[1, :200, :, 1].astype(float)-frames[2, :200, :, 1]).mean()>10
+    assert frames[-1, -24:].max()>60
+    assert np.count_nonzero(frames[-1, -24:].max(axis=2)>50)>np.count_nonzero(frames[1, -24:].max(axis=2)>50)
+    with Image.open(service.asset(service.library_id, progress_id)["path"]) as gif:
+        first = gif.convert("RGBA").tobytes()
+        gif.seek(6)
+        assert gif.convert("RGBA").tobytes()!=first
+
+
+def test_empty_folder_and_invalid_pair_do_not_queue(service, tmp_path):
+    source = tmp_path / "source.mp4"
+    video(source)
+    assert not service.scan_folder({"path": str(tmp_path), "kind": "image"})["assets"]
+    result = service.submit({"paths": [str(source)], "options": {"pip_enabled": True, "pip_video_pool": [], "pip_image_pool": []}})
+    assert not result["jobs"] and result["errors"]
