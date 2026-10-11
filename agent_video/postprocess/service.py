@@ -27,9 +27,12 @@ class PostprocessService(EditorService):
             self.register(self.library_id, str(texture(folder, 20261011)))
         from .music import MusicQueue
         self.music = MusicQueue(self)
+        from .runtime import CpuMusicRuntime
+        self.runtime = CpuMusicRuntime(self)
 
     def close(self):
         self.music.close()
+        self.runtime.close()
         super().close()
 
     def settings(self, payload=None):

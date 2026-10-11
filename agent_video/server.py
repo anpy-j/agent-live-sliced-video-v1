@@ -920,6 +920,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.settings(payload if method == "PUT" else None)
             elif parts == ["music"] and method in {"GET", "POST"}:
                 result = service.music.start(payload) if method == "POST" else service.music.jobs()
+            elif parts == ["music-runtime"] and method in {"GET", "POST"}:
+                result = service.runtime.start() if method == "POST" else service.runtime.status()
             if result is None:
                 self.json_response({"error": "后处理接口不存在"}, 404)
             else:

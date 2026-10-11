@@ -701,7 +701,7 @@ async function route(){
     if(hash==='#/mcp'){location.replace('#/settings/mcp');return;}
     if(hash.startsWith('#/settings'))return await renderSettingsPage(hash.split('/')[2]||'runtime');
     if(hash.startsWith('#/editor'))return await window.LiveCutEditor.mount(app);
-    if(hash==='#/postprocess')return await window.LiveCutPostprocess.mount(app);
+    if(hash==='#/postprocess'){setCrumb('视频后处理');return await window.LiveCutPostprocess.mount(app);}
     return await renderDashboard();
   }catch(e){app.innerHTML=`<div class="danger-box">${escapeHtml(e.message)}</div>`;}
 }
