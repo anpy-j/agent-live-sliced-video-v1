@@ -73,7 +73,7 @@ class MusicQueue:
         prompt = str(payload.get("prompt") or "").strip()[:2000]
         if not prompt:
             raise ValueError("请填写配乐风格描述")
-        params = {"prompt": prompt+", instrumental background music, no vocals", "lyrics": "[Instrumental]",
+        params = {"prompt": prompt+", instrumental background music, no vocals, continuous musical arrangement throughout the track, no long silent gaps", "lyrics": "[Instrumental]",
                   "audio_duration": number(payload.get("duration", 30), 10, 180, "音乐时长"),
                   "bpm": int(number(payload.get("bpm", 100), 30, 300, "BPM")), "audio_format": "wav",
                   "thinking": False, "use_cot_caption": False, "use_cot_language": False,
@@ -106,6 +106,11 @@ class MusicQueue:
                     data = request(job["service"], items[0]["file"], binary=True)
                     path = self.service.root / "resources" / f"AI配乐-{job['id'][:8]}.wav"
                     path.write_bytes(data)
+                    job.update(result=items[0], generated_path=str(path))
+                    from .audio_quality import analyze_generated_audio
+                    job["quality"] = analyze_generated_audio(path, job["params"]["audio_duration"])
+                    if job["quality"]["error"]:
+                        raise ValueError(job["quality"]["error"])
                     a = self.service.import_asset({"path": str(path)})
                     if a["kind"] != "audio":
                         raise ValueError("音乐服务返回的文件不是音频")

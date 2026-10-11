@@ -1,19 +1,24 @@
 import json
+import math
+import struct
 import threading
 import time
 import wave
+
+import pytest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from agent_video.postprocess import PostprocessService
 
 
-def test_acestep_roundtrip_imports_generated_audio_and_metadata(tmp_path):
+@pytest.mark.parametrize("silent_tail", [False, True])
+def test_acestep_roundtrip_imports_generated_audio_and_metadata(tmp_path, silent_tail):
     music = tmp_path / "fake-generated.wav"
     with wave.open(str(music), "wb") as wav:
         wav.setnchannels(1)
         wav.setsampwidth(2)
         wav.setframerate(16000)
-        wav.writeframes(b"\0\0"*16000)
+        wav.writeframes(b"".join(struct.pack('<h',int(5000*math.sin(i*math.tau*330/16000)) if not silent_tail or i<80000 else 0) for i in range(160000)))
     received = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -50,10 +55,18 @@ def test_acestep_roundtrip_imports_generated_audio_and_metadata(tmp_path):
             if current["status"] != "running":
                 break
             time.sleep(.05)
+        if silent_tail:
+            assert current["status"] == "failed", current
+            assert "静音" in current["error"]
+            assert "asset_id" not in current
+            assert not any(a["kind"] == "audio" for a in service.library()["assets"])
+            assert current["quality"]["quiet_tail_seconds"] == 5
+            return
         assert current["status"] == "completed", current
         asset = service.asset(service.library_id, current["asset_id"])
         assert asset["kind"] == "audio"
         assert current["result"]["seed_value"] == "42"
+        assert current["quality"]["quiet_tail_seconds"] == 0
         assert received[0][1]["thinking"] is False
         assert received[0][1]["lyrics"] == "[Instrumental]"
         assert received[1][1]["task_id_list"] == ["cpu-test"]
