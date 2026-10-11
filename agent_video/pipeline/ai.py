@@ -72,7 +72,7 @@ DECISION_SCHEMA: dict[str, Any] = {
     "required": ["decisions"],
 }
 
-# S4 成片结构角色：hook 必须开头，cta 若存在必须收尾，其余为可选中段。
+# S4 句群角色：hook 可省略，有则开头；cta 若存在必须收尾。
 ORDER_SECTION_ROLES: tuple[str, ...] = (
     "hook", "scene", "selling_point", "proof", "styling", "cta")
 

@@ -1,0 +1,311 @@
+{
+  "main_product": "丝绒鱼尾裙",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        137,
+        37,
+        73
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        140,
+        148,
+        149,
+        67,
+        138,
+        152,
+        62,
+        63
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        154,
+        155
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        33,
+        56
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        157,
+        158,
+        159
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        36
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        133,
+        134
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        88
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    137,
+    37,
+    73,
+    140,
+    148,
+    149,
+    67,
+    138,
+    152,
+    62,
+    63,
+    154,
+    155,
+    33,
+    56,
+    157,
+    158,
+    159,
+    36,
+    133,
+    134,
+    88
+  ],
+  "selected_clauses": [
+    {
+      "id": 1,
+      "start": 1.52,
+      "end": 6.08,
+      "text": "做丝绒这个品类里,我觉得我们做的是非常非常细的。",
+      "members": [
+        1
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 137,
+      "start": 300.4,
+      "end": 303.38,
+      "text": "这条丝终群85跟75两个长度",
+      "members": [
+        137
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 37,
+      "start": 76.65,
+      "end": 77.95,
+      "text": "而且我给大家准备了长短款",
+      "members": [
+        37
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 73,
+      "start": 153.34,
+      "end": 155.68,
+      "text": "1米6的话可以穿长的1米59以下穿短的",
+      "members": [
+        73
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 140,
+      "start": 305.94,
+      "end": 308.26,
+      "text": "这种丝终都是我们开年定制上万米",
+      "members": [
+        140
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 148,
+      "start": 317.2,
+      "end": 320.72,
+      "text": "这种能做定制定单的丝终一定是你今年买到的最好的制好的",
+      "members": [
+        148,
+        149
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 67,
+      "start": 141.86,
+      "end": 143.6,
+      "text": "克重还是比较高的姐妹们",
+      "members": [
+        67
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 138,
+      "start": 303.38,
+      "end": 304.96,
+      "text": "而且丝终的弹力非常的大",
+      "members": [
+        138
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 152,
+      "start": 323.96,
+      "end": 325.76,
+      "text": "上手的手感是非常滑的而且不爱粘毛",
+      "members": [
+        152
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 62,
+      "start": 131.5,
+      "end": 135.88,
+      "text": "裙子的话不导毛不导毛不泛白随便穿洗随便丢击洗",
+      "members": [
+        62,
+        63
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 154,
+      "start": 329.36,
+      "end": 332.0,
+      "text": "所有丝绒都粘但我们这条不爱粘懂我的意思吗",
+      "members": [
+        154,
+        155
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 33,
+      "start": 70.83,
+      "end": 72.55,
+      "text": "而且这是松紧药的侧面有拉链",
+      "members": [
+        33
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 56,
+      "start": 120.52,
+      "end": 122.98,
+      "text": "它凸显的是它的整个侧面质感姐妹们",
+      "members": [
+        56
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 157,
+      "start": 333.62,
+      "end": 338.72,
+      "text": "只是说想让更多女人风格的女生能穿出这种很有母妹的感觉所以我们才做了这个鱼尾",
+      "members": [
+        157,
+        158,
+        159
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 36,
+      "start": 75.37,
+      "end": 76.35,
+      "text": "最大马都能穿到150",
+      "members": [
+        36
+      ],
+      "group": 6,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 133,
+      "start": 293.56,
+      "end": 297.16,
+      "text": "你去搭这种小大衣的时候它也很好看你也可以换我们刚刚的皮裤去做搭配",
+      "members": [
+        133,
+        134
+      ],
+      "group": 7,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 88,
+      "start": 203.58,
+      "end": 206.26,
+      "text": "所有人都在穿因为它好洗穿起来还耐脏",
+      "members": [
+        88
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    }
+  ],
+  "total_seconds": 45.70000000000003
+}

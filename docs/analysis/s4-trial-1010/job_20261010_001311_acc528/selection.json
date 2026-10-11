@@ -1,0 +1,763 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "羊毛半裙",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        7
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        20
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        107
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        110
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        163,
+        164
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        209,
+        210
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        134,
+        135
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        47,
+        48,
+        49
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        56,
+        81
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        53
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        98,
+        99,
+        100
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        153,
+        160,
+        185
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        130
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        138
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        154
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        15
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        178
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        181
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        14,
+        211
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        63
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        62
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        61
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        189
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        212,
+        213,
+        214
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        218
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        52
+      ]
+    },
+    {
+      "role": "cta",
+      "ids": [
+        119,
+        120,
+        121
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    7,
+    20,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    30,
+    107,
+    110,
+    163,
+    164,
+    209,
+    210,
+    134,
+    135,
+    47,
+    48,
+    49,
+    56,
+    81,
+    53,
+    98,
+    99,
+    100,
+    153,
+    160,
+    185,
+    130,
+    69,
+    138,
+    154,
+    15,
+    178,
+    181,
+    14,
+    211,
+    63,
+    62,
+    61,
+    189,
+    212,
+    213,
+    214,
+    218,
+    52,
+    119,
+    120,
+    121
+  ],
+  "total_seconds": 105.37,
+  "selected_clauses": [
+    {
+      "id": 1,
+      "start": 2.26,
+      "end": 6.72,
+      "text": "这条裙子你看似简单,其实它用量非常的大,因为它这里有一个大褶,",
+      "members": [
+        1
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 7,
+      "start": 34.86,
+      "end": 39.02,
+      "text": "像这种面料的话基本上都是供应设置品的百分百羊毛的这条裙子",
+      "members": [
+        7
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 20,
+      "start": 70.83,
+      "end": 74.11,
+      "text": "百分百全羊毛而且是纯抢眼工艺的",
+      "members": [
+        20
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 22,
+      "start": 75.85,
+      "end": 80.79,
+      "text": "它是属于双色羊毛它的颜色是花纱工艺",
+      "members": [
+        22,
+        23
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 24,
+      "start": 81.15,
+      "end": 88.43,
+      "text": "它不是定染的这种料子是染不出来的这种东叫色芝它要用多种颜色的羊毛芝在一起深浅故意做出那种渐变的感觉",
+      "members": [
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 30,
+      "start": 89.49,
+      "end": 92.29,
+      "text": "他整个的面料质感是非常贵气的",
+      "members": [
+        30
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 107,
+      "start": 251.96,
+      "end": 254.96,
+      "text": "而且是强年的工艺去做的这款超细羊毛",
+      "members": [
+        107
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 110,
+      "start": 258.14,
+      "end": 259.66,
+      "text": "姐妹们这是羊毛的整个双面",
+      "members": [
+        110
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 163,
+      "start": 365.05,
+      "end": 369.43,
+      "text": "强颜的整个工艺经过毛林片的播出之后这种羊毛是一点一点都不再炸的",
+      "members": [
+        163,
+        164
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 209,
+      "start": 450.22,
+      "end": 451.4,
+      "text": "他透气性怎么这么好呢",
+      "members": [
+        209
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 210,
+      "start": 452.08,
+      "end": 455.6,
+      "text": "可舒服了一点都不扎你们自己看这个透光性你现在拿回去一直能",
+      "members": [
+        210
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 134,
+      "start": 308.29,
+      "end": 309.95,
+      "text": "这款的灭料客众更高",
+      "members": [
+        134
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 135,
+      "start": 310.39,
+      "end": 312.65,
+      "text": "而且它的整个支法工艺更加的高级",
+      "members": [
+        135
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 47,
+      "start": 117.51,
+      "end": 119.79,
+      "text": "它就是卡在胯上的它没有那么的瘦",
+      "members": [
+        47,
+        48
+      ],
+      "group": 10,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 49,
+      "start": 120.25,
+      "end": 121.21,
+      "text": "它是偏休闲的",
+      "members": [
+        49
+      ],
+      "group": 10,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 56,
+      "start": 129.11,
+      "end": 130.23,
+      "text": "有一点点学员风",
+      "members": [
+        56
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 81,
+      "start": 194.78,
+      "end": 196.36,
+      "text": "有一点点学院风的中群",
+      "members": [
+        81
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 53,
+      "start": 126.09,
+      "end": 127.05,
+      "text": "这是今年最新一季的",
+      "members": [
+        53
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 98,
+      "start": 226.56,
+      "end": 233.02,
+      "text": "但是这个长度我觉得既能让我穿出那种很简凌的感觉但是他整个的那种自在的松弛的感觉他还很在线",
+      "members": [
+        98,
+        99
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 100,
+      "start": 233.44,
+      "end": 235.52,
+      "text": "所以这个裙子我觉得是超级漂亮啊姐妹们",
+      "members": [
+        100
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 153,
+      "start": 341.57,
+      "end": 343.71,
+      "text": "上身又好看高级又洋气又有质感",
+      "members": [
+        153
+      ],
+      "group": 14,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 160,
+      "start": 359.01,
+      "end": 360.31,
+      "text": "这条裙子很顶",
+      "members": [
+        160
+      ],
+      "group": 14,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 185,
+      "start": 405.7,
+      "end": 406.9,
+      "text": "很有品味的一条裙子",
+      "members": [
+        185
+      ],
+      "group": 14,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 130,
+      "start": 298.08,
+      "end": 300.78,
+      "text": "这款灭料的整个风格就已经很高级了你们可以看一下",
+      "members": [
+        130
+      ],
+      "group": 15,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 69,
+      "start": 168.19,
+      "end": 170.11,
+      "text": "裙子就是很洋气我告诉你",
+      "members": [
+        69
+      ],
+      "group": 16,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 138,
+      "start": 316.41,
+      "end": 318.15,
+      "text": "一定是很专人眼球的",
+      "members": [
+        138
+      ],
+      "group": 17,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 154,
+      "start": 344.03,
+      "end": 346.19,
+      "text": "一定是懂高货的人必入的单品",
+      "members": [
+        154
+      ],
+      "group": 18,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 15,
+      "start": 61.25,
+      "end": 63.75,
+      "text": "你们可以去看品质再看成分",
+      "members": [
+        15
+      ],
+      "group": 19,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 178,
+      "start": 391.0,
+      "end": 392.78,
+      "text": "我们是真正做原料出身的",
+      "members": [
+        178
+      ],
+      "group": 20,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 181,
+      "start": 395.7,
+      "end": 397.18,
+      "text": "你市面上最多最多买个50毛的",
+      "members": [
+        181
+      ],
+      "group": 21,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 14,
+      "start": 59.97,
+      "end": 61.25,
+      "text": "整个冬天都能搭得了",
+      "members": [
+        14
+      ],
+      "group": 22,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 211,
+      "start": 455.6,
+      "end": 457.38,
+      "text": "南方一直能穿到一个深球",
+      "members": [
+        211
+      ],
+      "group": 22,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 63,
+      "start": 142.89,
+      "end": 146.93,
+      "text": "三十来岁的女生你可以这样去搭你看到没穿一个小靴子穿着这种去搭配一个背心",
+      "members": [
+        63
+      ],
+      "group": 23,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 62,
+      "start": 140.29,
+      "end": 141.79,
+      "text": "感觉比较好搭",
+      "members": [
+        62
+      ],
+      "group": 24,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 61,
+      "start": 134.25,
+      "end": 135.89,
+      "text": "尖头的小高跟穿这条裙子",
+      "members": [
+        61
+      ],
+      "group": 25,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 189,
+      "start": 410.5,
+      "end": 412.97,
+      "text": "你看我就搭这个小T恤去配好好看",
+      "members": [
+        189
+      ],
+      "group": 26,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 212,
+      "start": 457.38,
+      "end": 462.3,
+      "text": "里面穿个羊毛袜特别好看特别氧气对你就配个袜子穿个小乐浮鞋是最氧气的搭配",
+      "members": [
+        212,
+        213,
+        214
+      ],
+      "group": 27,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 218,
+      "start": 471.42,
+      "end": 474.5,
+      "text": "随便一件起批搭个小白袜的搭个小修衔鞋就可以了好",
+      "members": [
+        218
+      ],
+      "group": 28,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 52,
+      "start": 124.83,
+      "end": 126.09,
+      "text": "基本上都是明星的穿搭",
+      "members": [
+        52
+      ],
+      "group": 29,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 119,
+      "start": 275.64,
+      "end": 280.24,
+      "text": "如果你觉得你驾驭不了的话我建议你们试一下这条裙子它比较显瘦比较显跨窄",
+      "members": [
+        119,
+        120,
+        121
+      ],
+      "group": 30,
+      "role": "cta",
+      "usable": true
+    }
+  ]
+}

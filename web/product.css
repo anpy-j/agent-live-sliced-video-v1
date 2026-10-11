@@ -160,9 +160,18 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{border-color:var
 @media(max-width:680px){.queue-table th:nth-child(2){width:84px}.queue-table th:nth-child(5){width:65px}.queue-row-actions .link-button{white-space:nowrap}}
 .draft-library-page .content{padding:0 24px 24px;max-width:none}
 .compact-library-toolbar{height:70px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;background:var(--bg);z-index:12;margin-bottom:6px}
-.all-drafts{display:flex;align-items:center;gap:9px;padding:0;border:0;background:none;color:var(--text);font-size:15px;font-weight:600;min-height:36px;cursor:pointer;white-space:nowrap}
+.all-drafts{display:flex;align-items:center;gap:9px;padding:0;border:0;background:none;color:var(--text);font-size:15px;font-weight:600;min-height:36px;white-space:nowrap}
 .all-drafts span{font-size:11px;font-weight:400;color:var(--dim);font-variant-numeric:tabular-nums}
-.all-drafts:hover{color:var(--accent)}
+.draft-library-actions{display:flex;align-items:center;gap:12px;margin-left:auto;min-width:0}
+.pipeline-version-picker{display:flex;flex-shrink:0;border:1px solid #30313a;border-radius:6px;overflow:hidden}
+.pipeline-version-picker button{border:0;border-radius:0;background:#1c1d23;color:var(--dim);font-size:12px;padding:7px 10px;min-height:32px;cursor:pointer}
+.pipeline-version-picker button[aria-pressed="true"]{background:var(--accent,#7c65f5);color:#fff}
+.pipeline-version-picker button:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+.pipeline-version-picker button:disabled{opacity:.45;cursor:not-allowed}
+.pipeline-version-tag{display:inline-block;vertical-align:middle;margin-left:8px;padding:3px 7px;border:1px solid #a394ff33;border-radius:5px;background:#a394ff0d;color:#bdadfb;font:600 11px/1.4 var(--sans);letter-spacing:0;white-space:nowrap}
+@media(max-width:680px){.compact-library-toolbar{height:auto!important;min-height:58px;flex-wrap:wrap;padding:8px 0}.draft-library-actions{flex:1 1 220px;gap:6px}.draft-library-actions .library-search{flex:1;min-width:0}.draft-library-actions .library-search input{width:100%;min-width:60px}.pipeline-version-picker button{padding:6px 8px}.draft-refresh{padding:0 8px}.draft-refresh span{display:none}}
+.draft-refresh{flex-shrink:0;min-height:32px;padding:0 12px;font-size:12px;white-space:nowrap}
+.draft-refresh svg{width:15px;height:15px}
 .library-search{position:relative;display:flex;align-items:center}
 .library-search svg{position:absolute;left:11px;width:15px;height:15px;color:var(--dim)}
 .library-search input{width:220px;min-height:32px;padding:6px 10px 6px 33px;background:#1c1d23;border-color:#30313a;border-radius:6px;font-size:12px}
@@ -186,6 +195,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{border-color:var
 .draft-edit:disabled{cursor:not-allowed}.draft-edit:disabled:not(.is-queuing){box-shadow:none}.draft-edit.is-queuing{cursor:wait}
 @media(hover:none){.draft-edit>span{opacity:1;transform:none}}
 @media(max-width:680px){.draft-library-page .content{padding:0 14px 20px}.compact-library-toolbar{height:58px;gap:10px;margin-bottom:5px}.compact-menu{display:grid;width:28px;height:32px;flex-shrink:0}.all-drafts{font-size:13px;margin-right:auto;gap:6px}.library-search input{width:150px}.compact-draft-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:14px 10px}}
+@media(max-width:680px){.compact-library-toolbar{height:auto;min-height:58px;flex-wrap:wrap;padding:12px 0}.draft-library-actions{gap:8px;flex:1 1 100%}.draft-library-actions .library-search{flex:1;min-width:0}.draft-library-actions .library-search input{width:100%;min-width:0}}
 .editor-project{padding:24px;border-radius:12px}.editor-project:hover{border-color:#776791}.editor-workspace .panel{border-radius:12px}.editor-stage{border-radius:8px}.editor-track-label{background:#24242f}.editor-toolbar,.editor-tabs{border-color:var(--line-soft)}
 .editor-toolbar button,.editor-tabs>button:not(.tab-button),.editor-track-label button,.editor-export-row button{background:#2b2a35;border-color:#44414f;color:#d3cedf;border-radius:6px;transition:background .16s}
 .editor-toolbar button:hover,.editor-tabs>button:not(.tab-button):hover,.editor-track-label button:hover{background:#3b3549}

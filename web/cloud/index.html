@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>LiveCut · 云端管理</title><link rel="stylesheet" href="cloud.css"></head>
+<body><header><div><span class="brand">LiveCut</span><span class="subtitle">云端管理</span></div><button id="settingsButton">连接设置</button></header>
+<main><section id="loginPanel" class="panel"><h1>让成片随时可用</h1><p>登录同一账号，在电脑和手机间共享商品与视频。</p><form id="loginForm"><label>服务器地址<input name="server" type="url" placeholder="https://你的千川服务器" required></label><label>账号<input name="username" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">连接并登录</button></form></section>
+<section id="workspace" hidden><div id="stats" class="stats"></div><nav id="tabs"><button data-tab="videos" class="active">成片库</button><button data-tab="products">商品库</button><button data-tab="upload">上传</button><button data-tab="records">剪辑记录</button><button data-tab="queue">上传队列</button></nav><div id="content"></div></section>
+<p id="message" role="status" aria-live="polite"></p></main>
+<dialog id="preview"><button id="closePreview">关闭</button><video controls playsinline></video></dialog>
+<script src="cloud.js" defer></script></body></html>

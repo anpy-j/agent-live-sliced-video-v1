@@ -1,0 +1,128 @@
+[
+  [
+    {
+      "id": 64,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 145.23,
+      "timeline_end": 149.61,
+      "segment_id": "片段3",
+      "segment_offset": 34.963,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-09\\2026-09-20\\第1场\\袁艺灵20260920095236第1场7687429103712357139.mp4",
+      "source_start": 6604.896,
+      "source_end": 6609.276,
+      "speed": 1.0,
+      "start": 6604.896,
+      "end": 6609.276,
+      "text": "现在这条裙子给大家准备的是高枝羊毛然后做的浑坊",
+      "selection_group": 0
+    }
+  ],
+  [
+    {
+      "id": 66,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 149.61,
+      "timeline_end": 151.79,
+      "segment_id": "片段3",
+      "segment_offset": 39.343,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-09\\2026-09-20\\第1场\\袁艺灵20260920095236第1场7687429103712357139.mp4",
+      "source_start": 6609.276,
+      "source_end": 6611.456,
+      "speed": 1.0,
+      "start": 6609.276,
+      "end": 6611.456,
+      "text": "而且它是千尿格的一个设计",
+      "selection_group": 1
+    }
+  ],
+  [
+    {
+      "id": 23,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 64.3,
+      "timeline_end": 66.28,
+      "segment_id": "片段1",
+      "segment_offset": 64.3,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-10\\2026-10-08\\第1场\\袁艺灵20261008095054第1场7694108423721437990.mp4",
+      "source_start": 12403.433,
+      "source_end": 12405.413,
+      "speed": 1.0,
+      "start": 12403.433,
+      "end": 12405.413,
+      "text": "都可以去搭各种各样的真枝马甲",
+      "selection_group": 2
+    }
+  ],
+  [
+    {
+      "id": 50,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 117.17,
+      "timeline_end": 119.63,
+      "segment_id": "片段3",
+      "segment_offset": 6.903,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-09\\2026-09-20\\第1场\\袁艺灵20260920095236第1场7687429103712357139.mp4",
+      "source_start": 6576.836,
+      "source_end": 6579.296,
+      "speed": 1.0,
+      "start": 6576.836,
+      "end": 6579.296,
+      "text": "然后外面再可以穿一件毛衣",
+      "selection_group": 3
+    }
+  ],
+  [
+    {
+      "id": 45,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 106.12,
+      "timeline_end": 108.2,
+      "segment_id": "片段2",
+      "segment_offset": 31.253,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-10\\2026-10-08\\第1场\\袁艺灵20261008095054第1场7694108423721437990.mp4",
+      "source_start": 13221.486,
+      "source_end": 13223.566,
+      "speed": 1.0,
+      "start": 13221.486,
+      "end": 13223.566,
+      "text": "配一下皮裤都能配很好看",
+      "selection_group": 4
+    }
+  ],
+  [
+    {
+      "id": 59,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 137.35,
+      "timeline_end": 138.67,
+      "segment_id": "片段3",
+      "segment_offset": 27.083,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-09\\2026-09-20\\第1场\\袁艺灵20260920095236第1场7687429103712357139.mp4",
+      "source_start": 6597.016,
+      "source_end": 6598.336,
+      "speed": 1.0,
+      "start": 6597.016,
+      "end": 6598.336,
+      "text": "小打底也是很好看的",
+      "selection_group": 5
+    }
+  ],
+  [
+    {
+      "id": 55,
+      "timeline_id": "CC7F827A-A507-439b-8B8D-724EB03922A3",
+      "timeline_start": 130.13,
+      "timeline_end": 133.57,
+      "segment_id": "片段3",
+      "segment_offset": 19.863,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-09\\2026-09-20\\第1场\\袁艺灵20260920095236第1场7687429103712357139.mp4",
+      "source_start": 6589.796,
+      "source_end": 6593.236,
+      "speed": 1.0,
+      "start": 6589.796,
+      "end": 6593.236,
+      "text": "我觉得秋冬的话比较适配的就是一些毛衣的感觉",
+      "selection_group": 6
+    }
+  ]
+]

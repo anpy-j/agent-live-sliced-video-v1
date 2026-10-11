@@ -1,5 +1,7 @@
 # LiveCut 女装切片 Agent
 
+云端成片管理及 Android 构建见 [LIVECUT_CLOUD.md](docs/LIVECUT_CLOUD.md)。后端接入现有千川项目，桌面与 APK 共享云端模块。
+
 一个本地优先、模型可配置的女装直播切片 Agent。转写、文本筛查、切点对齐、音画双轨混剪和渲染由项目内置执行内核完成，并通过 MCP 供 WorkBuddy、Codex、Antigravity、OpenCode 等客户端触发。
 
 ## 核心能力

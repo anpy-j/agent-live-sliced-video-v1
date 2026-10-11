@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "usable_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "fragments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "need": {
+            "type": "string",
+            "enum": [
+              "prefix",
+              "suffix",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "need"
+        ]
+      }
+    }
+  },
+  "required": [
+    "usable_ids",
+    "fragments"
+  ]
+}

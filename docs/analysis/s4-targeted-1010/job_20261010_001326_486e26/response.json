@@ -1,0 +1,550 @@
+{
+  "fingerprint": "3f23939a6f52a4eabca8aafed05a89909f8319e9699826fc6d0a07c452b90487",
+  "data": {
+    "main_product": "迪奥同款羊毛短外套",
+    "sections": [
+      {
+        "role": "hook",
+        "ids": [
+          5,
+          13
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          24,
+          25,
+          26,
+          97,
+          98
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          34,
+          35,
+          60,
+          183
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          55,
+          56,
+          57,
+          169,
+          170,
+          166,
+          167
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          6,
+          116,
+          117,
+          119,
+          120,
+          126
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          118,
+          191,
+          192,
+          41
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          68,
+          69,
+          70,
+          71,
+          72
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          135,
+          136,
+          137,
+          138,
+          139,
+          140
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          7,
+          9,
+          10,
+          11
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          147,
+          148,
+          149,
+          150,
+          152,
+          153,
+          154,
+          155
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          44,
+          45,
+          46,
+          47,
+          48,
+          52,
+          128
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          156,
+          157,
+          158,
+          247,
+          258
+        ]
+      },
+      {
+        "role": "cta",
+        "ids": [
+          93,
+          94
+        ]
+      }
+    ],
+    "ordered_ids": [
+      5,
+      13,
+      24,
+      25,
+      26,
+      97,
+      98,
+      34,
+      35,
+      60,
+      183,
+      55,
+      56,
+      57,
+      169,
+      170,
+      166,
+      167,
+      6,
+      116,
+      117,
+      119,
+      120,
+      126,
+      118,
+      191,
+      192,
+      41,
+      68,
+      69,
+      70,
+      71,
+      72,
+      135,
+      136,
+      137,
+      138,
+      139,
+      140,
+      7,
+      9,
+      10,
+      11,
+      147,
+      148,
+      149,
+      150,
+      152,
+      153,
+      154,
+      155,
+      44,
+      45,
+      46,
+      47,
+      48,
+      52,
+      128,
+      156,
+      157,
+      158,
+      247,
+      258,
+      93,
+      94
+    ]
+  },
+  "usage": {
+    "input_tokens": 34057,
+    "output_tokens": 16916
+  },
+  "usage_fields": [
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens",
+      "value": 9333
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.total_tokens",
+      "value": 15333
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 9205
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_thinking_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.usage.inputTokens",
+      "value": 9333
+    },
+    {
+      "path": "$[3].providerData.usage.outputTokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.usage.totalTokens",
+      "value": 15333
+    },
+    {
+      "path": "$[3].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens",
+      "value": 9333
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens",
+      "value": 5999
+    },
+    {
+      "path": "$[4].providerData.rawUsage.total_tokens",
+      "value": 15332
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 5999
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 9088
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 9088
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 245
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_thinking_tokens",
+      "value": 5999
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.usage.inputTokens",
+      "value": 9333
+    },
+    {
+      "path": "$[4].providerData.usage.outputTokens",
+      "value": 5999
+    },
+    {
+      "path": "$[4].providerData.usage.totalTokens",
+      "value": 15332
+    },
+    {
+      "path": "$[4].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 9088
+    },
+    {
+      "path": "$[4].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 5999
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens",
+      "value": 15391
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens",
+      "value": 4917
+    },
+    {
+      "path": "$[7].providerData.rawUsage.total_tokens",
+      "value": 20308
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 4310
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 15232
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 15232
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 159
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_thinking_tokens",
+      "value": 4310
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.usage.inputTokens",
+      "value": 15391
+    },
+    {
+      "path": "$[7].providerData.usage.outputTokens",
+      "value": 4917
+    },
+    {
+      "path": "$[7].providerData.usage.totalTokens",
+      "value": 20308
+    },
+    {
+      "path": "$[7].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 15232
+    },
+    {
+      "path": "$[7].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 4310
+    },
+    {
+      "path": "$[9].duration_ms",
+      "value": 17076
+    },
+    {
+      "path": "$[9].duration_api_ms",
+      "value": 19
+    },
+    {
+      "path": "$[9].num_turns",
+      "value": 8
+    },
+    {
+      "path": "$[9].usage.input_tokens",
+      "value": 34057
+    },
+    {
+      "path": "$[9].usage.output_tokens",
+      "value": 16916
+    },
+    {
+      "path": "$[9].usage.cache_creation_input_tokens",
+      "value": 9609
+    },
+    {
+      "path": "$[9].usage.cache_read_input_tokens",
+      "value": 24448
+    }
+  ],
+  "envelope_keys": [],
+  "settings": {
+    "effort": "low",
+    "max_output_tokens": 6000,
+    "max_thinking_tokens": 2048,
+    "max_turns": 2
+  },
+  "seconds": 66.75,
+  "final_json_characters": 1041,
+  "error_subtype": null,
+  "is_error": null
+}

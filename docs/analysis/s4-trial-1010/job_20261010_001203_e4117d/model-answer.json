@@ -1,0 +1,185 @@
+{
+  "main_product": "羊毛马甲",
+  "sections": [
+    {
+      "role": "selling_point",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        5,
+        6
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        190
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        282
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        286,
+        287
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        289,
+        290
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        312,
+        313,
+        314
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        0
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        264
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        267,
+        268
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        76,
+        77
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        79
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        296,
+        297
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        298,
+        299,
+        300
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        301,
+        302,
+        303,
+        304
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        398,
+        399,
+        400
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        365,
+        366,
+        367
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        207
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        429,
+        430
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    5,
+    6,
+    190,
+    282,
+    286,
+    287,
+    289,
+    290,
+    312,
+    313,
+    314,
+    0,
+    27,
+    28,
+    264,
+    267,
+    268,
+    76,
+    77,
+    79,
+    296,
+    297,
+    298,
+    299,
+    300,
+    301,
+    302,
+    303,
+    304,
+    398,
+    399,
+    400,
+    365,
+    366,
+    367,
+    207,
+    429,
+    430
+  ]
+}

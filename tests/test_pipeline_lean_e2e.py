@@ -77,7 +77,8 @@ class LeanPipelineEndToEndTest(unittest.TestCase):
         self.assertEqual(manifest["judge_concurrency"], 1)
         self.assertEqual(manifest["judge_retries"], 1)
         self.assertEqual(manifest["main_product"], "马甲")
-        self.assertEqual(len(manifest["segments"]), 5)
+        # Exact adjacent clauses in the same S4 sentence group share one cut.
+        self.assertEqual(len(manifest["segments"]), 4)
         self.assertAlmostEqual(manifest["total_seconds"], 8.4, places=2)
 
         output = os.path.join(self.workdir, manifest["output"])

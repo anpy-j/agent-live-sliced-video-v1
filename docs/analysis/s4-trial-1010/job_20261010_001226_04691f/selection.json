@@ -1,0 +1,373 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "五分裤",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        9
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        10
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        50,
+        51
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        87,
+        88
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        53,
+        54
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        55,
+        56
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        123,
+        124
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        34
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        23
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        115
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        40
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        30
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        46
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        65,
+        66,
+        67
+      ]
+    }
+  ],
+  "ordered_ids": [
+    9,
+    10,
+    50,
+    51,
+    87,
+    88,
+    53,
+    54,
+    55,
+    56,
+    123,
+    124,
+    69,
+    34,
+    23,
+    115,
+    40,
+    7,
+    8,
+    27,
+    28,
+    30,
+    46,
+    65,
+    66,
+    67
+  ],
+  "total_seconds": 44.9,
+  "selected_clauses": [
+    {
+      "id": 9,
+      "start": 27.36,
+      "end": 30.5,
+      "text": "这个五分裤我们家的裤型是非常好的,而且我们给到的材质也非常的软。",
+      "members": [
+        9
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 10,
+      "start": 31.2,
+      "end": 33.08,
+      "text": "这个材质的话我们做到的是一百的羊毛。",
+      "members": [
+        10
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 50,
+      "start": 141.23,
+      "end": 144.39,
+      "text": "百分买羊毛没有松紧腰松紧腰做出来这个裤子不板正",
+      "members": [
+        50,
+        51
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 87,
+      "start": 212.39,
+      "end": 215.83,
+      "text": "而且它是双面铅的厚度非常的厚大冷的冬天全部都能穿",
+      "members": [
+        87,
+        88
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 53,
+      "start": 146.19,
+      "end": 149.13,
+      "text": "你整一个位置跨维全部都不用担心料子就是在谈力的",
+      "members": [
+        53,
+        54
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 55,
+      "start": 149.13,
+      "end": 151.93,
+      "text": "超级的舒服又舒服又柔软又不挑人",
+      "members": [
+        55,
+        56
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 123,
+      "start": 284.45,
+      "end": 286.23,
+      "text": "而且它带有弹力舒适度很好",
+      "members": [
+        123,
+        124
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 69,
+      "start": 177.78,
+      "end": 180.38,
+      "text": "百分百羊毛的這條五分的中褲寶貝們",
+      "members": [
+        69
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 34,
+      "start": 93.06,
+      "end": 97.82,
+      "text": "弹力比较大卡马一律都会拍笑咱们家裤子所有姐妹们下面是瘦的卡马咱们全部都拍笑",
+      "members": [
+        34
+      ],
+      "group": 8,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 23,
+      "start": 65.02,
+      "end": 67.52,
+      "text": "五分裤是一个时尚度级强的一个感觉",
+      "members": [
+        23
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 115,
+      "start": 274.37,
+      "end": 276.33,
+      "text": "就整个人是那种很有质感很洋气的",
+      "members": [
+        115
+      ],
+      "group": 10,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 40,
+      "start": 109.88,
+      "end": 111.52,
+      "text": "我们给大家两个颜色我现在穿的是黑色",
+      "members": [
+        40
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 7,
+      "start": 20.45,
+      "end": 22.23,
+      "text": "其实你这样的话,你这个搭羽绒裤也好看。",
+      "members": [
+        7
+      ],
+      "group": 12,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 8,
+      "start": 25.66,
+      "end": 27.1,
+      "text": "就这种搭起来就是很洋气的。",
+      "members": [
+        8
+      ],
+      "group": 12,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 27,
+      "start": 71.54,
+      "end": 73.36,
+      "text": "就搭你的各种毛衣搭你的肠靴",
+      "members": [
+        27,
+        28
+      ],
+      "group": 13,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 30,
+      "start": 77.43,
+      "end": 79.51,
+      "text": "而且会把你的身材显得特别的高",
+      "members": [
+        30
+      ],
+      "group": 14,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 46,
+      "start": 135.73,
+      "end": 136.97,
+      "text": "真的你秋冬你就这样去穿",
+      "members": [
+        46
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 65,
+      "start": 173.0,
+      "end": 176.94,
+      "text": "可以水洗吗羊毛专用洗衣液完全没有问题低温冷水",
+      "members": [
+        65,
+        66,
+        67
+      ],
+      "group": 16,
+      "role": "proof",
+      "usable": true
+    }
+  ]
+}

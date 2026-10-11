@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "keep": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "job_20261010_001326_486e26:143",
+              "job_20261010_001326_486e26:144",
+              "job_20261010_001326_486e26:184",
+              "job_20261010_001322_ddf5be:7",
+              "job_20261010_001322_ddf5be:51",
+              "job_20261010_001322_ddf5be:58",
+              "job_20261010_001322_ddf5be:106",
+              "job_20261010_001322_ddf5be:129",
+              "job_20261010_001248_b18cb0:59",
+              "job_20261010_001248_b18cb0:135",
+              "job_20261010_001248_b18cb0:167",
+              "job_20261010_001248_b18cb0:171",
+              "job_20261010_001248_b18cb0:192",
+              "job_20261010_001248_b18cb0:210",
+              "job_20261010_001248_b18cb0:480"
+            ]
+          },
+          "need": {
+            "type": "string",
+            "enum": [
+              "prefix",
+              "suffix",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "need"
+        ]
+      }
+    }
+  },
+  "required": [
+    "keep"
+  ]
+}

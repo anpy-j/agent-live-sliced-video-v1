@@ -1,0 +1,589 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "马甲",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        6
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        15,
+        16
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        161,
+        162,
+        163
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30,
+        31
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        42,
+        46
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        74,
+        75
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        186
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        81,
+        82,
+        83
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        84,
+        85
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        88,
+        89,
+        90
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        91,
+        92,
+        94,
+        95
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        115,
+        116
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        121,
+        122,
+        123
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        132,
+        133
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        171,
+        172
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        296,
+        297
+      ]
+    }
+  ],
+  "ordered_ids": [
+    0,
+    1,
+    2,
+    3,
+    6,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    161,
+    162,
+    163,
+    30,
+    31,
+    42,
+    46,
+    69,
+    74,
+    75,
+    186,
+    81,
+    82,
+    83,
+    84,
+    85,
+    88,
+    89,
+    90,
+    91,
+    92,
+    94,
+    95,
+    115,
+    116,
+    121,
+    122,
+    123,
+    132,
+    133,
+    171,
+    172,
+    296,
+    297
+  ],
+  "total_seconds": 113.06,
+  "selected_clauses": [
+    {
+      "id": 0,
+      "start": 0.38,
+      "end": 16.58,
+      "text": "我们是之前一直卖的马甲,然后今年给大家加了一个外套,就是你可以当成两件套来穿,你也可以直接买一个马甲单穿,它真的是好好看,收到了之后一定会感受到它的整个材质,它的质感非常的有感觉,很高级,非常的高级,这个马甲可以一直穿到深冬,",
+      "members": [
+        0,
+        1,
+        2
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 3,
+      "start": 16.68,
+      "end": 22.06,
+      "text": "你可以搭各种各样的打底梯蓄在里面直接套着穿,外套开衫可以跟马甲做一个两件套的一个叠穿方式。",
+      "members": [
+        3
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 6,
+      "start": 25.12,
+      "end": 27.8,
+      "text": "这种衣服也是卖了一年的一个口碑单品有弹力的",
+      "members": [
+        6
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 9,
+      "start": 37.56,
+      "end": 39.56,
+      "text": "它是真枝姐妹们看下这个面料的质感",
+      "members": [
+        9
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 10,
+      "start": 40.4,
+      "end": 44.6,
+      "text": "这是整个枝法的一个质感看到了吗姐衣服有弹性的特别大的弹性",
+      "members": [
+        10,
+        11
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 12,
+      "start": 45.1,
+      "end": 47.74,
+      "text": "它是这种小乡风的真枝你们自己看一下",
+      "members": [
+        12
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 13,
+      "start": 48.75,
+      "end": 50.47,
+      "text": "小乡风的真枝带有瘦腰的",
+      "members": [
+        13
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 14,
+      "start": 51.11,
+      "end": 53.31,
+      "text": "看一下它的整个的这种边边的金色的质感",
+      "members": [
+        14
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 15,
+      "start": 53.59,
+      "end": 57.39,
+      "text": "这种东西其实我给你们做的这种两件套就是让你们穿的非常显贵奇的",
+      "members": [
+        15,
+        16
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 161,
+      "start": 458.26,
+      "end": 460.54,
+      "text": "非常好看而且看到它上面的纹理吗",
+      "members": [
+        161
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 162,
+      "start": 461.0,
+      "end": 462.58,
+      "text": "这种东西其实很难做的",
+      "members": [
+        162
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 163,
+      "start": 462.96,
+      "end": 465.8,
+      "text": "看它的细节很难做的",
+      "members": [
+        163
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 30,
+      "start": 126.84,
+      "end": 130.98,
+      "text": "白色我觉得就是那种很气质的一个感觉黑色的话就是很显瘦",
+      "members": [
+        30,
+        31
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 42,
+      "start": 154.72,
+      "end": 159.42,
+      "text": "行马甲厚度如何夏天能穿秋冬都能穿啊夏天能穿秋冬都能穿",
+      "members": [
+        42
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 46,
+      "start": 169.9,
+      "end": 173.12,
+      "text": "给我打的能不厚的夏天现在单独裸穿可以的",
+      "members": [
+        46
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 69,
+      "start": 263.24,
+      "end": 266.84,
+      "text": "买过马甲都觉得可以再配一个外套来试一下它的感觉",
+      "members": [
+        69
+      ],
+      "group": 7,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 74,
+      "start": 289.82,
+      "end": 293.16,
+      "text": "可以水洗只穿外套也很好看你裡面可以搭一件小T恤去穿",
+      "members": [
+        74,
+        75
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 186,
+      "start": 537.09,
+      "end": 540.21,
+      "text": "黑色单穿一下给你们看一下里面你可以配T恤",
+      "members": [
+        186
+      ],
+      "group": 9,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 81,
+      "start": 301.2,
+      "end": 303.18,
+      "text": "这条褲子真的面料特别特别的好",
+      "members": [
+        81
+      ],
+      "group": 10,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 82,
+      "start": 303.84,
+      "end": 306.5,
+      "text": "而且我们给到的整个的版型非常的有质感",
+      "members": [
+        82,
+        83
+      ],
+      "group": 10,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 84,
+      "start": 307.04,
+      "end": 309.52,
+      "text": "它是胡杏尔同款的这一件的黑色",
+      "members": [
+        84
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 85,
+      "start": 310.36,
+      "end": 312.04,
+      "text": "就这条褲子很难做",
+      "members": [
+        85
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 88,
+      "start": 315.5,
+      "end": 321.44,
+      "text": "这里整个的设计的一个感觉就非常非常的有风格而且穿上去之后这裤子也是有那种很精致的腔调",
+      "members": [
+        88,
+        89,
+        90
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 91,
+      "start": 321.44,
+      "end": 324.2,
+      "text": "我们给大家做了长短两个版本1米6以上穿长",
+      "members": [
+        91,
+        92
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 94,
+      "start": 325.38,
+      "end": 329.72,
+      "text": "我穿的就是长的这个裤子就是九分裤明白吗姐妹们它就是一个九分裤来号里就开",
+      "members": [
+        94,
+        95
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 115,
+      "start": 365.96,
+      "end": 368.44,
+      "text": "是你秋天正好秋天都能穿的東西",
+      "members": [
+        115,
+        116
+      ],
+      "group": 14,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 121,
+      "start": 372.92,
+      "end": 374.3,
+      "text": "超級好看的一條褲子",
+      "members": [
+        121
+      ],
+      "group": 15,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 122,
+      "start": 376.96,
+      "end": 379.28,
+      "text": "一定是你買回之後你還會認可的一條",
+      "members": [
+        122,
+        123
+      ],
+      "group": 15,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 132,
+      "start": 390.92,
+      "end": 394.84,
+      "text": "你从材质和质感上面你就能看到这个灭料的纹理特别高级",
+      "members": [
+        132,
+        133
+      ],
+      "group": 16,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 171,
+      "start": 490.73,
+      "end": 498.89,
+      "text": "这个裤子我估计你们只要买到都会觉得他非常直感是你所有亚马裤子里天花板了这款是百分百的一款汉马面料而且版型很高级",
+      "members": [
+        171,
+        172
+      ],
+      "group": 17,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 296,
+      "start": 850.24,
+      "end": 853.56,
+      "text": "这裤型就是谁穿上去谁腿瘦谁一突然上去谁腿长",
+      "members": [
+        296,
+        297
+      ],
+      "group": 18,
+      "role": "selling_point",
+      "usable": true
+    }
+  ]
+}

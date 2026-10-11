@@ -1,0 +1,504 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "羊毛马甲",
+  "sections": [
+    {
+      "role": "selling_point",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        5,
+        6
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        190
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        282
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        286,
+        287
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        289,
+        290
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        312,
+        313,
+        314
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        0
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        264
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        267,
+        268
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        76,
+        77
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        79
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        296,
+        297
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        298,
+        299,
+        300
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        301,
+        302,
+        303,
+        304
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        398,
+        399,
+        400
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        365,
+        366,
+        367
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        207
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        429,
+        430
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    5,
+    6,
+    190,
+    282,
+    286,
+    287,
+    289,
+    290,
+    312,
+    313,
+    314,
+    0,
+    27,
+    28,
+    264,
+    267,
+    268,
+    76,
+    77,
+    79,
+    296,
+    297,
+    298,
+    299,
+    300,
+    301,
+    302,
+    303,
+    304,
+    398,
+    399,
+    400,
+    365,
+    366,
+    367,
+    207,
+    429,
+    430
+  ],
+  "total_seconds": 82.55,
+  "selected_clauses": [
+    {
+      "id": 1,
+      "start": 6.1,
+      "end": 9.04,
+      "text": "这件马甲的话是羊毛的,",
+      "members": [
+        1
+      ],
+      "group": 0,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 5,
+      "start": 23.92,
+      "end": 27.6,
+      "text": "所以你秋冬穿的话,它是很软和,但是有弹力的,上身舒适度非常的高。",
+      "members": [
+        5
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 6,
+      "start": 28.22,
+      "end": 31.9,
+      "text": "它是带有弹力的,就像毛芝一样,但它的克重也是比较高的这一件。",
+      "members": [
+        6
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 190,
+      "start": 466.13,
+      "end": 468.23,
+      "text": "但我身上这一件,它就是长毛颗粒感的",
+      "members": [
+        190
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 282,
+      "start": 706.36,
+      "end": 708.18,
+      "text": "哎哟的天呐这马甲版型真的太好了",
+      "members": [
+        282
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 286,
+      "start": 712.87,
+      "end": 715.61,
+      "text": "咋这么显个高呢因为这个马甲它版型短",
+      "members": [
+        286,
+        287
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 289,
+      "start": 717.53,
+      "end": 719.67,
+      "text": "马甲卡拉里面拍大就行这玩意就宽松的",
+      "members": [
+        289,
+        290
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 312,
+      "start": 760.42,
+      "end": 766.78,
+      "text": "你要想看像我一样穿的肥一点宽松一点的你就买S了但是你买你正常体重的大一码就可以了",
+      "members": [
+        312,
+        313,
+        314
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 0,
+      "start": 1.58,
+      "end": 5.98,
+      "text": "这种裤子可以搭这种马甲,里面还可以穿襯衫,去配我的这件马甲。",
+      "members": [
+        0
+      ],
+      "group": 7,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 27,
+      "start": 89.72,
+      "end": 93.72,
+      "text": "我之前的視頻裡是搭著襯衫的這裡面就把一個小襯衫領子翻出來的感覺",
+      "members": [
+        27,
+        28
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 264,
+      "start": 664.42,
+      "end": 666.16,
+      "text": "就大各种各样的毛衣真的很好看",
+      "members": [
+        264
+      ],
+      "group": 9,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 267,
+      "start": 669.82,
+      "end": 672.72,
+      "text": "而且就这种穿法的话其实就是很简凌很MU系的那个风格",
+      "members": [
+        267,
+        268
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 76,
+      "start": 212.37,
+      "end": 214.57,
+      "text": "其实你穿在任何羽绒服里面大衣里面都是很好看的",
+      "members": [
+        76,
+        77
+      ],
+      "group": 11,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 79,
+      "start": 218.58,
+      "end": 220.84,
+      "text": "去穿这种白白的漂亮的羽绒服真的好好看",
+      "members": [
+        79
+      ],
+      "group": 12,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 296,
+      "start": 726.62,
+      "end": 729.04,
+      "text": "小个子你就这么穿又很有气质",
+      "members": [
+        296,
+        297
+      ],
+      "group": 13,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 298,
+      "start": 729.52,
+      "end": 736.48,
+      "text": "非常非常清冷的那种感觉就这个人淡淡的然后但是又真的很有腔调的感觉对不对就很好看",
+      "members": [
+        298,
+        299,
+        300
+      ],
+      "group": 14,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 301,
+      "start": 736.48,
+      "end": 738.16,
+      "text": "而且你这个打底衫你也可以换个黑色",
+      "members": [
+        301
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 302,
+      "start": 738.44,
+      "end": 741.78,
+      "text": "你就是黑灰去撞整个色系你也可以统一在这也可以换一件衬衫",
+      "members": [
+        302,
+        303,
+        304
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 398,
+      "start": 945.63,
+      "end": 954.45,
+      "text": "你任何圆领的外套和马甲你就去这样配的时候这件衣服这件外面的衣服会被里面的这件衬衫淋漓尽致的体现出它的那种搭配的强调感",
+      "members": [
+        398,
+        399,
+        400
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 365,
+      "start": 876.81,
+      "end": 877.93,
+      "text": "这种搭白色球鞋",
+      "members": [
+        365
+      ],
+      "group": 17,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 366,
+      "start": 878.51,
+      "end": 882.91,
+      "text": "就搭运动鞋,乐福,得训就那种是不是",
+      "members": [
+        366
+      ],
+      "group": 17,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 367,
+      "start": 883.63,
+      "end": 885.97,
+      "text": "就是整个人穿起来轻轻轮轮的高高级级的感觉",
+      "members": [
+        367
+      ],
+      "group": 17,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 207,
+      "start": 516.24,
+      "end": 522.05,
+      "text": "嗯这一套的话就是比较那种学院风格",
+      "members": [
+        207
+      ],
+      "group": 18,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 429,
+      "start": 1002.88,
+      "end": 1004.4,
+      "text": "这是今年最新一季的秋冬新款",
+      "members": [
+        429
+      ],
+      "group": 19,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 430,
+      "start": 1005.04,
+      "end": 1006.22,
+      "text": "我身上的是秋冬新款",
+      "members": [
+        430
+      ],
+      "group": 19,
+      "role": "scene",
+      "usable": true
+    }
+  ]
+}

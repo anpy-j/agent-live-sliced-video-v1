@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
+from .pipeline_versions import normalize_version, stages_for
 
 
 # 精简管线的唯一阶段序列：ASR → 规则筛 → AI 判定 → AI 排序 → 渲染。
@@ -16,11 +17,11 @@ STAGE_DEFINITIONS = [
     ("asr", "语音转写与切分", 20),
     ("filter", "规则粗筛", 40),
     ("judge", "AI 可用性判定", 60),
-    ("order", "AI 排序编排", 80),
+    ("order", "AI 精选编排", 80),
     ("render", "渲染成片", 100),
 ]
 
-_LEAN_STAGE_IDS = {stage_id for stage_id, _, _ in STAGE_DEFINITIONS}
+_LEAN_STAGE_IDS = {stage_id for stage_id, _, _ in STAGE_DEFINITIONS} | {"review"}
 
 # 旧管线遗留在 jobs 表里的独占列；出现即代表磁盘上是旧 schema。
 _LEGACY_JOB_COLUMNS = {
@@ -172,6 +173,8 @@ class Store:
                 """
             )
             columns = {row[1] for row in con.execute("PRAGMA table_info(jobs)")}
+            if "pipeline_version" not in columns:
+                con.execute("ALTER TABLE jobs ADD COLUMN pipeline_version TEXT NOT NULL DEFAULT 'v1'")
             if "remote_model_json" not in columns:
                 con.execute("ALTER TABLE jobs ADD COLUMN remote_model_json TEXT")
             if "job_type" not in columns:
@@ -198,7 +201,11 @@ class Store:
                    target_seconds: str = "70-90",
                    export_dir: str | None = None,
                    product_name: str | None = None,
-                   export_mode: str = "merge") -> str:
+                   export_mode: str = "merge", pipeline_version: str = "v1") -> str:
+        pipeline_version = normalize_version(pipeline_version)
+        if job_type == "remix" and pipeline_version != "v1":
+            raise ValueError("成片重组不支持 V2 剪辑流程")
+        stage_definitions = stages_for(pipeline_version, STAGE_DEFINITIONS)
         job_id = f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         now = utc_now()
         first_stage = STAGE_DEFINITIONS[0][0]
@@ -206,14 +213,14 @@ class Store:
         with self.connect() as con:
             con.execute(
                 "INSERT INTO jobs(id,title,source_path,status,current_stage,progress,created_at,updated_at,workspace,"
-                "job_type,timeline_meta_json,target_seconds,export_dir,product_name,export_mode) "
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "job_type,timeline_meta_json,target_seconds,export_dir,product_name,export_mode,pipeline_version) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (job_id, title, source_path, "queued", first_stage, 0, now, now, workspace,
-                 job_type, meta_json, target_seconds, export_dir, product_name, export_mode),
+                 job_type, meta_json, target_seconds, export_dir, product_name, export_mode, pipeline_version),
             )
             con.executemany(
                 "INSERT INTO stages(job_id,stage_id,name,position) VALUES(?,?,?,?)",
-                [(job_id, stage_id, name, position) for stage_id, name, position in STAGE_DEFINITIONS],
+                [(job_id, stage_id, name, position) for stage_id, name, position in stage_definitions],
             )
         event_payload: dict[str, Any] = {
             "source_path": source_path,
@@ -289,6 +296,8 @@ class Store:
     def update_job(self, job_id: str, **fields: Any) -> None:
         if not fields:
             return
+        if "pipeline_version" in fields:
+            raise ValueError("任务版本在创建时固定；请新建任务选择其他版本")
         fields["updated_at"] = utc_now()
         values = list(fields.values()) + [job_id]
         clause = ",".join(f"{key}=?" for key in fields)
@@ -337,8 +346,13 @@ class Store:
 
     def prepare_stage_rerun(self, job_id: str, stage_id: str) -> None:
         """重置目标节点及其下游状态，同时保留上游状态和历史渲染产物。"""
-        positions = {sid: position for sid, _, position in STAGE_DEFINITIONS}
-        if stage_id not in {"filter", "judge", "order", "render"}:
+        job = self.get_job(job_id)
+        version = (job or {}).get("pipeline_version", "v1")
+        positions = {sid: position for sid, _, position in stages_for(version, STAGE_DEFINITIONS)}
+        allowed = {"filter", "judge", "order", "render"}
+        if version == "v2":
+            allowed |= {"review", "asr"}
+        if stage_id not in allowed:
             raise ValueError(f"不支持单节点重跑：{stage_id}")
         position = positions[stage_id]
         previous_progress = max((pos for pos in positions.values() if pos < position), default=0)
@@ -388,7 +402,9 @@ class Store:
 
     def stage_done(self, job_id: str, stage_id: str, message: str,
                    result: dict[str, Any] | None = None) -> None:
-        position = next((x[2] for x in STAGE_DEFINITIONS if x[0] == stage_id), 0)
+        job = self.get_job(job_id)
+        definitions = stages_for((job or {}).get("pipeline_version", "v1"), STAGE_DEFINITIONS)
+        position = next((x[2] for x in definitions if x[0] == stage_id), 0)
         self.update_stage(job_id, stage_id, status="succeeded", progress=1, message=message,
                           finished_at=utc_now(), result=result, error=None)
         self.update_job(job_id, progress=position)

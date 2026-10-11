@@ -46,6 +46,8 @@ async function run(){
   assert.equal(await page.locator('.topbar').isVisible(),false);
   assert.equal(await page.locator('[data-edit-jianying="4"]').isDisabled(),true);
   await page.locator('#draftSearch').focus();await page.keyboard.press('Tab');
+  assert.equal(await page.locator('[data-refresh-jianying]').evaluate(el=>el===document.activeElement),true);
+  await page.keyboard.press('Tab');
   await page.waitForFunction(()=>document.activeElement.matches('.draft-edit')&&Number(getComputedStyle(document.activeElement.querySelector('span')).opacity)>.99);
   await page.locator('#draftSearch').fill(names[2]);await page.locator('[data-edit-jianying="2"]').click();
   await page.locator('.draft-state').filter({hasText:'剪辑中'}).waitFor();

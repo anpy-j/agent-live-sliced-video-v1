@@ -1,0 +1,47 @@
+[
+  {
+    "title": "【巴黎香叙】素材1010",
+    "selected_seconds": 113.65,
+    "input_seconds": 425.77,
+    "selected_clause_count": 52,
+    "narrative_blocks": 14,
+    "contiguous_source_clips": 29,
+    "near_120_seconds": true
+  },
+  {
+    "title": "【格雷日记】素材1010",
+    "selected_seconds": 101.37,
+    "input_seconds": 238.47,
+    "selected_clause_count": 55,
+    "narrative_blocks": 15,
+    "contiguous_source_clips": 29,
+    "near_120_seconds": false
+  },
+  {
+    "title": "【百搭私服】素材1010",
+    "selected_seconds": 31.76,
+    "input_seconds": 70.75,
+    "selected_clause_count": 20,
+    "narrative_blocks": 7,
+    "contiguous_source_clips": 9,
+    "near_120_seconds": false
+  },
+  {
+    "title": "【罗马假日】-半身裙素材1010",
+    "selected_seconds": 53.6,
+    "input_seconds": 110.8,
+    "selected_clause_count": 33,
+    "narrative_blocks": 10,
+    "contiguous_source_clips": 17,
+    "near_120_seconds": false
+  },
+  {
+    "title": "梦中安妮08061010",
+    "selected_seconds": 110.12,
+    "input_seconds": 321.96,
+    "selected_clause_count": 59,
+    "narrative_blocks": 14,
+    "contiguous_source_clips": 33,
+    "near_120_seconds": true
+  }
+]

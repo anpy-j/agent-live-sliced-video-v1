@@ -1,0 +1,636 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "醋酸小外套",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        461,
+        462
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        57,
+        58
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        27,
+        28,
+        29
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        465,
+        466,
+        467
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        4
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        7
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        284,
+        285,
+        286,
+        287
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        134
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        288,
+        289,
+        290,
+        291,
+        292,
+        293,
+        294,
+        295
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        82,
+        83,
+        84
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        39
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        276
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        479
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        390,
+        391
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        398,
+        399
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        495,
+        496
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        468,
+        469
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        114,
+        115,
+        116,
+        117,
+        118
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        405,
+        406,
+        407,
+        408
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        409,
+        410,
+        411
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        435
+      ]
+    }
+  ],
+  "ordered_ids": [
+    461,
+    462,
+    57,
+    58,
+    27,
+    28,
+    29,
+    465,
+    466,
+    467,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    4,
+    7,
+    284,
+    285,
+    286,
+    287,
+    134,
+    288,
+    289,
+    290,
+    291,
+    292,
+    293,
+    294,
+    295,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    82,
+    83,
+    84,
+    39,
+    276,
+    479,
+    390,
+    391,
+    398,
+    399,
+    495,
+    496,
+    468,
+    469,
+    114,
+    115,
+    116,
+    117,
+    118,
+    405,
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    435
+  ],
+  "total_seconds": 117.24,
+  "selected_clauses": [
+    {
+      "id": 461,
+      "start": 937.02,
+      "end": 938.12,
+      "text": "这是我们今天的新款",
+      "members": [
+        461
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 462,
+      "start": 939.82,
+      "end": 941.64,
+      "text": "它是一款醋酸面料的小上衣",
+      "members": [
+        462
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 57,
+      "start": 109.36,
+      "end": 112.38,
+      "text": "我是今年算是秋装的第一件比较正式的外套了吧",
+      "members": [
+        57,
+        58
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 27,
+      "start": 59.22,
+      "end": 64.52,
+      "text": "我现在给的这个面料是马上立刻就能穿的它是用醋酸面料来做的没有用其他的任何面料",
+      "members": [
+        27,
+        28,
+        29
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 465,
+      "start": 947.3,
+      "end": 952.08,
+      "text": "他整个的版型是非常氧气的这里是有一个深威力的设计的醋酸的面料是那种很薄的",
+      "members": [
+        465,
+        466,
+        467
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 30,
+      "start": 64.52,
+      "end": 68.04,
+      "text": "如果是用羊毛面料来做这款面料它打不到这个白度",
+      "members": [
+        30,
+        31
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 32,
+      "start": 68.34,
+      "end": 79.0,
+      "text": "羊毛的话它会有黄白色因为羊毛无法漂白它只有那种奶奶的白所以这一件我要做的是那种纯白的感觉所以给大家做的是这样的一件面料整个衣服又薄又有成度",
+      "members": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 4,
+      "start": 22.64,
+      "end": 26.42,
+      "text": "它会把你整个人的脖颈这里有圆领的感觉,但是还有一个小威领的设计。",
+      "members": [
+        4
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 7,
+      "start": 29.8,
+      "end": 31.56,
+      "text": "它是收腰的同时它不夸张",
+      "members": [
+        7
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 284,
+      "start": 589.27,
+      "end": 594.35,
+      "text": "你不要把它当外套你把它当件小衣服肩膀是这样的一个正肩特别拉伸你指甲肩",
+      "members": [
+        284,
+        285,
+        286,
+        287
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 134,
+      "start": 285.29,
+      "end": 288.45,
+      "text": "要腰伸有腰伸你腰粗的人穿上去秒变小S腰",
+      "members": [
+        134
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 288,
+      "start": 594.67,
+      "end": 608.67,
+      "text": "气质一定是坚强决定的我告诉你这女生再漂亮肩膀斜方肌很重你会觉得她没气质脖子短你会觉得她没气质所以好的衣服就是要用她的版型来掩盖住你身形上的缺陷对不对因为我们都是普通人我没有那么漂亮的身材",
+      "members": [
+        288,
+        289,
+        290,
+        291,
+        292,
+        293,
+        294,
+        295
+      ],
+      "group": 9,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 303,
+      "start": 618.95,
+      "end": 624.25,
+      "text": "我的身材就是比较真实我现在接近110斤的体重我现在这个个子我110斤屁股大腿粗",
+      "members": [
+        303,
+        304,
+        305
+      ],
+      "group": 10,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 306,
+      "start": 624.83,
+      "end": 630.41,
+      "text": "所以你能感受到的是你有任何这样缺陷的人通过我们衣服的版型也是可以把你穿得很美的对吧",
+      "members": [
+        306,
+        307,
+        308,
+        309
+      ],
+      "group": 10,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 82,
+      "start": 153.74,
+      "end": 160.38,
+      "text": "它是小薄型的白的黑的两个色黑色整个人你穿上去周是非常显瘦的白色超级气质",
+      "members": [
+        82,
+        83,
+        84
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 39,
+      "start": 81.38,
+      "end": 83.08,
+      "text": "解开扣子其实你就当外套来穿",
+      "members": [
+        39
+      ],
+      "group": 12,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 276,
+      "start": 574.64,
+      "end": 576.72,
+      "text": "你里面就随便整个小雕刀拉小背心拉",
+      "members": [
+        276
+      ],
+      "group": 13,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 479,
+      "start": 983.88,
+      "end": 985.7,
+      "text": "这件小衣服我觉得就是搭个裤腿",
+      "members": [
+        479
+      ],
+      "group": 14,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 390,
+      "start": 783.46,
+      "end": 787.72,
+      "text": "包括你修店的时候里面搭个小毛衣穿一个小高领的感觉都很好看",
+      "members": [
+        390,
+        391
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 398,
+      "start": 801.68,
+      "end": 803.38,
+      "text": "很好看对吧你就搭裙子穿",
+      "members": [
+        398
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 399,
+      "start": 804.16,
+      "end": 805.18,
+      "text": "搭我们的沙裙",
+      "members": [
+        399
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 495,
+      "start": 1020.17,
+      "end": 1023.03,
+      "text": "我覺得這一套特別適合你們日常上班啊穿搭什麼的",
+      "members": [
+        495,
+        496
+      ],
+      "group": 17,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 468,
+      "start": 952.08,
+      "end": 954.68,
+      "text": "你现在空调房就能穿然后一直能穿到秋天",
+      "members": [
+        468,
+        469
+      ],
+      "group": 18,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 114,
+      "start": 234.97,
+      "end": 241.07,
+      "text": "你们一定要去感受一下泽泽家的版型我们今年在各种工艺细节还有版型上面又做了再次升级",
+      "members": [
+        114,
+        115,
+        116
+      ],
+      "group": 19,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 117,
+      "start": 241.69,
+      "end": 245.69,
+      "text": "所有的东西都会跟去年更不一样为的就是要让你穿出质感",
+      "members": [
+        117,
+        118
+      ],
+      "group": 19,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 405,
+      "start": 814.84,
+      "end": 822.02,
+      "text": "如果我穿三六的话刚刚好三四的话可能这件衣服我穿是会紧一点的但这个料子完全不崩它穿在身上是不崩的",
+      "members": [
+        405,
+        406,
+        407,
+        408
+      ],
+      "group": 20,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 409,
+      "start": 822.02,
+      "end": 825.76,
+      "text": "扭扣不会褪色不要用蓝月亮洗衣液正常去洗就可以了",
+      "members": [
+        409,
+        410,
+        411
+      ],
+      "group": 21,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 435,
+      "start": 869.14,
+      "end": 871.82,
+      "text": "就这种东西其实就是非常非常显气质的",
+      "members": [
+        435
+      ],
+      "group": 22,
+      "role": "selling_point",
+      "usable": true
+    }
+  ]
+}

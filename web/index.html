@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/enterprise.css?v=9402b61">
   <link rel="stylesheet" href="/editor.css?v=editor-2">
   <link rel="stylesheet" href="/postprocess.css?v=postprocess-1">
-  <link rel="stylesheet" href="/product.css?v=product-3">
+  <link rel="stylesheet" href="/product.css?v=content-v2-1">
 </head>
 <body>
   <a class="skip-link" href="#app">跳到主要内容</a>
@@ -22,6 +22,7 @@
       </a>
       <div class="nav-caption">工作空间</div>
       <nav class="nav-list">
+        <a href="#/cloud" data-nav="cloud" title="云端管理"><svg viewBox="0 0 24 24"><path d="M6 18h12a4 4 0 0 0 1-8 7 7 0 0 0-13-1 4.5 4.5 0 0 0 0 9z"/></svg><span>云端管理</span></a>
         <a href="#/dashboard" data-nav="dashboard" title="任务总览"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>任务总览</span></a>
         <a href="#/queue" data-nav="queue" title="剪辑队列"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/><circle cx="4" cy="7" r=".5"/><circle cx="4" cy="12" r=".5"/><circle cx="4" cy="17" r=".5"/></svg><span>剪辑队列</span><em id="queueBadge">0</em></a>
         <a href="#/jianying" data-nav="jianying" title="剪映草稿"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="m8 15 8-6M8 9l8 6"/></svg><span>剪映草稿</span></a>
@@ -110,7 +111,7 @@
               <button type="button" class="preset-chip" data-min="90" data-max="120">90–120s 充实</button>
               <button type="button" class="preset-chip" data-min="120" data-max="180">120–180s 深度</button>
             </div>
-            <small class="field-hint">AI 排序编排（S4）将按设定时长精选并组装最佳卖点句单元。</small>
+            <small class="field-hint">AI 精选编排（S4）会通读初筛候选，剔除无效话术，选择完整表达并编成连贯成片；有效内容不足时按实际时长输出。</small>
           </section>
         </div>
 
@@ -185,6 +186,6 @@
   <script src="/editor.js?v=editor-4" defer></script>
   <script src="/postprocess.js?v=postprocess-1" defer></script>
   <script src="/smart-v3.js?v=lari32-v3-picker-3" defer></script>
-  <script src="/app.js?v=product-3" defer></script>
+  <script src="/app.js?v=content-v2-1" defer></script>
 </body>
 </html>

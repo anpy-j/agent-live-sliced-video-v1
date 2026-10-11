@@ -1,0 +1,195 @@
+{
+  "title": "【格雷日记】素材1010",
+  "target_seconds": 120,
+  "selected_seconds": 22.53,
+  "target_met": false,
+  "input_usable_clauses": 120,
+  "input_seconds": 238.47,
+  "selected_clause_count": 12,
+  "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1-967bbc08ea3c\\edits\\job_20261010_001311_acc528-【格雷日记】素材1010",
+  "paragraphs": [
+    {
+      "section": "开头：裙子设计",
+      "ids": [
+        1
+      ],
+      "text": "这条裙子你看似简单,其实它用量非常的大,因为它这里有一个大褶,"
+    },
+    {
+      "section": "风格与版型",
+      "ids": [
+        49,
+        120,
+        121
+      ],
+      "text": "它是偏休闲的我建议你们试一下这条裙子它比较显瘦比较显跨窄"
+    },
+    {
+      "section": "面料颜色",
+      "ids": [
+        22,
+        23
+      ],
+      "text": "它是属于双色羊毛它的颜色是花纱工艺"
+    },
+    {
+      "section": "透气性",
+      "ids": [
+        208,
+        209
+      ],
+      "text": "你就说这种好的羊毛他透气性怎么这么好呢"
+    },
+    {
+      "section": "T恤搭配",
+      "ids": [
+        189
+      ],
+      "text": "你看我就搭这个小T恤去配好好看"
+    },
+    {
+      "section": "鞋袜搭配",
+      "ids": [
+        60,
+        61
+      ],
+      "text": "黑色小袜子尖头的小高跟穿这条裙子"
+    },
+    {
+      "section": "收尾：季节",
+      "ids": [
+        14
+      ],
+      "text": "整个冬天都能搭得了"
+    }
+  ],
+  "segments": [
+    {
+      "id": 1,
+      "section": "开头：裙子设计",
+      "start": 2.26,
+      "end": 6.72,
+      "output_start": 0,
+      "output_end": 4.46,
+      "duration": 4.46,
+      "text": "这条裙子你看似简单,其实它用量非常的大,因为它这里有一个大褶,"
+    },
+    {
+      "id": 49,
+      "section": "风格与版型",
+      "start": 120.25,
+      "end": 121.21,
+      "output_start": 4.46,
+      "output_end": 5.42,
+      "duration": 0.96,
+      "text": "它是偏休闲的"
+    },
+    {
+      "id": 120,
+      "section": "风格与版型",
+      "start": 276.92,
+      "end": 278.02,
+      "output_start": 5.42,
+      "output_end": 6.52,
+      "duration": 1.1,
+      "text": "我建议你们试一下这条裙子"
+    },
+    {
+      "id": 121,
+      "section": "风格与版型",
+      "start": 278.02,
+      "end": 280.24,
+      "output_start": 6.52,
+      "output_end": 8.74,
+      "duration": 2.22,
+      "text": "它比较显瘦比较显跨窄"
+    },
+    {
+      "id": 22,
+      "section": "面料颜色",
+      "start": 75.85,
+      "end": 78.71,
+      "output_start": 8.74,
+      "output_end": 11.6,
+      "duration": 2.86,
+      "text": "它是属于双色羊毛"
+    },
+    {
+      "id": 23,
+      "section": "面料颜色",
+      "start": 78.71,
+      "end": 80.79,
+      "output_start": 11.6,
+      "output_end": 13.68,
+      "duration": 2.08,
+      "text": "它的颜色是花纱工艺"
+    },
+    {
+      "id": 208,
+      "section": "透气性",
+      "start": 448.98,
+      "end": 450.22,
+      "output_start": 13.68,
+      "output_end": 14.92,
+      "duration": 1.24,
+      "text": "你就说这种好的羊毛"
+    },
+    {
+      "id": 209,
+      "section": "透气性",
+      "start": 450.22,
+      "end": 451.4,
+      "output_start": 14.92,
+      "output_end": 16.1,
+      "duration": 1.18,
+      "text": "他透气性怎么这么好呢"
+    },
+    {
+      "id": 189,
+      "section": "T恤搭配",
+      "start": 410.5,
+      "end": 412.97,
+      "output_start": 16.1,
+      "output_end": 18.57,
+      "duration": 2.47,
+      "text": "你看我就搭这个小T恤去配好好看"
+    },
+    {
+      "id": 60,
+      "section": "鞋袜搭配",
+      "start": 133.21,
+      "end": 134.25,
+      "output_start": 18.57,
+      "output_end": 19.61,
+      "duration": 1.04,
+      "text": "黑色小袜子"
+    },
+    {
+      "id": 61,
+      "section": "鞋袜搭配",
+      "start": 134.25,
+      "end": 135.89,
+      "output_start": 19.61,
+      "output_end": 21.25,
+      "duration": 1.64,
+      "text": "尖头的小高跟穿这条裙子"
+    },
+    {
+      "id": 14,
+      "section": "收尾：季节",
+      "start": 59.97,
+      "end": 61.25,
+      "output_start": 21.25,
+      "output_end": 22.53,
+      "duration": 1.28,
+      "text": "整个冬天都能搭得了"
+    }
+  ],
+  "selection_notes": "本次沿用上一轮短版。不加入条件半句、品牌比较、工艺预告和泛泛评价。",
+  "limitations": [
+    "仅文本精选；未听审原音和审核画面。",
+    "保留ASR原始字词，未对错字或术语作猜测改写。",
+    "选取整条S3放行子句，未删改句内字词；时长是所选虚拟时间线口播区间之和。",
+    "目标120秒未达到；不拉长、不循环、不补写、不用垃圾话填充。"
+  ]
+}

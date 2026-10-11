@@ -1,0 +1,379 @@
+{
+  "fingerprint": "db4e526bc390dce87808f0e05de02f196b89194806989c3d5c99035fc9663c17",
+  "data": {
+    "candidates": [
+      {
+        "id": 5,
+        "need": "none"
+      },
+      {
+        "id": 7,
+        "need": "suffix"
+      },
+      {
+        "id": 8,
+        "need": "none"
+      },
+      {
+        "id": 9,
+        "need": "suffix"
+      },
+      {
+        "id": 10,
+        "need": "suffix"
+      },
+      {
+        "id": 11,
+        "need": "none"
+      },
+      {
+        "id": 12,
+        "need": "prefix"
+      },
+      {
+        "id": 13,
+        "need": "none"
+      },
+      {
+        "id": 14,
+        "need": "none"
+      },
+      {
+        "id": 15,
+        "need": "suffix"
+      },
+      {
+        "id": 31,
+        "need": "suffix"
+      },
+      {
+        "id": 32,
+        "need": "none"
+      },
+      {
+        "id": 33,
+        "need": "none"
+      },
+      {
+        "id": 34,
+        "need": "suffix"
+      },
+      {
+        "id": 35,
+        "need": "prefix"
+      },
+      {
+        "id": 36,
+        "need": "suffix"
+      },
+      {
+        "id": 37,
+        "need": "none"
+      },
+      {
+        "id": 40,
+        "need": "none"
+      },
+      {
+        "id": 41,
+        "need": "none"
+      },
+      {
+        "id": 51,
+        "need": "none"
+      },
+      {
+        "id": 62,
+        "need": "suffix"
+      },
+      {
+        "id": 63,
+        "need": "prefix"
+      },
+      {
+        "id": 64,
+        "need": "prefix"
+      },
+      {
+        "id": 65,
+        "need": "none"
+      },
+      {
+        "id": 66,
+        "need": "none"
+      },
+      {
+        "id": 67,
+        "need": "none"
+      },
+      {
+        "id": 69,
+        "need": "none"
+      },
+      {
+        "id": 73,
+        "need": "suffix"
+      },
+      {
+        "id": 74,
+        "need": "none"
+      },
+      {
+        "id": 97,
+        "need": "prefix"
+      },
+      {
+        "id": 98,
+        "need": "suffix"
+      },
+      {
+        "id": 100,
+        "need": "none"
+      },
+      {
+        "id": 101,
+        "need": "prefix"
+      },
+      {
+        "id": 107,
+        "need": "prefix"
+      },
+      {
+        "id": 108,
+        "need": "none"
+      },
+      {
+        "id": 109,
+        "need": "none"
+      },
+      {
+        "id": 110,
+        "need": "none"
+      },
+      {
+        "id": 125,
+        "need": "prefix"
+      },
+      {
+        "id": 126,
+        "need": "none"
+      },
+      {
+        "id": 132,
+        "need": "prefix"
+      },
+      {
+        "id": 133,
+        "need": "none"
+      },
+      {
+        "id": 171,
+        "need": "none"
+      },
+      {
+        "id": 175,
+        "need": "none"
+      },
+      {
+        "id": 177,
+        "need": "none"
+      },
+      {
+        "id": 180,
+        "need": "none"
+      },
+      {
+        "id": 182,
+        "need": "none"
+      },
+      {
+        "id": 184,
+        "need": "none"
+      },
+      {
+        "id": 185,
+        "need": "none"
+      },
+      {
+        "id": 192,
+        "need": "none"
+      },
+      {
+        "id": 193,
+        "need": "none"
+      },
+      {
+        "id": 194,
+        "need": "none"
+      },
+      {
+        "id": 195,
+        "need": "none"
+      },
+      {
+        "id": 197,
+        "need": "none"
+      },
+      {
+        "id": 198,
+        "need": "none"
+      },
+      {
+        "id": 203,
+        "need": "prefix"
+      },
+      {
+        "id": 204,
+        "need": "prefix"
+      },
+      {
+        "id": 205,
+        "need": "none"
+      },
+      {
+        "id": 206,
+        "need": "none"
+      },
+      {
+        "id": 211,
+        "need": "none"
+      },
+      {
+        "id": 214,
+        "need": "prefix"
+      },
+      {
+        "id": 215,
+        "need": "suffix"
+      },
+      {
+        "id": 216,
+        "need": "prefix"
+      },
+      {
+        "id": 217,
+        "need": "none"
+      },
+      {
+        "id": 219,
+        "need": "none"
+      },
+      {
+        "id": 221,
+        "need": "none"
+      },
+      {
+        "id": 222,
+        "need": "none"
+      },
+      {
+        "id": 224,
+        "need": "none"
+      },
+      {
+        "id": 225,
+        "need": "none"
+      },
+      {
+        "id": 226,
+        "need": "none"
+      },
+      {
+        "id": 227,
+        "need": "prefix"
+      },
+      {
+        "id": 228,
+        "need": "none"
+      },
+      {
+        "id": 238,
+        "need": "suffix"
+      },
+      {
+        "id": 241,
+        "need": "none"
+      },
+      {
+        "id": 245,
+        "need": "suffix"
+      },
+      {
+        "id": 247,
+        "need": "none"
+      },
+      {
+        "id": 249,
+        "need": "suffix"
+      },
+      {
+        "id": 250,
+        "need": "prefix"
+      },
+      {
+        "id": 251,
+        "need": "none"
+      },
+      {
+        "id": 252,
+        "need": "none"
+      },
+      {
+        "id": 253,
+        "need": "none"
+      },
+      {
+        "id": 261,
+        "need": "none"
+      },
+      {
+        "id": 262,
+        "need": "none"
+      },
+      {
+        "id": 263,
+        "need": "prefix"
+      },
+      {
+        "id": 266,
+        "need": "none"
+      },
+      {
+        "id": 267,
+        "need": "none"
+      },
+      {
+        "id": 269,
+        "need": "none"
+      },
+      {
+        "id": 275,
+        "need": "none"
+      },
+      {
+        "id": 277,
+        "need": "none"
+      },
+      {
+        "id": 278,
+        "need": "prefix"
+      },
+      {
+        "id": 286,
+        "need": "prefix"
+      },
+      {
+        "id": 287,
+        "need": "none"
+      },
+      {
+        "id": 288,
+        "need": "none"
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 13770,
+    "output_tokens": 45701
+  }
+}

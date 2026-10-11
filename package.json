@@ -1,13 +1,17 @@
 {
   "name": "livecut-desktop",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "description": "LiveCut local editing workstation",
   "author": "LiveCut",
   "main": "desktop/main.cjs",
   "scripts": {
     "desktop": "electron .",
+    "build:mobile": "node mobile/build.cjs",
+    "sync:android": "npm run build:mobile && cap sync android",
+    "open:android": "cap open android",
     "test:editor": "node --test tests/editor-core.test.cjs",
+    "test:cloud": "node tests/cloud-ui.test.cjs",
     "build:runtime": "node desktop/build-runtime.cjs",
     "dist:win": "npm run build:runtime && electron-builder --win nsis --x64 --publish never",
     "dist:mac": "npm run build:runtime && electron-builder --mac dmg --publish never",
@@ -52,8 +56,15 @@
     }
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/file-transfer": "^2.0.6",
+    "@capacitor/filesystem": "^8.1.4",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/cli": "^8.5.3",
     "electron": "44.7.0",
     "electron-builder": "26.15.3",
+    "esbuild": "^0.28.2",
     "playwright": "1.64.0"
   }
 }

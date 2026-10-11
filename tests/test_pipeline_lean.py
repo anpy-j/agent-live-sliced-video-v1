@@ -368,10 +368,17 @@ class OrderContractTest(unittest.TestCase):
                                  candidates, (5.0, 7.0), 1.0)
         self.assertEqual(result[2], 15.0)
 
-    def test_hook_must_open_the_order(self):
+    def test_hook_can_be_omitted(self):
+        result = _validate_order(
+            self.order([{"role": "selling_point", "ids": [0, 1]}], [0, 1]),
+            self.candidates(), (5.0, 7.0), 1.0)
+        self.assertEqual(result[1], [0, 1])
+
+    def test_hook_if_present_must_open_the_order(self):
         with self.assertRaises(AIReturnError):
             _validate_order(
-                self.order([{"role": "selling_point", "ids": [0, 1]}], [0, 1]),
+                self.order([{"role": "selling_point", "ids": [0]},
+                            {"role": "hook", "ids": [1]}], [0, 1]),
                 self.candidates(), (5.0, 7.0), 1.0)
 
     def test_cta_must_close_the_order(self):
@@ -473,12 +480,15 @@ class ProductPromptTest(unittest.TestCase):
 
     def test_order_prompt_carries_target_product(self):
         cands = [{"id": 0, "text": "a", "start": 0.0, "end": 3.0}]
-        self.assertIn("固定为「毛衣」", _order_prompt(cands, (5.0, 7.0), "毛衣"))
-        self.assertIn("main_product 给出本片主商品", _order_prompt(cands, (5.0, 7.0), None))
+        self.assertIn("已知主商品为「毛衣」", _order_prompt(cands, (5.0, 7.0), "毛衣"))
+        self.assertIn("不明确就填「未明确」", _order_prompt(cands, (5.0, 7.0), None))
 
     def test_order_prompt_warns_when_material_below_target(self):
         cands = [{"id": 0, "text": "a", "start": 0.0, "end": 3.0}]
-        self.assertIn("已低于目标下限", _order_prompt(cands, (5.0, 7.0), None, 3.0))
+        prompt = _order_prompt(cands, (5.0, 7.0), None, 3.0)
+        self.assertIn("低于目标下限", prompt)
+        self.assertIn("不要求全选", prompt)
+        self.assertNotIn("尽量全部选上", prompt)
         self.assertNotIn("已低于目标下限", _order_prompt(cands, (5.0, 7.0), None, 30.0))
 
 

@@ -1,0 +1,733 @@
+{
+  "main_product": "澳毛/羊毛小短外套（今年直筒版与去年收腰版）",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        31,
+        32,
+        24
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        34,
+        35,
+        36,
+        60
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        94,
+        25,
+        96,
+        97,
+        98,
+        156,
+        157,
+        158,
+        38,
+        247,
+        257,
+        258
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        68,
+        69,
+        70,
+        71,
+        72
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        135,
+        136,
+        137,
+        138,
+        139
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        7,
+        10,
+        11
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        185,
+        56,
+        190,
+        57,
+        169,
+        170,
+        166,
+        167
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        39,
+        40,
+        41,
+        116,
+        117,
+        186,
+        191,
+        260
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        44,
+        45,
+        48,
+        50,
+        128,
+        130,
+        52,
+        119,
+        120
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        147,
+        149,
+        150,
+        154,
+        155
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        124,
+        125,
+        126,
+        129
+      ]
+    },
+    {
+      "role": "cta",
+      "ids": [
+        140
+      ]
+    }
+  ],
+  "ordered_ids": [
+    31,
+    32,
+    24,
+    34,
+    35,
+    36,
+    60,
+    94,
+    25,
+    96,
+    97,
+    98,
+    156,
+    157,
+    158,
+    38,
+    247,
+    257,
+    258,
+    68,
+    69,
+    70,
+    71,
+    72,
+    135,
+    136,
+    137,
+    138,
+    139,
+    7,
+    10,
+    11,
+    185,
+    56,
+    190,
+    57,
+    169,
+    170,
+    166,
+    167,
+    39,
+    40,
+    41,
+    116,
+    117,
+    186,
+    191,
+    260,
+    44,
+    45,
+    48,
+    50,
+    128,
+    130,
+    52,
+    119,
+    120,
+    147,
+    149,
+    150,
+    154,
+    155,
+    124,
+    125,
+    126,
+    129,
+    140
+  ],
+  "selected_clauses": [
+    {
+      "id": 31,
+      "start": 71.76,
+      "end": 72.9,
+      "text": "这件衣服真的很美",
+      "members": [
+        31
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 32,
+      "start": 73.2,
+      "end": 74.0,
+      "text": "非常有质感",
+      "members": [
+        32
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 24,
+      "start": 60.38,
+      "end": 63.02,
+      "text": "今天我给大家加的是一件直捅版型",
+      "members": [
+        24
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 34,
+      "start": 75.26,
+      "end": 80.06,
+      "text": "它也是一款奥毛的材质非常美的那种丝毛质感很有感觉",
+      "members": [
+        34,
+        35,
+        36
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 60,
+      "start": 120.35,
+      "end": 121.43,
+      "text": "这是我们的定制面料",
+      "members": [
+        60
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 94,
+      "start": 188.2,
+      "end": 189.76,
+      "text": "这是今年的直筒版本你自己挑",
+      "members": [
+        94
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 25,
+      "start": 63.02,
+      "end": 64.84,
+      "text": "很多女生说我日常上班生活穿搭",
+      "members": [
+        25
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 96,
+      "start": 191.44,
+      "end": 196.14,
+      "text": "但是你说我本来我就不太想穿收腰的而且我觉得直筒的更适合我日常穿着起来",
+      "members": [
+        96,
+        97,
+        98
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 156,
+      "start": 294.12,
+      "end": 296.06,
+      "text": "直捅的会稍微年轻一点",
+      "members": [
+        156
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 157,
+      "start": 296.36,
+      "end": 299.18,
+      "text": "稍微活泼一点这件会稍微Lady一点你们自己敢生",
+      "members": [
+        157,
+        158
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 38,
+      "start": 81.64,
+      "end": 82.76,
+      "text": "带有收腰的感觉的",
+      "members": [
+        38
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 247,
+      "start": 493.0,
+      "end": 494.36,
+      "text": "精致的话收腰的更精致",
+      "members": [
+        247
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 257,
+      "start": 515.79,
+      "end": 518.01,
+      "text": "看到了吗整个的细节收腰的感觉",
+      "members": [
+        257,
+        258
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 68,
+      "start": 135.05,
+      "end": 145.49,
+      "text": "你知道咱们家的版型做的有多绝整个肩膀位置全部是手工修缘肩的看到了吗整个肩膀肩膀位没有高低肩这一定是一定是工人一个一个修出来的肩膀",
+      "members": [
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 135,
+      "start": 258.18,
+      "end": 266.6,
+      "text": "而且这件衣服非常超级之难做因为它整个边边都要做得非常非常的细才能达到这个平衡度才能让两边做对称这全手工的",
+      "members": [
+        135,
+        136,
+        137,
+        138,
+        139
+      ],
+      "group": 4,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 7,
+      "start": 17.87,
+      "end": 19.03,
+      "text": "会起球,哪里会起球啊?",
+      "members": [
+        7
+      ],
+      "group": 5,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 10,
+      "start": 25.56,
+      "end": 28.02,
+      "text": "你除非拿那种铁刷子刷的,那它就会起球了。",
+      "members": [
+        10
+      ],
+      "group": 5,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 11,
+      "start": 28.42,
+      "end": 29.56,
+      "text": "正常情况下是不会的。",
+      "members": [
+        11
+      ],
+      "group": 5,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 185,
+      "start": 371.92,
+      "end": 373.62,
+      "text": "它的颜色是黑色的",
+      "members": [
+        185
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 56,
+      "start": 112.35,
+      "end": 115.29,
+      "text": "它就是黑这种奢侈品在卖的黑这叫脏青黑色",
+      "members": [
+        56
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 190,
+      "start": 381.28,
+      "end": 382.24,
+      "text": "都是这个颜色",
+      "members": [
+        190
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 57,
+      "start": 115.29,
+      "end": 117.01,
+      "text": "如果是纯黑色就会非常的low",
+      "members": [
+        57
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 169,
+      "start": 338.13,
+      "end": 341.93,
+      "text": "你看就是这件你看他的颜色也是这种就泛有灰色光芒的黑",
+      "members": [
+        169,
+        170
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 166,
+      "start": 332.79,
+      "end": 336.65,
+      "text": "所以他这种黑就显出来他特别高级的感觉明白吗姐妹们他就是很高级的",
+      "members": [
+        166,
+        167
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 39,
+      "start": 82.76,
+      "end": 88.36,
+      "text": "你无论穿许子穿裤子都能把你写的整个人也是那种很五妹的很明妹的很贵气的就正常来说",
+      "members": [
+        39,
+        40,
+        41
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 116,
+      "start": 231.36,
+      "end": 233.26,
+      "text": "这件衣服给到你的感觉就是松弛的",
+      "members": [
+        116,
+        117
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 186,
+      "start": 373.62,
+      "end": 375.94,
+      "text": "所以你穿上身中你会发现非常的高级",
+      "members": [
+        186
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 191,
+      "start": 382.24,
+      "end": 384.68,
+      "text": "穿上是身之后就整个人生那种很着气的",
+      "members": [
+        191
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 260,
+      "start": 518.81,
+      "end": 520.05,
+      "text": "谁穿上都非常的好看",
+      "members": [
+        260
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 44,
+      "start": 91.26,
+      "end": 93.56,
+      "text": "我觉得穿这种外套搭个牛仔裤也好看",
+      "members": [
+        44,
+        45
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 48,
+      "start": 95.9,
+      "end": 97.58,
+      "text": "非常非常显高显瘦的感觉",
+      "members": [
+        48
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 50,
+      "start": 99.16,
+      "end": 100.1,
+      "text": "你搭一牛仔裤",
+      "members": [
+        50
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 128,
+      "start": 246.2,
+      "end": 247.66,
+      "text": "你就配你的白牛就可以了",
+      "members": [
+        128
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 130,
+      "start": 249.52,
+      "end": 250.86,
+      "text": "直接来配这件白牛",
+      "members": [
+        130
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 52,
+      "start": 102.82,
+      "end": 106.74,
+      "text": "日常生活的搭配就可以是这种这种搭上去我觉得也很时髦就这样简简单单",
+      "members": [
+        52
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 119,
+      "start": 234.76,
+      "end": 237.18,
+      "text": "买这种小短外套其实穿起来就一年四季",
+      "members": [
+        119,
+        120
+      ],
+      "group": 8,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 147,
+      "start": 278.62,
+      "end": 280.06,
+      "text": "就是最早延续下来",
+      "members": [
+        147
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 149,
+      "start": 281.98,
+      "end": 286.02,
+      "text": "上百年以上的历史了但我觉得经典的东西就是用刘存",
+      "members": [
+        149,
+        150
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 154,
+      "start": 290.52,
+      "end": 294.12,
+      "text": "所以这种衣服你穿20年它也不会过时穿20年照样好看拿缓写年轻",
+      "members": [
+        154,
+        155
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 124,
+      "start": 240.74,
+      "end": 244.82,
+      "text": "我就里面一套白外面一个配色的小短外套刚刚好是当下正好穿的东西",
+      "members": [
+        124,
+        125,
+        126
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 129,
+      "start": 247.66,
+      "end": 249.52,
+      "text": "有买到白牛的女生直接来配她",
+      "members": [
+        129
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 140,
+      "start": 266.6,
+      "end": 268.3,
+      "text": "所以这件衣服我还是真的很推荐的",
+      "members": [
+        140
+      ],
+      "group": 11,
+      "role": "cta",
+      "usable": true
+    }
+  ],
+  "total_seconds": 110.88000000000001
+}

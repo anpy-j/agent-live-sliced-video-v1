@@ -1,0 +1,151 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "裙子",
+  "sections": [
+    {
+      "role": "selling_point",
+      "ids": [
+        64,
+        65
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        66
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        23
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        50
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        45
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        59
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        55,
+        56
+      ]
+    }
+  ],
+  "ordered_ids": [
+    64,
+    65,
+    66,
+    23,
+    50,
+    45,
+    59,
+    55,
+    56
+  ],
+  "total_seconds": 17.84,
+  "selected_clauses": [
+    {
+      "id": 64,
+      "start": 145.23,
+      "end": 149.61,
+      "text": "现在这条裙子给大家准备的是高枝羊毛然后做的浑坊",
+      "members": [
+        64,
+        65
+      ],
+      "group": 0,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 66,
+      "start": 149.61,
+      "end": 151.79,
+      "text": "而且它是千尿格的一个设计",
+      "members": [
+        66
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 23,
+      "start": 64.3,
+      "end": 66.28,
+      "text": "都可以去搭各种各样的真枝马甲",
+      "members": [
+        23
+      ],
+      "group": 2,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 50,
+      "start": 117.17,
+      "end": 119.63,
+      "text": "然后外面再可以穿一件毛衣",
+      "members": [
+        50
+      ],
+      "group": 3,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 45,
+      "start": 106.12,
+      "end": 108.2,
+      "text": "配一下皮裤都能配很好看",
+      "members": [
+        45
+      ],
+      "group": 4,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 59,
+      "start": 137.35,
+      "end": 138.67,
+      "text": "小打底也是很好看的",
+      "members": [
+        59
+      ],
+      "group": 5,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 55,
+      "start": 130.13,
+      "end": 133.57,
+      "text": "我觉得秋冬的话比较适配的就是一些毛衣的感觉",
+      "members": [
+        55,
+        56
+      ],
+      "group": 6,
+      "role": "scene",
+      "usable": true
+    }
+  ]
+}

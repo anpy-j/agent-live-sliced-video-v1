@@ -132,7 +132,11 @@ class Application:
         return ""
 
     def create_job(self, payload: dict[str, Any]) -> dict[str, Any]:
+        from .pipeline_versions import normalize_version
+        version = normalize_version(payload.get("pipeline_version"))
         job_type = str(payload.get("job_type") or "direct").lower()
+        if job_type == "remix" and version == "v2":
+            raise ValueError("成片重组不支持 V2 剪辑流程")
         if job_type == "remix":
             return self._create_timeline_job(payload, job_type="remix")
         if job_type == "timeline" or "timeline_data" in payload or payload.get("draft_path"):
@@ -179,7 +183,8 @@ class Application:
                                        target_seconds=target_seconds,
                                        export_dir=export_dir,
                                        product_name=product_name,
-                                       export_mode=export_mode)
+                                       export_mode=export_mode,
+                                       pipeline_version=payload.get("pipeline_version", "v1"))
         edit_name = f"{job_id}-{self._path_slug(title, 48)}"
         workspace = source_workspace / "edits" / edit_name
         workspace.mkdir(parents=True, exist_ok=True)
@@ -267,7 +272,8 @@ class Application:
                                        target_seconds=target_seconds,
                                        export_dir=export_dir,
                                        product_name=product_name,
-                                       export_mode=export_mode)
+                                       export_mode=export_mode,
+                                       pipeline_version=payload.get("pipeline_version", "v1"))
         edit_name = f"{job_id}-{self._path_slug(title, 48)}"
         workspace = root / "edits" / edit_name
         workspace.mkdir(parents=True, exist_ok=True)
@@ -357,6 +363,8 @@ class Application:
         self._jianying_covers = covers
         return {
             "drafts": drafts,
+            "pipeline_versions": ["v1", "v2"],
+            "default_pipeline_version": "v1",
             "defaults": {
                 "target_min": 120,
                 "target_max": 180,
@@ -469,6 +477,8 @@ class Application:
             raise KeyError("任务不存在")
         workspace = Path(str(job.get("workspace") or ""))
         timeline = self._read_workspace_json(workspace / "timeline.json")
+        if job.get("pipeline_version") == "v2":
+            timeline = self._read_workspace_json(workspace / "v2" / "clauses.judged.json") or timeline
         filtered = self._read_workspace_json(workspace / "clauses.filtered.json")
         timeline_clauses = timeline.get("clauses") if isinstance(timeline, dict) else None
         filtered_clauses = filtered.get("clauses") if isinstance(filtered, dict) else None
@@ -1055,6 +1065,15 @@ class Handler(BaseHTTPRequestHandler):
             if not self.desktop_authorized():
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path, _, query = self.path.partition("?")
+            if path == "/api/cloud/catalog":
+                from .cloud_catalog import catalog
+                return self.json_response(catalog(self.app.root))
+            if path.startswith("/api/cloud/catalog/") and path.endswith("/content"):
+                from .cloud_catalog import output_file
+                try:
+                    return self.send_media(output_file(self.app.root, path.split("/")[4]))
+                except KeyError as exc:
+                    return self.json_response({"error": str(exc)}, 404)
             if self.postprocess_route("GET", path) or self.editor_route("GET", path):
                 return
             if path == "/api/smart-v3/jobs":

@@ -1,0 +1,685 @@
+{
+  "fingerprint": "be72b7fd1c33e033a8f78e243df6e7c0e0f14f6041c1ec8f7abe196f0c9711f1",
+  "data": {
+    "usable_ids": [
+      1,
+      3,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      20,
+      21,
+      23,
+      24,
+      26,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      40,
+      41,
+      43,
+      44,
+      47,
+      51,
+      52,
+      58,
+      63,
+      65,
+      66,
+      67,
+      69,
+      70,
+      73,
+      74,
+      76,
+      77,
+      78,
+      81,
+      83,
+      84,
+      85,
+      86,
+      92,
+      93,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      115,
+      116,
+      117,
+      119,
+      120,
+      125,
+      126,
+      130,
+      132,
+      133,
+      136,
+      137,
+      138,
+      139,
+      142,
+      143,
+      144,
+      154,
+      156,
+      157,
+      163,
+      165,
+      169,
+      170,
+      171,
+      172,
+      174,
+      175,
+      177,
+      179,
+      180,
+      184,
+      185,
+      189,
+      190,
+      192,
+      193,
+      194,
+      195,
+      197,
+      198,
+      199,
+      200,
+      202,
+      203,
+      204,
+      205,
+      206,
+      209,
+      210,
+      211,
+      212,
+      213,
+      214,
+      215,
+      216,
+      217,
+      219,
+      221,
+      222,
+      225,
+      226,
+      227,
+      228,
+      233,
+      234,
+      235,
+      238,
+      239,
+      240,
+      241,
+      242,
+      243,
+      244,
+      245,
+      246,
+      247,
+      249,
+      250,
+      251,
+      252,
+      253,
+      256,
+      258,
+      261,
+      262,
+      263,
+      264,
+      266,
+      267,
+      268,
+      269,
+      270,
+      276,
+      277,
+      278,
+      279,
+      281,
+      282,
+      283,
+      284,
+      285,
+      286,
+      287,
+      288
+    ],
+    "fragments": [
+      {
+        "id": 1,
+        "need": "both"
+      },
+      {
+        "id": 3,
+        "need": "both"
+      },
+      {
+        "id": 5,
+        "need": "prefix"
+      },
+      {
+        "id": 7,
+        "need": "both"
+      },
+      {
+        "id": 8,
+        "need": "both"
+      },
+      {
+        "id": 9,
+        "need": "prefix"
+      },
+      {
+        "id": 10,
+        "need": "both"
+      },
+      {
+        "id": 11,
+        "need": "prefix"
+      },
+      {
+        "id": 13,
+        "need": "both"
+      },
+      {
+        "id": 15,
+        "need": "both"
+      },
+      {
+        "id": 20,
+        "need": "suffix"
+      },
+      {
+        "id": 21,
+        "need": "both"
+      },
+      {
+        "id": 24,
+        "need": "suffix"
+      },
+      {
+        "id": 26,
+        "need": "prefix"
+      },
+      {
+        "id": 28,
+        "need": "both"
+      },
+      {
+        "id": 29,
+        "need": "prefix"
+      },
+      {
+        "id": 31,
+        "need": "suffix"
+      },
+      {
+        "id": 32,
+        "need": "prefix"
+      },
+      {
+        "id": 33,
+        "need": "prefix"
+      },
+      {
+        "id": 35,
+        "need": "prefix"
+      },
+      {
+        "id": 40,
+        "need": "both"
+      },
+      {
+        "id": 43,
+        "need": "prefix"
+      },
+      {
+        "id": 44,
+        "need": "both"
+      },
+      {
+        "id": 52,
+        "need": "suffix"
+      },
+      {
+        "id": 58,
+        "need": "both"
+      },
+      {
+        "id": 66,
+        "need": "both"
+      },
+      {
+        "id": 67,
+        "need": "both"
+      },
+      {
+        "id": 69,
+        "need": "both"
+      },
+      {
+        "id": 70,
+        "need": "both"
+      },
+      {
+        "id": 74,
+        "need": "prefix"
+      },
+      {
+        "id": 76,
+        "need": "prefix"
+      },
+      {
+        "id": 78,
+        "need": "prefix"
+      },
+      {
+        "id": 81,
+        "need": "prefix"
+      },
+      {
+        "id": 83,
+        "need": "both"
+      },
+      {
+        "id": 92,
+        "need": "both"
+      },
+      {
+        "id": 93,
+        "need": "prefix"
+      },
+      {
+        "id": 97,
+        "need": "prefix"
+      },
+      {
+        "id": 98,
+        "need": "prefix"
+      },
+      {
+        "id": 99,
+        "need": "suffix"
+      },
+      {
+        "id": 100,
+        "need": "prefix"
+      },
+      {
+        "id": 101,
+        "need": "prefix"
+      },
+      {
+        "id": 102,
+        "need": "prefix"
+      },
+      {
+        "id": 103,
+        "need": "prefix"
+      },
+      {
+        "id": 105,
+        "need": "both"
+      },
+      {
+        "id": 106,
+        "need": "prefix"
+      },
+      {
+        "id": 107,
+        "need": "suffix"
+      },
+      {
+        "id": 108,
+        "need": "both"
+      },
+      {
+        "id": 116,
+        "need": "prefix"
+      },
+      {
+        "id": 117,
+        "need": "both"
+      },
+      {
+        "id": 120,
+        "need": "both"
+      },
+      {
+        "id": 125,
+        "need": "both"
+      },
+      {
+        "id": 126,
+        "need": "prefix"
+      },
+      {
+        "id": 130,
+        "need": "prefix"
+      },
+      {
+        "id": 132,
+        "need": "prefix"
+      },
+      {
+        "id": 133,
+        "need": "prefix"
+      },
+      {
+        "id": 135,
+        "need": "both"
+      },
+      {
+        "id": 136,
+        "need": "prefix"
+      },
+      {
+        "id": 137,
+        "need": "prefix"
+      },
+      {
+        "id": 138,
+        "need": "prefix"
+      },
+      {
+        "id": 142,
+        "need": "both"
+      },
+      {
+        "id": 143,
+        "need": "prefix"
+      },
+      {
+        "id": 144,
+        "need": "prefix"
+      },
+      {
+        "id": 154,
+        "need": "both"
+      },
+      {
+        "id": 156,
+        "need": "prefix"
+      },
+      {
+        "id": 157,
+        "need": "both"
+      },
+      {
+        "id": 163,
+        "need": "prefix"
+      },
+      {
+        "id": 165,
+        "need": "prefix"
+      },
+      {
+        "id": 169,
+        "need": "both"
+      },
+      {
+        "id": 170,
+        "need": "prefix"
+      },
+      {
+        "id": 171,
+        "need": "both"
+      },
+      {
+        "id": 172,
+        "need": "both"
+      },
+      {
+        "id": 175,
+        "need": "prefix"
+      },
+      {
+        "id": 177,
+        "need": "prefix"
+      },
+      {
+        "id": 179,
+        "need": "prefix"
+      },
+      {
+        "id": 180,
+        "need": "prefix"
+      },
+      {
+        "id": 184,
+        "need": "both"
+      },
+      {
+        "id": 185,
+        "need": "prefix"
+      },
+      {
+        "id": 187,
+        "need": "both"
+      },
+      {
+        "id": 189,
+        "need": "both"
+      },
+      {
+        "id": 190,
+        "need": "prefix"
+      },
+      {
+        "id": 192,
+        "need": "prefix"
+      },
+      {
+        "id": 194,
+        "need": "both"
+      },
+      {
+        "id": 198,
+        "need": "prefix"
+      },
+      {
+        "id": 200,
+        "need": "prefix"
+      },
+      {
+        "id": 201,
+        "need": "prefix"
+      },
+      {
+        "id": 202,
+        "need": "prefix"
+      },
+      {
+        "id": 206,
+        "need": "prefix"
+      },
+      {
+        "id": 212,
+        "need": "prefix"
+      },
+      {
+        "id": 213,
+        "need": "both"
+      },
+      {
+        "id": 214,
+        "need": "prefix"
+      },
+      {
+        "id": 215,
+        "need": "prefix"
+      },
+      {
+        "id": 216,
+        "need": "prefix"
+      },
+      {
+        "id": 219,
+        "need": "prefix"
+      },
+      {
+        "id": 221,
+        "need": "prefix"
+      },
+      {
+        "id": 225,
+        "need": "prefix"
+      },
+      {
+        "id": 226,
+        "need": "prefix"
+      },
+      {
+        "id": 227,
+        "need": "prefix"
+      },
+      {
+        "id": 231,
+        "need": "both"
+      },
+      {
+        "id": 233,
+        "need": "both"
+      },
+      {
+        "id": 234,
+        "need": "both"
+      },
+      {
+        "id": 235,
+        "need": "prefix"
+      },
+      {
+        "id": 237,
+        "need": "both"
+      },
+      {
+        "id": 238,
+        "need": "both"
+      },
+      {
+        "id": 240,
+        "need": "both"
+      },
+      {
+        "id": 241,
+        "need": "prefix"
+      },
+      {
+        "id": 242,
+        "need": "prefix"
+      },
+      {
+        "id": 244,
+        "need": "prefix"
+      },
+      {
+        "id": 245,
+        "need": "prefix"
+      },
+      {
+        "id": 246,
+        "need": "prefix"
+      },
+      {
+        "id": 249,
+        "need": "prefix"
+      },
+      {
+        "id": 250,
+        "need": "prefix"
+      },
+      {
+        "id": 253,
+        "need": "both"
+      },
+      {
+        "id": 263,
+        "need": "prefix"
+      },
+      {
+        "id": 265,
+        "need": "prefix"
+      },
+      {
+        "id": 266,
+        "need": "prefix"
+      },
+      {
+        "id": 267,
+        "need": "prefix"
+      },
+      {
+        "id": 272,
+        "need": "both"
+      },
+      {
+        "id": 275,
+        "need": "prefix"
+      },
+      {
+        "id": 276,
+        "need": "both"
+      },
+      {
+        "id": 277,
+        "need": "both"
+      },
+      {
+        "id": 278,
+        "need": "prefix"
+      },
+      {
+        "id": 283,
+        "need": "prefix"
+      },
+      {
+        "id": 286,
+        "need": "prefix"
+      },
+      {
+        "id": 287,
+        "need": "prefix"
+      },
+      {
+        "id": 288,
+        "need": "prefix"
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 13784,
+    "output_tokens": 3063
+  }
+}

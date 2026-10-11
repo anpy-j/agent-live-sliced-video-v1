@@ -1,0 +1,105 @@
+{
+  "fingerprint": "ee646ee9be0bd2ffe27ada6059f50759e9f5afa6d076ac84bf0eb9c63897179c",
+  "data": {
+    "main_product": "丝绒鱼尾裙",
+    "sections": [
+      {
+        "role": "hook",
+        "ids": [
+          1
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          137,
+          37,
+          73
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          140,
+          148,
+          149,
+          67,
+          138,
+          152,
+          62,
+          63
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          154,
+          155
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          33,
+          56
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          157,
+          158,
+          159
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          36
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          133,
+          134
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          88
+        ]
+      }
+    ],
+    "ordered_ids": [
+      1,
+      137,
+      37,
+      73,
+      140,
+      148,
+      149,
+      67,
+      138,
+      152,
+      62,
+      63,
+      154,
+      155,
+      33,
+      56,
+      157,
+      158,
+      159,
+      36,
+      133,
+      134,
+      88
+    ]
+  },
+  "usage": {
+    "input_tokens": 10417,
+    "output_tokens": 27103
+  }
+}

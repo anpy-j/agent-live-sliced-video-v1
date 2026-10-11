@@ -1,0 +1,369 @@
+{
+  "fingerprint": "c6970c27eb55fcb2b3a8bd5a01aa097cdc33d5553de252794204f9a2c43b4d1d",
+  "data": {
+    "main_product": "迪奥同款羊毛外套（直筒版／收腰版）",
+    "sections": [
+      {
+        "role": "hook",
+        "ids": [
+          5,
+          13
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          24,
+          25,
+          26
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          93,
+          94
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          31,
+          32,
+          34,
+          35
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          160,
+          161,
+          163,
+          166,
+          167,
+          169,
+          170
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          69,
+          70,
+          71,
+          72
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          135,
+          136,
+          137,
+          138,
+          139
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          134,
+          59,
+          188,
+          189,
+          74,
+          264
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          46,
+          47,
+          48
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          50,
+          52
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          128,
+          129
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          6,
+          116,
+          117,
+          118
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          191,
+          192
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          156,
+          157
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          119,
+          120,
+          126
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          147,
+          148,
+          149,
+          150,
+          154
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          262,
+          263
+        ]
+      },
+      {
+        "role": "cta",
+        "ids": [
+          140
+        ]
+      }
+    ],
+    "ordered_ids": [
+      5,
+      13,
+      24,
+      25,
+      26,
+      93,
+      94,
+      31,
+      32,
+      34,
+      35,
+      160,
+      161,
+      163,
+      166,
+      167,
+      169,
+      170,
+      69,
+      70,
+      71,
+      72,
+      135,
+      136,
+      137,
+      138,
+      139,
+      134,
+      59,
+      188,
+      189,
+      74,
+      264,
+      46,
+      47,
+      48,
+      50,
+      52,
+      128,
+      129,
+      6,
+      116,
+      117,
+      118,
+      191,
+      192,
+      156,
+      157,
+      119,
+      120,
+      126,
+      147,
+      148,
+      149,
+      150,
+      154,
+      262,
+      263,
+      140
+    ]
+  },
+  "usage": {
+    "input_tokens": 56112,
+    "output_tokens": 18643
+  },
+  "usage_fields": [
+    {
+      "path": "$event[0].message.usage.input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.output_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.output_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.output_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.output_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[0].message.usage.input_tokens",
+      "value": 15370
+    },
+    {
+      "path": "$event[0].message.usage.output_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$event[0].message.usage.cache_creation_input_tokens",
+      "value": 138
+    },
+    {
+      "path": "$event[0].message.usage.cache_read_input_tokens",
+      "value": 15232
+    },
+    {
+      "path": "$event[1].message.usage.input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[1].message.usage.output_tokens",
+      "value": 0
+    },
+    {
+      "path": "$event[1].message.usage.input_tokens",
+      "value": 22118
+    },
+    {
+      "path": "$event[1].message.usage.output_tokens",
+      "value": 643
+    },
+    {
+      "path": "$event[1].message.usage.cache_creation_input_tokens",
+      "value": 870
+    },
+    {
+      "path": "$event[1].message.usage.cache_read_input_tokens",
+      "value": 21248
+    },
+    {
+      "path": "$event[2].duration_ms",
+      "value": 3658
+    },
+    {
+      "path": "$event[2].duration_api_ms",
+      "value": 3663
+    },
+    {
+      "path": "$event[2].num_turns",
+      "value": 12
+    },
+    {
+      "path": "$event[2].usage.input_tokens",
+      "value": 56112
+    },
+    {
+      "path": "$event[2].usage.output_tokens",
+      "value": 18643
+    },
+    {
+      "path": "$event[2].usage.cache_creation_input_tokens",
+      "value": 9392
+    },
+    {
+      "path": "$event[2].usage.cache_read_input_tokens",
+      "value": 46720
+    },
+    {
+      "path": "$event[2].modelUsage.deepseek-v4.1-flash.inputTokens",
+      "value": 0
+    },
+    {
+      "path": "$event[2].modelUsage.deepseek-v4.1-flash.outputTokens",
+      "value": 643
+    },
+    {
+      "path": "$event[2].modelUsage.deepseek-v4.1-flash.cacheReadInputTokens",
+      "value": 21248
+    },
+    {
+      "path": "$event[2].modelUsage.deepseek-v4.1-flash.cacheCreationInputTokens",
+      "value": 870
+    },
+    {
+      "path": "$event[2].modelUsage.deepseek-v4.1-flash.maxOutputTokens",
+      "value": 128000
+    }
+  ],
+  "completed_model_responses": 2,
+  "guard_stop_reason": "aggregate_output_budget_exceeded",
+  "returncode": 0,
+  "settings": {
+    "effort": "low",
+    "max_output_tokens": 6000,
+    "max_thinking_tokens": 2048,
+    "max_turns": 2,
+    "max_completed_model_responses": 3,
+    "total_output_guard": 18000,
+    "timeout_seconds": 240,
+    "empty_stream_retry_max_elapsed_ms": 1
+  },
+  "seconds": 78.28199999999924,
+  "final_json_characters": 1165,
+  "error_subtype": "success",
+  "is_error": false
+}

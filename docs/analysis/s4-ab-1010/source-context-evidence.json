@@ -1,0 +1,41 @@
+{
+  "title": "【D家高定】素材1010",
+  "issue": "原效果属于丝绒搭配，跨位置接到牛仔裤后改变关系",
+  "clauses": [
+    {
+      "id": 44,
+      "text": "我觉得穿这种外套",
+      "s3_usable": true
+    },
+    {
+      "id": 45,
+      "text": "搭个牛仔裤也好看",
+      "s3_usable": true
+    },
+    {
+      "id": 46,
+      "text": "你搭丝绒这一条的话",
+      "s3_usable": true
+    },
+    {
+      "id": 47,
+      "text": "可能就会有那种",
+      "s3_usable": true
+    },
+    {
+      "id": 48,
+      "text": "非常非常显高显瘦的感觉",
+      "s3_usable": true
+    },
+    {
+      "id": 49,
+      "text": "但你要搭个牛仔裤给我拿一条白牛",
+      "s3_usable": false
+    },
+    {
+      "id": 50,
+      "text": "你搭一牛仔裤",
+      "s3_usable": true
+    }
+  ]
+}

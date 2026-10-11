@@ -1,0 +1,145 @@
+{
+  "fingerprint": "bd2238a8d73bb58002b6890410b09c1c166ac151bd6fb9c1f97f7c80e05c0e62",
+  "data": {
+    "usable_ids": [
+      1,
+      2,
+      33,
+      36,
+      37,
+      41,
+      42,
+      54,
+      55,
+      56,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      73,
+      88,
+      89,
+      103,
+      104,
+      105,
+      106,
+      124,
+      125,
+      127,
+      128,
+      129,
+      131,
+      133,
+      134,
+      137,
+      138,
+      140,
+      148,
+      149,
+      152,
+      153,
+      154,
+      155,
+      157,
+      158,
+      159,
+      171
+    ],
+    "fragments": [
+      {
+        "id": 2,
+        "need": "prefix"
+      },
+      {
+        "id": 33,
+        "need": "prefix"
+      },
+      {
+        "id": 37,
+        "need": "prefix"
+      },
+      {
+        "id": 54,
+        "need": "prefix"
+      },
+      {
+        "id": 55,
+        "need": "prefix"
+      },
+      {
+        "id": 56,
+        "need": "prefix"
+      },
+      {
+        "id": 66,
+        "need": "prefix"
+      },
+      {
+        "id": 103,
+        "need": "prefix"
+      },
+      {
+        "id": 105,
+        "need": "prefix"
+      },
+      {
+        "id": 106,
+        "need": "suffix"
+      },
+      {
+        "id": 124,
+        "need": "suffix"
+      },
+      {
+        "id": 125,
+        "need": "suffix"
+      },
+      {
+        "id": 127,
+        "need": "prefix"
+      },
+      {
+        "id": 128,
+        "need": "prefix"
+      },
+      {
+        "id": 129,
+        "need": "suffix"
+      },
+      {
+        "id": 138,
+        "need": "prefix"
+      },
+      {
+        "id": 148,
+        "need": "suffix"
+      },
+      {
+        "id": 149,
+        "need": "prefix"
+      },
+      {
+        "id": 157,
+        "need": "suffix"
+      },
+      {
+        "id": 158,
+        "need": "prefix"
+      },
+      {
+        "id": 159,
+        "need": "prefix"
+      },
+      {
+        "id": 171,
+        "need": "prefix"
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 46794,
+    "output_tokens": 24411
+  }
+}

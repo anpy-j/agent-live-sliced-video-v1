@@ -1,0 +1,323 @@
+{
+  "title": "【巴黎香叙】素材1010",
+  "target_seconds": 120,
+  "selected_seconds": 48.8,
+  "target_met": false,
+  "input_usable_clauses": 214,
+  "input_seconds": 425.77,
+  "selected_clause_count": 22,
+  "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\B2C32283-C8DC-42bc-864A-1516A25F0C9B-d8a74ab8c507\\edits\\job_20261010_001203_e4117d-【巴黎香叙】素材1010",
+  "paragraphs": [
+    {
+      "section": "开头：羊毛马甲",
+      "ids": [
+        1
+      ],
+      "text": "这件马甲的话是羊毛的,"
+    },
+    {
+      "section": "卷曲毛质感与舒适度",
+      "ids": [
+        4,
+        5,
+        6
+      ],
+      "text": "今年全部都是这个系列的,然后我们做的是羊毛的,然后整个的灭料的话呢,它是那种卷曲毛的感觉。所以你秋冬穿的话,它是很软和,但是有弹力的,上身舒适度非常的高。它是带有弹力的,就像毛芝一样,但它的克重也是比较高的这一件。"
+    },
+    {
+      "section": "宽松感",
+      "ids": [
+        290
+      ],
+      "text": "这玩意就宽松的"
+    },
+    {
+      "section": "长纤维与款式选择",
+      "ids": [
+        138,
+        238,
+        239,
+        240
+      ],
+      "text": "它纤维本身就比较长就是因為它纖維太長了我不敢做裙子我怕屁股上摩擦太重所以我就沒做裙子了我就只做一個馬甲"
+    },
+    {
+      "section": "羊毛特性与洗护",
+      "ids": [
+        184,
+        185,
+        320
+      ],
+      "text": "但同樣是羊毛所有的羊毛都會起毛起球我建议你们洗的时候就一定要不要激洗这种东西不要激洗"
+    },
+    {
+      "section": "衬衫和裤装搭配",
+      "ids": [
+        0,
+        283
+      ],
+      "text": "这种裤子可以搭这种马甲,里面还可以穿襯衫,去配我的这件马甲。这马甲你们就穿个西装裤吧"
+    },
+    {
+      "section": "黑灰配色与领口",
+      "ids": [
+        301,
+        302,
+        28
+      ],
+      "text": "而且你这个打底衫你也可以换个黑色你就是黑灰去撞這裡面就把一個小襯衫領子翻出來的感覺"
+    },
+    {
+      "section": "小个子上身感受",
+      "ids": [
+        296,
+        297
+      ],
+      "text": "小个子你就这么穿又很有气质"
+    },
+    {
+      "section": "大衣羽绒服内搭",
+      "ids": [
+        76,
+        77
+      ],
+      "text": "其实你穿在任何羽绒服里面大衣里面都是很好看的"
+    },
+    {
+      "section": "冬季场景提示",
+      "ids": [
+        21
+      ],
+      "text": "冬天的话南方能穿北方不行"
+    }
+  ],
+  "segments": [
+    {
+      "id": 1,
+      "section": "开头：羊毛马甲",
+      "start": 6.1,
+      "end": 9.04,
+      "output_start": 0,
+      "output_end": 2.94,
+      "duration": 2.94,
+      "text": "这件马甲的话是羊毛的,"
+    },
+    {
+      "id": 4,
+      "section": "卷曲毛质感与舒适度",
+      "start": 18.8,
+      "end": 23.88,
+      "output_start": 2.94,
+      "output_end": 8.02,
+      "duration": 5.08,
+      "text": "今年全部都是这个系列的,然后我们做的是羊毛的,然后整个的灭料的话呢,它是那种卷曲毛的感觉。"
+    },
+    {
+      "id": 5,
+      "section": "卷曲毛质感与舒适度",
+      "start": 23.92,
+      "end": 27.6,
+      "output_start": 8.02,
+      "output_end": 11.7,
+      "duration": 3.68,
+      "text": "所以你秋冬穿的话,它是很软和,但是有弹力的,上身舒适度非常的高。"
+    },
+    {
+      "id": 6,
+      "section": "卷曲毛质感与舒适度",
+      "start": 28.22,
+      "end": 31.9,
+      "output_start": 11.7,
+      "output_end": 15.38,
+      "duration": 3.68,
+      "text": "它是带有弹力的,就像毛芝一样,但它的克重也是比较高的这一件。"
+    },
+    {
+      "id": 290,
+      "section": "宽松感",
+      "start": 718.73,
+      "end": 719.67,
+      "output_start": 15.38,
+      "output_end": 16.32,
+      "duration": 0.94,
+      "text": "这玩意就宽松的"
+    },
+    {
+      "id": 138,
+      "section": "长纤维与款式选择",
+      "start": 347.0,
+      "end": 348.72,
+      "output_start": 16.32,
+      "output_end": 18.04,
+      "duration": 1.72,
+      "text": "它纤维本身就比较长"
+    },
+    {
+      "id": 238,
+      "section": "长纤维与款式选择",
+      "start": 580.64,
+      "end": 583.8,
+      "output_start": 18.04,
+      "output_end": 21.2,
+      "duration": 3.16,
+      "text": "就是因為它纖維太長了我不敢做裙子"
+    },
+    {
+      "id": 239,
+      "section": "长纤维与款式选择",
+      "start": 583.8,
+      "end": 585.14,
+      "output_start": 21.2,
+      "output_end": 22.54,
+      "duration": 1.34,
+      "text": "我怕屁股上摩擦太重"
+    },
+    {
+      "id": 240,
+      "section": "长纤维与款式选择",
+      "start": 585.14,
+      "end": 587.98,
+      "output_start": 22.54,
+      "output_end": 25.38,
+      "duration": 2.84,
+      "text": "所以我就沒做裙子了我就只做一個馬甲"
+    },
+    {
+      "id": 184,
+      "section": "羊毛特性与洗护",
+      "start": 456.41,
+      "end": 457.29,
+      "output_start": 25.38,
+      "output_end": 26.26,
+      "duration": 0.88,
+      "text": "但同樣是羊毛"
+    },
+    {
+      "id": 185,
+      "section": "羊毛特性与洗护",
+      "start": 457.29,
+      "end": 458.95,
+      "output_start": 26.26,
+      "output_end": 27.92,
+      "duration": 1.66,
+      "text": "所有的羊毛都會起毛起球"
+    },
+    {
+      "id": 320,
+      "section": "羊毛特性与洗护",
+      "start": 775.1,
+      "end": 778.64,
+      "output_start": 27.92,
+      "output_end": 31.46,
+      "duration": 3.54,
+      "text": "我建议你们洗的时候就一定要不要激洗这种东西不要激洗"
+    },
+    {
+      "id": 0,
+      "section": "衬衫和裤装搭配",
+      "start": 1.58,
+      "end": 5.98,
+      "output_start": 31.46,
+      "output_end": 35.86,
+      "duration": 4.4,
+      "text": "这种裤子可以搭这种马甲,里面还可以穿襯衫,去配我的这件马甲。"
+    },
+    {
+      "id": 283,
+      "section": "衬衫和裤装搭配",
+      "start": 708.83,
+      "end": 710.53,
+      "output_start": 35.86,
+      "output_end": 37.56,
+      "duration": 1.7,
+      "text": "这马甲你们就穿个西装裤吧"
+    },
+    {
+      "id": 301,
+      "section": "黑灰配色与领口",
+      "start": 736.48,
+      "end": 738.16,
+      "output_start": 37.56,
+      "output_end": 39.24,
+      "duration": 1.68,
+      "text": "而且你这个打底衫你也可以换个黑色"
+    },
+    {
+      "id": 302,
+      "section": "黑灰配色与领口",
+      "start": 738.44,
+      "end": 739.48,
+      "output_start": 39.24,
+      "output_end": 40.28,
+      "duration": 1.04,
+      "text": "你就是黑灰去撞"
+    },
+    {
+      "id": 28,
+      "section": "黑灰配色与领口",
+      "start": 91.6,
+      "end": 93.72,
+      "output_start": 40.28,
+      "output_end": 42.4,
+      "duration": 2.12,
+      "text": "這裡面就把一個小襯衫領子翻出來的感覺"
+    },
+    {
+      "id": 296,
+      "section": "小个子上身感受",
+      "start": 726.62,
+      "end": 727.78,
+      "output_start": 42.4,
+      "output_end": 43.56,
+      "duration": 1.16,
+      "text": "小个子你就这么穿"
+    },
+    {
+      "id": 297,
+      "section": "小个子上身感受",
+      "start": 727.78,
+      "end": 729.04,
+      "output_start": 43.56,
+      "output_end": 44.82,
+      "duration": 1.26,
+      "text": "又很有气质"
+    },
+    {
+      "id": 76,
+      "section": "大衣羽绒服内搭",
+      "start": 212.37,
+      "end": 213.57,
+      "output_start": 44.82,
+      "output_end": 46.02,
+      "duration": 1.2,
+      "text": "其实你穿在任何羽绒服里面"
+    },
+    {
+      "id": 77,
+      "section": "大衣羽绒服内搭",
+      "start": 213.57,
+      "end": 214.57,
+      "output_start": 46.02,
+      "output_end": 47.02,
+      "duration": 1.0,
+      "text": "大衣里面都是很好看的"
+    },
+    {
+      "id": 21,
+      "section": "冬季场景提示",
+      "start": 76.88,
+      "end": 78.66,
+      "output_start": 47.02,
+      "output_end": 48.8,
+      "duration": 1.78,
+      "text": "冬天的话南方能穿北方不行"
+    }
+  ],
+  "selection_notes": "剔除“拉特别短”与显高理由冲突的整组表达、质量好就是工艺好的循环评价、工艺预告、点名品牌、独立裤子与衬衫推销以及选码问答。不猜测未明确商品的句子归属；明确的马甲搭配裤装、衬衫原话可保留。",
+  "limitations": [
+    "仅文本精选；未听审原音和审核画面。",
+    "保留ASR原始字词，未对错字或术语作猜测改写。",
+    "选取整条S3放行子句，未删改句内字词；时长是所选虚拟时间线口播区间之和。",
+    "目标120秒未达到；不拉长、不循环、不补写、不用垃圾话填充。"
+  ]
+}

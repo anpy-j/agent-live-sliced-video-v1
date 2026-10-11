@@ -1,0 +1,632 @@
+[
+  [
+    {
+      "id": 3,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 17.82,
+      "timeline_end": 22.32,
+      "segment_id": "片段1",
+      "segment_offset": 17.82,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3422.033,
+      "source_end": 3427.883,
+      "speed": 1.3,
+      "start": 3422.033,
+      "end": 3427.883,
+      "text": "它是一件我从没有做过西装的一个感觉,它是这样的一个上威口的一个感觉。",
+      "selection_group": 0
+    },
+    {
+      "id": 4,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 22.64,
+      "timeline_end": 26.42,
+      "segment_id": "片段1",
+      "segment_offset": 22.64,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3428.299,
+      "source_end": 3433.213,
+      "speed": 1.3,
+      "start": 3428.299,
+      "end": 3433.213,
+      "text": "它会把你整个人的脖颈这里有圆领的感觉,但是还有一个小威领的设计。",
+      "selection_group": 0
+    }
+  ],
+  [
+    {
+      "id": 65,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 128.18,
+      "timeline_end": 129.72,
+      "segment_id": "片段1",
+      "segment_offset": 128.18,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3565.501,
+      "source_end": 3567.503,
+      "speed": 1.3,
+      "start": 3565.501,
+      "end": 3567.503,
+      "text": "这件醋酸的小外套",
+      "selection_group": 1
+    },
+    {
+      "id": 28,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 61.38,
+      "timeline_end": 64.52,
+      "segment_id": "片段1",
+      "segment_offset": 61.38,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3478.661,
+      "source_end": 3482.743,
+      "speed": 1.3,
+      "start": 3478.661,
+      "end": 3482.743,
+      "text": "它是用醋酸面料来做的没有用其他的任何面料",
+      "selection_group": 1
+    },
+    {
+      "id": 68,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 133.16,
+      "timeline_end": 134.08,
+      "segment_id": "片段1",
+      "segment_offset": 133.16,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3571.975,
+      "source_end": 3573.171,
+      "speed": 1.3,
+      "start": 3571.975,
+      "end": 3573.171,
+      "text": "微微弹力",
+      "selection_group": 1
+    },
+    {
+      "id": 329,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 663.03,
+      "timeline_end": 664.27,
+      "segment_id": "片段1",
+      "segment_offset": 663.03,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4260.806,
+      "source_end": 4262.418,
+      "speed": 1.3,
+      "start": 4260.806,
+      "end": 4262.418,
+      "text": "偏小一點這個外套",
+      "selection_group": 1
+    }
+  ],
+  [
+    {
+      "id": 32,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 68.34,
+      "timeline_end": 77.2,
+      "segment_id": "片段1",
+      "segment_offset": 68.34,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3487.709,
+      "source_end": 3499.227,
+      "speed": 1.3,
+      "start": 3487.709,
+      "end": 3499.227,
+      "text": "羊毛的话它会有黄白色因为羊毛无法漂白它只有那种奶奶的白所以这一件我要做的是那种纯白的感觉所以给大家做的是这样的一件面料",
+      "selection_group": 2
+    }
+  ],
+  [
+    {
+      "id": 143,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 312.3,
+      "timeline_end": 315.82,
+      "segment_id": "片段1",
+      "segment_offset": 312.3,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3804.857,
+      "source_end": 3809.433,
+      "speed": 1.3,
+      "start": 3804.857,
+      "end": 3809.433,
+      "text": "肩膀这个地方它是可以很漂亮的给到你这个正肩感的",
+      "selection_group": 3
+    }
+  ],
+  [
+    {
+      "id": 7,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 29.8,
+      "timeline_end": 31.56,
+      "segment_id": "片段1",
+      "segment_offset": 29.8,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3437.607,
+      "source_end": 3439.895,
+      "speed": 1.3,
+      "start": 3437.607,
+      "end": 3439.895,
+      "text": "它是收腰的同时它不夸张",
+      "selection_group": 4
+    },
+    {
+      "id": 134,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 285.29,
+      "timeline_end": 288.45,
+      "segment_id": "片段1",
+      "segment_offset": 285.29,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3769.744,
+      "source_end": 3773.852,
+      "speed": 1.3,
+      "start": 3769.744,
+      "end": 3773.852,
+      "text": "要腰伸有腰伸你腰粗的人穿上去秒变小S腰",
+      "selection_group": 4
+    }
+  ],
+  [
+    {
+      "id": 467,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 950.44,
+      "timeline_end": 954.68,
+      "segment_id": "片段3",
+      "segment_offset": 24.907,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13809.446,
+      "source_end": 13814.958,
+      "speed": 1.3,
+      "start": 13809.446,
+      "end": 13814.958,
+      "text": "醋酸的面料是那种很薄的你现在空调房就能穿然后一直能穿到秋天",
+      "selection_group": 5
+    }
+  ],
+  [
+    {
+      "id": 465,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 947.3,
+      "timeline_end": 948.92,
+      "segment_id": "片段3",
+      "segment_offset": 21.767,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13805.364,
+      "source_end": 13807.47,
+      "speed": 1.3,
+      "start": 13805.364,
+      "end": 13807.47,
+      "text": "他整个的版型是非常氧气的",
+      "selection_group": 6
+    },
+    {
+      "id": 13,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 38.8,
+      "timeline_end": 41.96,
+      "segment_id": "片段1",
+      "segment_offset": 38.8,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3449.307,
+      "source_end": 3453.415,
+      "speed": 1.3,
+      "start": 3449.307,
+      "end": 3453.415,
+      "text": "就非常的欧洲非常非常的法系的感觉",
+      "selection_group": 6
+    }
+  ],
+  [
+    {
+      "id": 392,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 787.72,
+      "timeline_end": 789.64,
+      "segment_id": "片段1",
+      "segment_offset": 787.72,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4422.903,
+      "source_end": 4425.399,
+      "speed": 1.3,
+      "start": 4422.903,
+      "end": 4425.399,
+      "text": "它这个里面是这样的一个小V领的设计",
+      "selection_group": 7
+    }
+  ],
+  [
+    {
+      "id": 27,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 59.22,
+      "timeline_end": 61.38,
+      "segment_id": "片段1",
+      "segment_offset": 59.22,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3475.853,
+      "source_end": 3478.661,
+      "speed": 1.3,
+      "start": 3475.853,
+      "end": 3478.661,
+      "text": "我现在给的这个面料是马上立刻就能穿的",
+      "selection_group": 8
+    },
+    {
+      "id": 37,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 77.2,
+      "timeline_end": 79.0,
+      "segment_id": "片段1",
+      "segment_offset": 77.2,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3499.227,
+      "source_end": 3501.567,
+      "speed": 1.3,
+      "start": 3499.227,
+      "end": 3501.567,
+      "text": "整个衣服又薄又有成度",
+      "selection_group": 8
+    },
+    {
+      "id": 408,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 820.32,
+      "timeline_end": 822.02,
+      "segment_id": "片段1",
+      "segment_offset": 820.32,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4465.283,
+      "source_end": 4467.493,
+      "speed": 1.3,
+      "start": 4465.283,
+      "end": 4467.493,
+      "text": "它穿在身上是不崩的",
+      "selection_group": 8
+    }
+  ],
+  [
+    {
+      "id": 284,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 589.27,
+      "timeline_end": 591.53,
+      "segment_id": "片段1",
+      "segment_offset": 589.27,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4164.918,
+      "source_end": 4167.856,
+      "speed": 1.3,
+      "start": 4164.918,
+      "end": 4167.856,
+      "text": "你不要把它当外套你把它当件小衣服",
+      "selection_group": 9
+    }
+  ],
+  [
+    {
+      "id": 276,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 574.64,
+      "timeline_end": 578.7,
+      "segment_id": "片段1",
+      "segment_offset": 574.64,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4145.899,
+      "source_end": 4151.177,
+      "speed": 1.3,
+      "start": 4145.899,
+      "end": 4151.177,
+      "text": "你里面就随便整个小雕刀拉小背心拉你就穿这种小外套在空调房完全驾驭得了",
+      "selection_group": 10
+    }
+  ],
+  [
+    {
+      "id": 479,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 983.88,
+      "timeline_end": 985.7,
+      "segment_id": "片段4",
+      "segment_offset": 0.08,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13902.104,
+      "source_end": 13904.47,
+      "speed": 1.3,
+      "start": 13902.104,
+      "end": 13904.47,
+      "text": "这件小衣服我觉得就是搭个裤腿",
+      "selection_group": 11
+    }
+  ],
+  [
+    {
+      "id": 46,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 90.98,
+      "timeline_end": 93.66,
+      "segment_id": "片段1",
+      "segment_offset": 90.98,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3517.141,
+      "source_end": 3520.625,
+      "speed": 1.3,
+      "start": 3517.141,
+      "end": 3520.625,
+      "text": "但是你上班你看你日常穿就搭一个裤腿西装裤",
+      "selection_group": 12
+    }
+  ],
+  [
+    {
+      "id": 49,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 94.92,
+      "timeline_end": 98.6,
+      "segment_id": "片段1",
+      "segment_offset": 94.92,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3522.263,
+      "source_end": 3527.047,
+      "speed": 1.3,
+      "start": 3522.263,
+      "end": 3527.047,
+      "text": "小个子越要这样穿你穿这个裤腿配这种外套",
+      "selection_group": 13
+    }
+  ],
+  [
+    {
+      "id": 463,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 941.64,
+      "timeline_end": 943.88,
+      "segment_id": "片段3",
+      "segment_offset": 16.107,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13798.006,
+      "source_end": 13800.918,
+      "speed": 1.3,
+      "start": 13798.006,
+      "end": 13800.918,
+      "text": "我觉得你们搭扩扩扩什么的都挺好看的",
+      "selection_group": 14
+    }
+  ],
+  [
+    {
+      "id": 283,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 586.82,
+      "timeline_end": 589.27,
+      "segment_id": "片段1",
+      "segment_offset": 586.82,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4161.733,
+      "source_end": 4164.918,
+      "speed": 1.3,
+      "start": 4161.733,
+      "end": 4164.918,
+      "text": "然后去穿一个扣腿裤秋天的时候",
+      "selection_group": 15
+    }
+  ],
+  [
+    {
+      "id": 398,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 801.68,
+      "timeline_end": 803.38,
+      "segment_id": "片段1",
+      "segment_offset": 801.68,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4441.051,
+      "source_end": 4443.261,
+      "speed": 1.3,
+      "start": 4441.051,
+      "end": 4443.261,
+      "text": "很好看对吧你就搭裙子穿",
+      "selection_group": 16
+    }
+  ],
+  [
+    {
+      "id": 321,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 651.41,
+      "timeline_end": 653.27,
+      "segment_id": "片段1",
+      "segment_offset": 651.41,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4245.7,
+      "source_end": 4248.118,
+      "speed": 1.3,
+      "start": 4245.7,
+      "end": 4248.118,
+      "text": "其實你搭咱們家殺裙是真的很漂亮的",
+      "selection_group": 17
+    }
+  ],
+  [
+    {
+      "id": 82,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 153.74,
+      "timeline_end": 160.38,
+      "segment_id": "片段1",
+      "segment_offset": 153.74,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3598.729,
+      "source_end": 3607.361,
+      "speed": 1.3,
+      "start": 3598.729,
+      "end": 3607.361,
+      "text": "它是小薄型的白的黑的两个色黑色整个人你穿上去周是非常显瘦的白色超级气质",
+      "selection_group": 18
+    }
+  ],
+  [
+    {
+      "id": 102,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 197.53,
+      "timeline_end": 199.87,
+      "segment_id": "片段1",
+      "segment_offset": 197.53,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 3655.656,
+      "source_end": 3658.698,
+      "speed": 1.3,
+      "start": 3655.656,
+      "end": 3658.698,
+      "text": "黑色其实你可以搭不一样的颜色的裤子可以搭灰的",
+      "selection_group": 19
+    }
+  ],
+  [
+    {
+      "id": 487,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 996.98,
+      "timeline_end": 999.54,
+      "segment_id": "片段4",
+      "segment_offset": 13.18,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13919.134,
+      "source_end": 13922.462,
+      "speed": 1.3,
+      "start": 13919.134,
+      "end": 13922.462,
+      "text": "白色可能会更加的让你感觉到有设计感一点",
+      "selection_group": 20
+    }
+  ],
+  [
+    {
+      "id": 503,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 1038.08,
+      "timeline_end": 1041.22,
+      "segment_id": "片段5",
+      "segment_offset": 4.28,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 14041.497,
+      "source_end": 14045.579,
+      "speed": 1.3,
+      "start": 14041.497,
+      "end": 14045.579,
+      "text": "醋酸滅料的上身舒適感非常足現在就能穿",
+      "selection_group": 21
+    }
+  ],
+  [
+    {
+      "id": 462,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 939.82,
+      "timeline_end": 941.64,
+      "segment_id": "片段3",
+      "segment_offset": 14.287,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13795.64,
+      "source_end": 13798.006,
+      "speed": 1.3,
+      "start": 13795.64,
+      "end": 13798.006,
+      "text": "它是一款醋酸面料的小上衣",
+      "selection_group": 22
+    },
+    {
+      "id": 390,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 783.46,
+      "timeline_end": 787.72,
+      "segment_id": "片段1",
+      "segment_offset": 783.46,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4417.365,
+      "source_end": 4422.903,
+      "speed": 1.3,
+      "start": 4417.365,
+      "end": 4422.903,
+      "text": "包括你修店的时候里面搭个小毛衣穿一个小高领的感觉都很好看",
+      "selection_group": 22
+    }
+  ],
+  [
+    {
+      "id": 395,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 792.88,
+      "timeline_end": 799.46,
+      "segment_id": "片段1",
+      "segment_offset": 792.88,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4429.611,
+      "source_end": 4438.165,
+      "speed": 1.3,
+      "start": 4429.611,
+      "end": 4438.165,
+      "text": "所以它非常非常的适合我们在一些微微的需要有一点点整个人的那种气质的时候去穿它",
+      "selection_group": 23
+    }
+  ],
+  [
+    {
+      "id": 387,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 778.48,
+      "timeline_end": 780.08,
+      "segment_id": "片段1",
+      "segment_offset": 778.48,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4410.891,
+      "source_end": 4412.971,
+      "speed": 1.3,
+      "start": 4410.891,
+      "end": 4412.971,
+      "text": "醋酸面料的非常好看",
+      "selection_group": 24
+    }
+  ],
+  [
+    {
+      "id": 412,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 825.76,
+      "timeline_end": 834.22,
+      "segment_id": "片段1",
+      "segment_offset": 825.76,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 4472.355,
+      "source_end": 4483.353,
+      "speed": 1.3,
+      "start": 4472.355,
+      "end": 4483.353,
+      "text": "不要用蓝月亮洗衣液姐妹们蓝月亮洗衣液它会让你的扭扣洗掉色你就正常不带有漂白的成分的洗衣液去洗就可以了",
+      "selection_group": 25
+    }
+  ],
+  [
+    {
+      "id": 495,
+      "timeline_id": "B9909522-D3F9-4a0e-A45B-A7B1EB8AFD92",
+      "timeline_start": 1020.17,
+      "timeline_end": 1023.03,
+      "segment_id": "片段4",
+      "segment_offset": 36.37,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-06\\第1场\\袁艺灵20260806095139第1场7670730232068098859.mp4",
+      "source_start": 13949.281,
+      "source_end": 13952.999,
+      "speed": 1.3,
+      "start": 13949.281,
+      "end": 13952.999,
+      "text": "我覺得這一套特別適合你們日常上班啊穿搭什麼的",
+      "selection_group": 26
+    }
+  ]
+]

@@ -1,0 +1,454 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "羊毛外套",
+  "sections": [
+    {
+      "role": "scene",
+      "ids": [
+        25,
+        26
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        34,
+        35
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        44,
+        45
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        46,
+        47,
+        48
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        60
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        68,
+        69,
+        70
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        93,
+        94
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        96,
+        97,
+        98
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        116,
+        117,
+        118
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        119,
+        120
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        124,
+        125,
+        126
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        128,
+        129
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        156,
+        157,
+        158
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        169,
+        170
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        193,
+        194
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        209
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        247
+      ]
+    }
+  ],
+  "ordered_ids": [
+    25,
+    26,
+    34,
+    35,
+    44,
+    45,
+    46,
+    47,
+    48,
+    60,
+    68,
+    69,
+    70,
+    93,
+    94,
+    96,
+    97,
+    98,
+    116,
+    117,
+    118,
+    119,
+    120,
+    124,
+    125,
+    126,
+    128,
+    129,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    156,
+    157,
+    158,
+    169,
+    170,
+    193,
+    194,
+    209,
+    247
+  ],
+  "total_seconds": 68.96,
+  "selected_clauses": [
+    {
+      "id": 25,
+      "start": 63.02,
+      "end": 66.06,
+      "text": "很多女生说我日常上班生活穿搭我不想要那种收腰的",
+      "members": [
+        25,
+        26
+      ],
+      "group": 0,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 34,
+      "start": 75.26,
+      "end": 79.04,
+      "text": "它也是一款奥毛的材质非常美的那种丝毛质感",
+      "members": [
+        34,
+        35
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 44,
+      "start": 91.26,
+      "end": 93.56,
+      "text": "我觉得穿这种外套搭个牛仔裤也好看",
+      "members": [
+        44,
+        45
+      ],
+      "group": 2,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 46,
+      "start": 93.56,
+      "end": 95.48,
+      "text": "你搭丝绒这一条的话可能就会有那种",
+      "members": [
+        46,
+        47
+      ],
+      "group": 3,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 48,
+      "start": 95.9,
+      "end": 97.58,
+      "text": "非常非常显高显瘦的感觉",
+      "members": [
+        48
+      ],
+      "group": 3,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 60,
+      "start": 120.35,
+      "end": 121.43,
+      "text": "这是我们的定制面料",
+      "members": [
+        60
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 68,
+      "start": 135.05,
+      "end": 142.11,
+      "text": "你知道咱们家的版型做的有多绝整个肩膀位置全部是手工修缘肩的看到了吗整个肩膀肩膀位没有高低肩",
+      "members": [
+        68,
+        69,
+        70
+      ],
+      "group": 5,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 93,
+      "start": 186.48,
+      "end": 189.76,
+      "text": "你喜欢收腰的你就买收腰的这是今年的直筒版本你自己挑",
+      "members": [
+        93,
+        94
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 96,
+      "start": 191.44,
+      "end": 196.14,
+      "text": "但是你说我本来我就不太想穿收腰的而且我觉得直筒的更适合我日常穿着起来",
+      "members": [
+        96,
+        97,
+        98
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 116,
+      "start": 231.36,
+      "end": 234.76,
+      "text": "这件衣服给到你的感觉就是松弛的而且很高级",
+      "members": [
+        116,
+        117,
+        118
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 119,
+      "start": 234.76,
+      "end": 237.18,
+      "text": "买这种小短外套其实穿起来就一年四季",
+      "members": [
+        119,
+        120
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 124,
+      "start": 240.74,
+      "end": 244.82,
+      "text": "我就里面一套白外面一个配色的小短外套刚刚好是当下正好穿的东西",
+      "members": [
+        124,
+        125,
+        126
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 128,
+      "start": 246.2,
+      "end": 249.52,
+      "text": "你就配你的白牛就可以了有买到白牛的女生直接来配她",
+      "members": [
+        128,
+        129
+      ],
+      "group": 11,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 134,
+      "start": 256.66,
+      "end": 268.3,
+      "text": "这个去年一度断货的款而且这件衣服非常超级之难做因为它整个边边都要做得非常非常的细才能达到这个平衡度才能让两边做对称这全手工的所以这件衣服我还是真的很推荐的",
+      "members": [
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140
+      ],
+      "group": 12,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 156,
+      "start": 294.12,
+      "end": 296.06,
+      "text": "直捅的会稍微年轻一点",
+      "members": [
+        156
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 157,
+      "start": 296.36,
+      "end": 299.18,
+      "text": "稍微活泼一点这件会稍微Lady一点你们自己敢生",
+      "members": [
+        157,
+        158
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 169,
+      "start": 338.13,
+      "end": 341.93,
+      "text": "你看就是这件你看他的颜色也是这种就泛有灰色光芒的黑",
+      "members": [
+        169,
+        170
+      ],
+      "group": 14,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 193,
+      "start": 386.0,
+      "end": 388.48,
+      "text": "然后我们给大家今年做是直筒型去年有一个收腰板",
+      "members": [
+        193,
+        194
+      ],
+      "group": 15,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 209,
+      "start": 408.55,
+      "end": 411.41,
+      "text": "长短两个版本,1米6以上买长,一物就以下买短",
+      "members": [
+        209
+      ],
+      "group": 16,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 247,
+      "start": 493.0,
+      "end": 494.36,
+      "text": "精致的话收腰的更精致",
+      "members": [
+        247
+      ],
+      "group": 17,
+      "role": "selling_point",
+      "usable": true
+    }
+  ]
+}

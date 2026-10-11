@@ -1,0 +1,159 @@
+{
+  "main_product": "蛋白皮裙",
+  "sections": [
+    {
+      "role": "styling",
+      "ids": [
+        19
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        25
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        27,
+        28,
+        29
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        42
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        55,
+        56,
+        57
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        60
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        61,
+        65
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        106,
+        107
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        117
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        123
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        124,
+        125,
+        126
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        127,
+        128
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        129,
+        130
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        139,
+        140
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        143
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        144
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        145
+      ]
+    }
+  ],
+  "ordered_ids": [
+    19,
+    21,
+    22,
+    23,
+    25,
+    27,
+    28,
+    29,
+    42,
+    55,
+    56,
+    57,
+    60,
+    61,
+    65,
+    106,
+    107,
+    117,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    139,
+    140,
+    143,
+    144,
+    145
+  ]
+}

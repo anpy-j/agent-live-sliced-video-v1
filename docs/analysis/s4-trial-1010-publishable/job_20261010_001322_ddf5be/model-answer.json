@@ -1,0 +1,199 @@
+{
+  "main_product": "丝绒鱼尾裙",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        5
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        9
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        33
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        34
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        35,
+        36,
+        37
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        62
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        63
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        67,
+        68
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        73
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        88
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        94
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        133
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        137
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        138
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        140,
+        141
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        142,
+        143
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        151
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        152
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        153
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        157,
+        158,
+        159
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        160
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        175
+      ]
+    },
+    {
+      "role": "cta",
+      "ids": [
+        148,
+        149,
+        150
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    9,
+    33,
+    34,
+    35,
+    36,
+    37,
+    62,
+    63,
+    67,
+    68,
+    73,
+    88,
+    94,
+    133,
+    137,
+    138,
+    140,
+    141,
+    142,
+    143,
+    151,
+    152,
+    153,
+    157,
+    158,
+    159,
+    160,
+    175,
+    148,
+    149,
+    150
+  ]
+}

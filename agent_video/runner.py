@@ -119,7 +119,8 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
                         target_seconds: tuple[float, float],
                         only_stage: str | None = None,
                         output_stem: str | None = None,
-                        product_name: str | None = None, pause_event: Any = None) -> None:
+                        product_name: str | None = None, pause_event: Any = None,
+                        pipeline_version: str = "v1") -> None:
     """在可强制终止的独立进程中执行重计算管线。"""
     job_handle = _windows_kill_on_close_job()
     if os.name != "nt":
@@ -138,6 +139,8 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
             vt = load_virtual_timeline(vt_file)
 
         remix_config_file = Path(workspace) / "remix_config.json"
+        if pipeline_version == "v2" and remix_config_file.is_file():
+            raise PipelineError("V2 剪辑任务不能进入成片重组流程")
         if remix_config_file.is_file():
             if vt is None:
                 raise PipelineError("成片重组任务缺少虚拟时间线")
@@ -149,6 +152,13 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
                 source, workspace, virtual_timeline=vt, output_stem=output_stem,
                 dedupe_strength=str(remix_config.get("dedupe_strength") or "standard"),
                 on_stage=on_stage)
+        elif pipeline_version == "v2":
+            from .pipeline_v2.run import run_pipeline as run_v2
+            manifest = run_v2(source, workspace, only_stage=only_stage,
+                              target_seconds=target_seconds, product_name=product_name,
+                              output_stem=output_stem, on_stage=on_stage, virtual_timeline=vt)
+        elif pipeline_version != "v1":
+            raise PipelineError(f"未知剪辑版本：{pipeline_version}")
         elif only_stage:
             manifest = run_pipeline_stage(
                 source, workspace, only_stage, target_seconds=target_seconds,
@@ -263,7 +273,10 @@ class JobRunner:
                     raise ValueError('任务仍在保存暂停状态，请稍后继续')
         self._pause_requested.discard(job_id)
         stage = job.get('run_stage')
-        if stage in {'filter', 'judge', 'order', 'render'} and job.get('job_type') != 'remix':
+        resume_stages = {'filter', 'judge', 'order', 'render'}
+        if job.get('pipeline_version') == 'v2':
+            resume_stages |= {'asr', 'review'}
+        if stage in resume_stages and job.get('job_type') != 'remix':
             self.store.prepare_stage_rerun(job_id, stage)
         else:
             self.store.update_job(job_id, run_stage=None)
@@ -308,6 +321,8 @@ class JobRunner:
             else:
                 preserved = {"clauses.json", "timeline.json", "audio16k.wav",
                              "audio16k.wav.manifest.json", "deliverables"}
+                if job.get("pipeline_version") == "v2":
+                    preserved |= {"v2", "clauses.filtered.json"}
                 for item in workspace.iterdir():
                     if item.name not in preserved:
                         if item.is_dir():
@@ -335,6 +350,10 @@ class JobRunner:
 
     def retry(self, job_id: str) -> None:
         """重新开始：保留已有 ASR/子句切分等确定性产物，从后续失败步骤重试。"""
+        job = self.store.get_job(job_id)
+        if job and job.get("pipeline_version") == "v2" and job.get("current_stage") in {"filter", "judge", "order", "review", "render"}:
+            self.rerun_stage(job_id, job["current_stage"])
+            return
         self.restart(job_id, clean=False)
 
     def rerun_stage(self, job_id: str, stage_id: str) -> None:
@@ -346,7 +365,9 @@ class JobRunner:
         job = self.store.get_job(job_id)
         if not job:
             raise KeyError("任务不存在")
-        if stage_id not in {"filter", "judge", "order", "render"}:
+        is_v2 = job.get("pipeline_version") == "v2"
+        if stage_id not in ({"filter", "judge", "order", "review", "render"} if is_v2 else
+                            {"filter", "judge", "order", "render"}):
             raise ValueError("仅支持重新执行 S2、S3、S4 或渲染")
         if job["status"] in {"queued", "running"}:
             self.cancel(job_id)
@@ -354,6 +375,15 @@ class JobRunner:
                 self._condition.wait_for(lambda: self._current != job_id, timeout=5.0)
         self._cancelled.discard(job_id)
         workspace = Path(job.get("workspace") or "")
+        if is_v2:
+            from .pipeline_v2.run import invalidate_stage, required_for_stage
+            required_path = required_for_stage(workspace, stage_id)
+            if not required_path.is_file():
+                raise ValueError("V2 上游数据不存在，不能重跑该节点")
+            invalidate_stage(workspace, stage_id)
+            self.store.prepare_stage_rerun(job_id, stage_id)
+            self._enqueue(job_id, event=False)
+            return
         required = {
             "filter": ("clauses.json", "S1 语音转写与切分"),
             "judge": ("clauses.filtered.json", "S2 规则粗筛"),
@@ -523,7 +553,8 @@ class JobRunner:
         process = context.Process(
             target=_run_pipeline_child,
             args=(result_queue, source, workspace, target_seconds, only_stage,
-                  output_stem, product_name, self._pause_event),
+                  output_stem, product_name, self._pause_event,
+                  (self.store.get_job(job_id) or {}).get("pipeline_version", "v1")),
             name=f"pipeline-{job_id}",
         )
         process.start()
@@ -681,6 +712,18 @@ class JobRunner:
         for stage_id, kind, title, path, mime in artifacts:
             if path.is_file():
                 self.store.add_artifact(job_id, stage_id, kind, title, path, mime)
+        if manifest.get("pipeline_version") == "v2":
+            for sid, filename, title in (
+                ("judge", "candidates.json", "V2 完整表达候选"),
+                ("order", "order.json", "V2 成片编排"),
+                ("review", "review.json", "V2 成片验收"),
+                ("review", "成片文本.txt", "V2 成片文本"),
+                ("review", "usage.json", "V2 调用用量"),
+            ):
+                path = workspace / "v2" / filename
+                if path.is_file():
+                    self.store.add_artifact(job_id, sid, "text" if filename.endswith(".txt") else "json",
+                                            title, path, "text/plain" if filename.endswith(".txt") else "application/json")
         videos = sorted((workspace / "deliverables").glob("*.mp4"),
                         key=lambda path: path.stat().st_mtime_ns, reverse=True)
         for video in videos:
@@ -721,6 +764,26 @@ class JobRunner:
                           output_stem=str(job.get("title") or "").strip() or None,
                           media=str(job.get("source_path") or ""))
             return
+        if job.get("pipeline_version") == "v2":
+            outputs = {"asr": "clauses.json", "filter": "clauses.filtered.json",
+                       "judge": "v2/candidates.json", "order": "v2/order.json",
+                       "review": "v2/review.json"}
+            path = workspace / outputs[stage_id]
+            if path.is_file():
+                self.store.add_artifact(job_id, stage_id, "json", f"V2 {stage_id} 结果", path, "application/json")
+            if stage_id == "review":
+                for filename, mime in (("成片文本.txt", "text/plain"), ("usage.json", "application/json")):
+                    path = workspace / "v2" / filename
+                    if path.is_file():
+                        self.store.add_artifact(job_id, stage_id, "text", filename, path, mime)
+            next_stage = {"asr": "filter", "filter": "judge", "judge": "order",
+                          "order": "review", "review": "render"}[stage_id]
+            self.store.prepare_stage_rerun(job_id, next_stage)
+            if job_id in self._pause_requested:
+                self.store.update_job(job_id, status="paused")
+            else:
+                self._enqueue(job_id, event=False, prepend=True)
+            return
         outputs = {
             "filter": ("规则筛结果", workspace / "clauses.filtered.json"),
             "judge": ("AI 判定结果", workspace / "clauses.judged.json"),
@@ -741,6 +804,14 @@ class JobRunner:
             self._enqueue(job_id, event=False, prepend=True)
 
     def _fail(self, job_id: str, stage: str, message: str) -> None:
+        job = self.store.get_job(job_id)
+        if job and job.get("pipeline_version") == "v2":
+            for filename in ("candidates.json", "order.json", "review.json", "成片文本.txt", "usage.json"):
+                path = Path(job["workspace"]) / "v2" / filename
+                if path.is_file():
+                    self.store.add_artifact(job_id, stage, "text" if filename.endswith("txt") else "json",
+                                            f"V2 {filename}", path,
+                                            "text/plain" if filename.endswith("txt") else "application/json")
         self.store.update_stage(job_id, stage, status="failed", progress=0, message=message,
                                error=message, finished_at=utc_now())
         self.store.update_job(job_id, status="failed", current_stage=stage, run_stage=None,

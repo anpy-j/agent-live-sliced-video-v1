@@ -1,0 +1,52 @@
+[
+  {
+    "title": "【巴黎香叙】素材1010",
+    "candidate_count": 214,
+    "prompt_characters": 16306,
+    "reference_selected_clauses": 50,
+    "reference_seconds": 110.15,
+    "rerender_identical": true,
+    "source_mapping_verified": true,
+    "live_model_called": false
+  },
+  {
+    "title": "【格雷日记】素材1010",
+    "candidate_count": 117,
+    "prompt_characters": 9352,
+    "reference_selected_clauses": 55,
+    "reference_seconds": 101.37,
+    "rerender_identical": true,
+    "source_mapping_verified": true,
+    "live_model_called": false
+  },
+  {
+    "title": "【百搭私服】素材1010",
+    "candidate_count": 38,
+    "prompt_characters": 3758,
+    "reference_selected_clauses": 20,
+    "reference_seconds": 31.76,
+    "rerender_identical": true,
+    "source_mapping_verified": true,
+    "live_model_called": false
+  },
+  {
+    "title": "【罗马假日】-半身裙素材1010",
+    "candidate_count": 68,
+    "prompt_characters": 5776,
+    "reference_selected_clauses": 33,
+    "reference_seconds": 53.6,
+    "rerender_identical": true,
+    "source_mapping_verified": true,
+    "live_model_called": false
+  },
+  {
+    "title": "梦中安妮08061010",
+    "candidate_count": 160,
+    "prompt_characters": 12312,
+    "reference_selected_clauses": 59,
+    "reference_seconds": 110.12,
+    "rerender_identical": true,
+    "source_mapping_verified": true,
+    "live_model_called": false
+  }
+]
