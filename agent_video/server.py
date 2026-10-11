@@ -56,6 +56,8 @@ class Application:
         self._smart_init_lock = threading.Lock()
         self._editor = None
         self._editor_init_lock = threading.Lock()
+        self._postprocess = None
+        self._postprocess_init_lock = threading.Lock()
         self._defaults()
         self.label_overrides = self.store.get_setting("label_overrides", {}) or {}
         self.label_profile = activate_labels(self.label_overrides)
@@ -68,6 +70,14 @@ class Application:
             if self._editor is None:
                 self._editor = EditorService(self.root)
         return self._editor
+
+    @property
+    def postprocess(self):
+        from .postprocess import PostprocessService
+        with self._postprocess_init_lock:
+            if self._postprocess is None:
+                self._postprocess = PostprocessService(self.root)
+        return self._postprocess
 
     @property
     def smart(self) -> SmartService:
@@ -878,6 +888,50 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"[http] {self.address_string()} {fmt % args}")
 
+    def postprocess_route(self, method, path, payload=None):
+        if not path.startswith("/api/postprocess/"):
+            return False
+        try:
+            service = self.app.postprocess
+            parts = path.strip("/").split("/")[2:]
+            payload = payload or {}
+            result = None
+            if parts == ["library"] and method == "GET":
+                result = service.library()
+            elif parts == ["assets"] and method == "POST":
+                result = service.import_asset(payload)
+            elif parts == ["texture"] and method == "POST":
+                result = service.generate_texture()
+            elif parts == ["jobs"]:
+                result = service.submit(payload) if method == "POST" else service.exports()
+            elif len(parts) == 3 and parts[0] == "jobs" and parts[2] == "cancel" and method == "POST":
+                result = service.cancel(parts[1])
+            elif len(parts) == 3 and parts[0] == "jobs" and parts[2] == "output" and method == "GET":
+                job = service.get_export(parts[1])
+                if job["status"] != "completed":
+                    raise ValueError("任务尚未完成")
+                self.send_media(Path(job["output"]))
+                return True
+            elif len(parts) == 2 and parts[0] == "assets" and method == "GET":
+                asset = service.asset(service.library_id, parts[1])
+                self.send_media(Path(asset["path"]))
+                return True
+            elif parts == ["settings"] and method in {"GET", "PUT"}:
+                result = service.settings(payload if method == "PUT" else None)
+            elif parts == ["music"] and method in {"GET", "POST"}:
+                result = service.music.start(payload) if method == "POST" else service.music.jobs()
+            if result is None:
+                self.json_response({"error": "后处理接口不存在"}, 404)
+            else:
+                self.json_response(result, 201 if method == "POST" else 200)
+        except KeyError as exc:
+            self.json_response({"error": str(exc)}, 404)
+        except (ValueError, FileNotFoundError) as exc:
+            self.json_response({"error": str(exc)}, 400)
+        except Exception as exc:
+            self.json_response({"error": str(exc)}, 500)
+        return True
+
     def editor_route(self, method, path, payload=None):
         if not path.startswith("/api/editor/"):
             return False
@@ -982,7 +1036,7 @@ class Handler(BaseHTTPRequestHandler):
             if not self.desktop_authorized():
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path, _, query = self.path.partition("?")
-            if self.editor_route("GET", path):
+            if self.postprocess_route("GET", path) or self.editor_route("GET", path):
                 return
             if path == "/api/smart-v3/jobs":
                 return self.json_response(self.app.smart.list_jobs())
@@ -1076,7 +1130,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.json_response({"stopping": True})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return
-            if self.editor_route("POST", path, payload):
+            if self.postprocess_route("POST", path, payload) or self.editor_route("POST", path, payload):
                 return
             if path == "/api/smart-v3/drafts/timelines":
                 return self.json_response(self.app.smart.list_draft_timelines(payload))
@@ -1159,7 +1213,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
-            if self.editor_route("PUT", path, payload):
+            if self.postprocess_route("PUT", path, payload) or self.editor_route("PUT", path, payload):
                 return
             if path == "/api/settings":
                 return self.json_response(self.app.update_settings(payload))
@@ -1349,6 +1403,8 @@ def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
         app.runner.stop()
         if app._editor is not None:
             app._editor.close()
+        if app._postprocess is not None:
+            app._postprocess.close()
         server.server_close()
         if fcntl is not None:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)

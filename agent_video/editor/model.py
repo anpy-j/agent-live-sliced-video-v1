@@ -111,11 +111,21 @@ def validate(project: dict[str, Any], assets: dict[str, dict]) -> dict[str, Any]
                                   "audio": {"audio", "video"}}[kind]
                     if asset["kind"] not in compatible:
                         raise ValueError("素材与轨道类型不匹配")
-                    if asset["kind"] != "image" and clip["in"] + clip["duration"] * clip["speed"] > asset["duration"] + 0.05:
+                    if asset["kind"] != "image" and clip.get("loop") and clip["in"] >= asset["duration"]:
+                        raise ValueError("循环片段入点超出素材时长")
+                    if asset["kind"] != "image" and not clip.get("loop") and clip["in"] + clip["duration"] * clip["speed"] > asset["duration"] + 0.05:
                         raise ValueError("片段超出素材时长")
     p["assets"] = list(assets.values())
     post = p.setdefault("postprocess", {})
     post["pip_opacity"] = number(post.get("pip_opacity", .01), 0, 1, "画中画不透明度")
+    post["pip_rotation"] = number(post.get("pip_rotation", 0), -360, 360, "画中画旋转")
+    post["sticker_visible"] = number(post.get("sticker_visible", .02), .005, .05, "贴纸露出比例")
+    post["progress_height"] = int(number(post.get("progress_height", 6), 2, min(30, p["height"]-2), "进度条高度"))
+    if post.get("progress_style", "solid") not in {"solid", "striped", "glow"}:
+        raise ValueError("不支持的进度条样式")
+    import re
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", str(post.get("progress_color", "58d5b0"))):
+        raise ValueError("进度条颜色格式无效")
     for key in ("pip_asset", "sticker_asset"):
         if post.get(key) and post[key] not in assets:
             raise ValueError("后处理素材未导入")

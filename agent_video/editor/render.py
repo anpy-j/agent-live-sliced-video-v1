@@ -90,13 +90,14 @@ def build_command(project, output: Path):
         a = assets[post["pip_asset"]]
         entries.append(({"kind": "video", "muted": True}, {"asset_id": a["id"], "start": 0, "in": 0,
                         "duration": duration, "speed": 1, "scale": .18, "x": .8, "y": .05,
-                        "opacity": post.get("pip_opacity", .01), "loop": True}))
+                        "opacity": post.get("pip_opacity", .01), "rotation": post.get("pip_rotation", 0), "loop": True}))
     if post.get("sticker_asset"):
         a = assets[post["sticker_asset"]]
         sticker_w = max(2, int(w * .2) // 2 * 2)
         sticker_h = round(sticker_w * a["height"] / max(1, a["width"]))
-        for x in ((-sticker_w + w * .02) / w, .98):
-            for y in ((-sticker_h + h * .02) / h, .98):
+        visible = post.get("sticker_visible", .02)
+        for x in ((-sticker_w + w * visible) / w, 1-visible):
+            for y in ((-sticker_h + h * visible) / h, 1-visible):
                 entries.append(({"kind": "image", "muted": True}, {"asset_id": a["id"], "start": 0, "in": 0,
                                 "duration": duration, "speed": 1, "scale": .2, "x": x, "y": y, "loop": True}))
     for track, clip in entries:
@@ -159,9 +160,17 @@ def build_command(project, output: Path):
         base = "subtitled"
     if post.get("progress"):
         # Keep the full picture visible; reserve a bottom band instead of covering it.
-        filters += [f"[{base}]scale={w}:{h-6},pad={w}:{h}:0:0:color=black[reserved]",
-                    f"color=c=0x58d5b0:s={w}x6:r={fps}:d={duration}[bar]",
-                    f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-6:shortest=1[progress]"]
+        band = int(post.get("progress_height", 6))
+        color = str(post.get("progress_color", "58d5b0"))
+        style = post.get("progress_style", "solid")
+        bar = f"color=c=0x{color}:s={w}x{band}:r={fps}:d={duration}"
+        if style == "striped":
+            bar += ",format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='255*gte(mod(X+Y,20),5)'"
+        filters += [f"[{base}]scale={w}:{h-band},pad={w}:{h}:0:0:color=black[reserved]", f"{bar}[bar]",
+                    f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-{band}:shortest=1[progress]"]
+        if style == "glow":
+            filters[-1] = f"[reserved][bar]overlay=x='-W+W*t/{duration}':y=H-{band}:shortest=1[barbase]"
+            filters += [f"[barbase]drawbox=x=0:y={h-band}:w=iw:h=2:color=white@0.4:t=fill[progress]"]
         base = "progress"
     filters.append(f"{''.join(audio_labels)}amix=inputs={len(audio_labels)}:duration=longest:normalize=0,alimiter=limit=.95:level=disabled,atrim=duration={duration}[audio]")
     graph = work / "render.filter"

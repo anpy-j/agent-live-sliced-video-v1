@@ -24,8 +24,8 @@ class Conflict(ValueError):
 class EditorService:
     """Own database, assets, snapshots and serial export queue; no V1 state mutations."""
 
-    def __init__(self, root: Path):
-        self.root = Path(root) / "data" / "editor"
+    def __init__(self, root: Path, *, namespace="editor", speech=True):
+        self.root = Path(root) / "data" / namespace
         self.root.mkdir(parents=True, exist_ok=True)
         self.db = self.root / "editor.db"
         self.lock = threading.RLock()
@@ -47,7 +47,7 @@ class EditorService:
         self.worker.start()
         self.wake.set()
         from .speech import SpeechQueue
-        self.speech = SpeechQueue(self)
+        self.speech = SpeechQueue(self) if speech else None
 
     @contextmanager
     def connect(self):
@@ -60,7 +60,8 @@ class EditorService:
             con.close()
 
     def close(self):
-        self.speech.close()
+        if self.speech is not None:
+            self.speech.close()
         self.stop_event.set()
         self.wake.set()
         with self.lock:
