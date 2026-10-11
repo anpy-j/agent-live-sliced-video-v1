@@ -15,11 +15,17 @@ async function run(){
   page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/#/postprocess');await page.locator('#ppImportSource').waitFor();
   async function importPath(button,file){await page.locator(button).click();await page.locator('#postPaths').fill(file);await page.locator('dialog:has(#postPaths) form button').first().click();}
   await importPath('#ppImportSource',source);await page.locator('#ppSources').getByText(/剪映导出/).waitFor();
-  const videoFolder=path.join(work,'画中画视频'),imageFolder=path.join(work,'画中画图片');fs.mkdirSync(videoFolder);fs.mkdirSync(imageFolder);fs.copyFileSync(source,path.join(videoFolder,'背景视频.mp4'));
-  execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=red:s=180x180','-frames:v','1',path.join(imageFolder,'图片.png')]);
   assert.equal(await page.locator('.pp-module:visible').count(),1);assert.equal(await page.getByRole('tab').count(),4);
-  await page.locator('#ppVideoDir').fill(videoFolder);await page.locator('#ppScanVideoDir').click();await page.locator('#ppVideoCount').getByText(/已载入 1/).waitFor();
-  await page.locator('#ppImageDir').fill(imageFolder);await page.locator('#ppScanImageDir').click();await page.locator('#ppImageCount').getByText(/已载入 1/).waitFor();
+  await page.locator('#ppMaterialGenerator summary').click();
+  assert.equal(await page.locator('#ppMaterialVideoCount').inputValue(),'100');assert.equal(await page.locator('#ppMaterialImageCount').inputValue(),'100');
+  await page.locator('#ppMaterialDir').fill(path.join(work,'生成素材'));
+  await page.locator('#ppMaterialVideoCount').fill('1');await page.locator('#ppMaterialImageCount').fill('1');
+  await page.locator('#ppMaterialDuration').fill('2');await page.locator('#ppMaterialResolution').selectOption('360x640');
+  await page.locator('#ppGenerateMaterials').click();await page.locator('[data-material-job][data-status=completed]').waitFor({timeout:30000});
+  await page.locator('[data-material-use]').click();await page.locator('#ppVideoCount').getByText(/已载入 1/).waitFor();await page.locator('#ppImageCount').getByText(/已载入 1/).waitFor();
+  const videoFolder=await page.locator('#ppVideoDir').inputValue(),imageFolder=await page.locator('#ppImageDir').inputValue();
+  assert.ok(fs.readdirSync(videoFolder).some(f=>f.endsWith('.mp4')));assert.ok(fs.readdirSync(imageFolder).some(f=>f.endsWith('.png')));
+  await page.screenshot({path:path.join(work,'material-generator.png'),fullPage:true});await page.locator('#ppMaterialGenerator summary').click();
   await page.locator('#ppPipEnabled').check();assert.equal(await page.locator('.pp-screen-video').evaluate(el=>el.style.opacity),'0.01');assert.equal(await page.locator('.pp-screen-image').evaluate(el=>getComputedStyle(el).mixBlendMode),'screen');
   await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(work,'module.png'),fullPage:true});
   await page.locator('#ppTab-progress').click();await page.locator('[data-pattern]').nth(1).click();await page.screenshot({path:path.join(work,'progress.png'),fullPage:true});
