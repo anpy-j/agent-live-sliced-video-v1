@@ -43,7 +43,7 @@ async function run(){
   assert.equal(await page.locator('#ppWatchOutput').inputValue(),'D:\\切片\\袁艺灵\\完成版');
   await page.locator('#ppWatchDir').fill(watchInput);await page.locator('#ppWatchOutput').fill(watchOutput);const watchResponse=page.waitForResponse(r=>r.url().endsWith('/api/postprocess/watcher')&&r.request().method()==='POST');await page.locator('#ppWatchStart').click();const watchReply=await watchResponse;assert.equal(watchReply.status(),201,await watchReply.text());
   let watched;const deadline=Date.now()+40000;do{watched=await page.evaluate(()=>fetch('/api/postprocess/watcher').then(r=>r.json()));if(watched.records.some(r=>r.status==='completed'))break;await new Promise(resolve=>setTimeout(resolve,500));}while(Date.now()<deadline);
-  assert.deepEqual(watched.used,{video:1,image:1});assert.equal(watched.records[0].status,'completed');assert.ok(fs.existsSync(watched.records[0].output));assert.equal(path.dirname(watched.records[0].output),watchOutput);
+  assert.deepEqual(watched.used,{video:1,image:1});assert.deepEqual(watched.cycle,{round:1,total:1,used:1,remaining:0,allocated:1});assert.equal(watched.records[0].status,'completed');assert.ok(fs.existsSync(watched.records[0].output));assert.equal(path.dirname(watched.records[0].output),watchOutput);
   assert.deepEqual(fs.readFileSync(path.join(watchInput,'自动处理.mp4')),original);
   await page.locator('.pp-watch details summary').click();await page.locator('#ppWatchRecords').getByText('完成',{exact:true}).waitFor();await page.screenshot({path:path.join(work,'automatic-watch.png'),fullPage:true});
   await page.reload();await page.waitForFunction(()=>document.querySelector('#ppWatchDir')?.value.includes('自动待完成'));assert.equal(await page.locator('#ppWatchOutput').inputValue(),watchOutput);
