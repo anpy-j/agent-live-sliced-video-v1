@@ -41,8 +41,11 @@ class PostprocessService(EditorService):
         self.music = MusicQueue(self)
         from .runtime import CpuMusicRuntime
         self.runtime = CpuMusicRuntime(self)
+        from .materials import MaterialQueue
+        self.materials = MaterialQueue(self)
 
     def close(self):
+        self.materials.close()
         self.music.close()
         self.runtime.close()
         super().close()
@@ -50,9 +53,12 @@ class PostprocessService(EditorService):
     def settings(self, payload=None):
         data = super().settings(payload)
         data.setdefault("acestep_url", "http://127.0.0.1:8001")
+        data.setdefault("material_output_dir", str(self.root / "画中画素材"))
         if payload is not None:
             from .music import validate_url
             data["acestep_url"] = validate_url(payload.get("acestep_url", data["acestep_url"]))
+            if "material_output_dir" in payload:
+                data["material_output_dir"] = str(payload["material_output_dir"])
             if "postprocess_recipe" in payload:
                 if not isinstance(payload["postprocess_recipe"], dict):
                     raise ValueError("后处理方案格式无效")

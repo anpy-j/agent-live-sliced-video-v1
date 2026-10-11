@@ -902,6 +902,10 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.import_asset(payload)
             elif parts == ["folder"] and method == "POST":
                 result = service.scan_folder(payload)
+            elif parts == ["materials"] and method in {"GET", "POST"}:
+                result = service.materials.start(payload) if method == "POST" else service.materials.jobs()
+            elif len(parts) == 3 and parts[0] == "materials" and parts[2] == "cancel" and method == "POST":
+                result = service.materials.cancel(parts[1])
             elif parts == ["texture"] and method == "POST":
                 result = service.generate_texture()
             elif parts == ["jobs"]:
