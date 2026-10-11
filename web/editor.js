@@ -76,13 +76,22 @@
     for(const el of document.querySelectorAll('[data-clip]')){el.onpointerdown=e=>drag(e,el);const {c}=find(el.dataset.clip),a=asset(c.asset_id),canvas=el.querySelector('canvas');if(canvas&&a?.has_audio)wave(a,canvas,c);}
   }
   function drag(e,el){if(e.button!==0)return;e.preventDefault();const {t,c}=find(el.dataset.clip);s.selected=c.id;properties();for(const x of document.querySelectorAll('.edit-clip'))x.classList.toggle('selected',x.dataset.clip===c.id);if(t.locked)return;
-    const before=C.clone(s.p),initial={...c},x=e.clientX,trim=e.target.dataset.trim;
+    const before=C.clone(s.p),initial={...c},x=e.clientX,y=e.clientY,trim=e.target.dataset.trim;let moved=false,target=t;
+    const destination=ev=>{const lane=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.editor-lane[data-track]');return tl().tracks.find(track=>track.id===lane?.dataset.track);};
     const move=ev=>{let d=Math.round((ev.clientX-x)/s.zoom*s.p.fps)/s.p.fps;
+      if(!moved&&Math.hypot(ev.clientX-x,ev.clientY-y)<3)return;moved=true;
       if(trim==='left'){d=Math.max(-initial.start,-(initial.in||0)/(initial.speed||1),Math.min(d,initial.duration-1/s.p.fps));c.start=initial.start+d;c.in=(initial.in||0)+d*(initial.speed||1);c.duration=initial.duration-d;}
       else if(trim==='right'){const a=asset(c.asset_id),max=a&&a.kind!=='image'?(a.duration-(c.in||0))/(c.speed||1):86400;c.duration=Math.max(1/s.p.fps,Math.min(max,initial.duration+d));}
-      else{let next=Math.max(0,initial.start+d);for(const b of [s.time,...t.clips.filter(v=>v.id!==c.id).flatMap(v=>[v.start,C.end(v)])])if(Math.abs(next-b)*s.zoom<7){next=b;break;}c.start=next;}
+      else{el.style.pointerEvents='none';target=destination(ev);const valid=target&&!target.locked&&target.kind===t.kind;
+        el.style.opacity=valid?'1':'.45';if(valid)document.querySelector(`.editor-lane[data-track="${target.id}"]`).append(el);
+        let next=Math.max(0,initial.start+d);for(const b of [s.time,...(valid?target:t).clips.filter(v=>v.id!==c.id).flatMap(v=>[v.start,C.end(v)])])if(Math.abs(next-b)*s.zoom<7){next=b;break;}c.start=next;}
       el.style.left=c.start*s.zoom+'px';el.style.width=Math.max(4,c.duration*s.zoom)+'px';};
-    const up=()=>{window.removeEventListener('pointermove',move);if(JSON.stringify(before)!==JSON.stringify(s.p)){s.undo.push(before);s.redo=[];change();}};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});}
+    const finish=cancelled=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',cancel);
+      let rejected=cancelled;
+      if(moved&&!trim&&!cancelled){try{if(!target)throw new Error('请拖到目标轨道内');C.moveClip(t,target,c.id);}catch(error){rejected=true;msg(error.message);}}
+      if(rejected)Object.assign(c,initial);el.style.pointerEvents='';el.style.opacity='';
+      if(JSON.stringify(before)!==JSON.stringify(s.p)){s.undo.push(before);s.redo=[];change();}else{rows();properties();}};
+    const up=()=>finish(false),cancel=()=>finish(true);window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',cancel,{once:true});}
   function action(name){if(name==='undo'||name==='redo')return history(name==='redo');const {t,c}=find(s.selected);if(!c)return msg('先选择片段');edit(()=>{if(t.locked)throw new Error('轨道已锁定');
     if(name==='split')C.split(t,c.id,s.time,s.p.fps);if(name==='delete'){t.clips=t.clips.filter(x=>x.id!==c.id);s.selected=null;}if(name==='ripple'){C.rippleDelete(tl(),t,c.id);s.selected=null;}
     if(name==='copy'){const n={...C.clone(c),id:C.id(),start:C.end(c)};t.clips.push(n);s.selected=n.id;}

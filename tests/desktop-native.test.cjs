@@ -24,6 +24,7 @@ async function run(){
     await request('settings','PUT',{output_dir:output,audio_bitrate:'192k'});
   },{id:projectId,output:path.join(work,'output')});
   await page.reload();await page.locator('.edit-clip').waitFor();
+  await require('./editor-drag-ui.cjs')(page);
   await page.locator('#editSeek').evaluate(e=>{e.value='1';e.dispatchEvent(new Event('input'));});
   await page.locator('.edit-clip').click();await page.locator('[data-action="split"]').click();assert.equal(await page.locator('.edit-clip').count(),2);await page.keyboard.press(process.platform==='darwin'?'Meta+z':'Control+z');await page.waitForFunction(()=>document.querySelectorAll('.edit-clip').length===1,null,{timeout:2000});await page.locator('[data-action="redo"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
   await page.locator('#addSubtitle').click();await answer('桌面字幕');await page.locator('[data-property="font_size"]').fill('20');await page.locator('[data-property="font_size"]').dispatchEvent('change');

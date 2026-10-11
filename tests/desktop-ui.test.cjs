@@ -27,6 +27,7 @@ async function main(){
   imported.project.width=160;imported.project.height=240;
   await api('projects/'+projectId,'PUT',imported.project);await page.reload();
   await page.locator('[data-add]').click();await page.locator('.edit-clip').waitFor();
+  await require('./editor-drag-ui.cjs')(page);
   await page.locator('#editSeek').evaluate(e=>{e.value='1';e.dispatchEvent(new Event('input'));});
   await page.locator('[data-action="split"]').click();assert.equal(await page.locator('.edit-clip').count(),2);
   await page.locator('[data-action="undo"]').click();assert.equal(await page.locator('.edit-clip').count(),1);

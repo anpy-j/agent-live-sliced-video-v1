@@ -16,3 +16,16 @@ test('timeline copy assigns independent IDs and data',()=>{
  const original={id:'a',name:'one',tracks:[{id:'t',clips:[{id:'c',start:0,duration:1}]}]},copy=C.duplicateTimeline(original);
  assert.notEqual(copy.id,original.id);assert.notEqual(copy.tracks[0].clips[0].id,'c');copy.tracks[0].clips[0].duration=5;assert.equal(original.tracks[0].clips[0].duration,1);
 });
+test('cross-track move preserves clip identity and source range',()=>{
+ const clip={id:'c',asset_id:'a',start:2,in:5,duration:3,speed:1.3,volume:.8};
+ const source={kind:'video',clips:[clip]},target={kind:'video',clips:[]};
+ assert.equal(C.moveClip(source,target,'c'),clip);assert.equal(source.clips.length,0);assert.deepEqual(target.clips,[clip]);
+ C.moveClip(target,target,'c');assert.equal(target.clips.length,1);
+});
+test('locked and incompatible cross-track moves leave both tracks intact',()=>{
+ const source={kind:'video',clips:[{id:'c'}]};
+ for(const target of [{kind:'video',locked:true,clips:[]},{kind:'audio',clips:[]}]){
+  assert.throws(()=>C.moveClip(source,target,'c'));assert.equal(source.clips.length,1);assert.equal(target.clips.length,0);
+ }
+ source.locked=true;assert.throws(()=>C.moveClip(source,{kind:'video',clips:[]},'c'));
+});

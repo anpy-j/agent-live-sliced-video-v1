@@ -30,6 +30,14 @@
       speed:1,volume:track.kind==='audio'?.2:1,opacity:1,x:0,y:0,scale:track.kind==='image'?.2:1,rotation:0,effect:'none',transition:'none'};
     track.clips.push(c);return c;
   }
-  const api={id,clone,end,split,rippleDelete,duplicateTimeline,addClip};global.LiveCutEditCore=api;
+  function moveClip(source,target,clipId){
+    if(source.locked||target.locked)throw new Error('轨道已锁定');
+    if(source.kind!==target.kind)throw new Error('请移动到相同类型的轨道');
+    const index=source.clips.findIndex(c=>c.id===clipId);
+    if(index<0)throw new Error('片段不存在');
+    if(source===target)return source.clips[index];
+    const [clip]=source.clips.splice(index,1);target.clips.push(clip);return clip;
+  }
+  const api={id,clone,end,split,rippleDelete,duplicateTimeline,addClip,moveClip};global.LiveCutEditCore=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window==='undefined'?globalThis:window);
