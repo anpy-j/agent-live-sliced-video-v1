@@ -40,7 +40,7 @@ def test_library_survives_restart_and_dynamic_assets_are_original(tmp_path):
     reopened = PostprocessService(tmp_path)
     try:
         assert reopened.library()["id"] == library["id"]
-        assert len(reopened.library()["assets"]) == 7
+        assert len(reopened.library()["assets"]) == 8
         assert reopened.library()["progress_ids"] == library["progress_ids"]
         assert not (tmp_path / "data" / "editor").exists()
     finally:
@@ -156,3 +156,27 @@ def test_animated_pattern_repeats_without_stretching(service, tmp_path):
     frame = np.frombuffer(data, dtype=np.uint8).reshape(240,160,3)
     # A scaled row is 144px wide; visible colored detail beyond that is the repeated row.
     assert frame[-6:,144:,0].max()>60
+
+
+def test_single_star_crosses_reserved_band_for_whole_video(service, tmp_path):
+    from agent_video.editor.render import render
+    import numpy as np
+    source = tmp_path / "source.mp4"
+    video(source)
+    library = service.library()
+    star = next(key for key, mode in library["progress_modes"].items() if mode == "moving_star")
+    project = service.prepare(str(source), {"progress": True, "progress_style": "moving_star",
+                              "progress_asset": star, "progress_height": 24})
+    output = tmp_path / "moving-star.mp4"
+    render(project, output)
+    data = subprocess.check_output(["ffmpeg", "-v", "error", "-i", str(output), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
+    frames = np.frombuffer(data, dtype=np.uint8).reshape(-1,240,160,3)
+    positions = []
+    for frame in (frames[0], frames[len(frames)//2], frames[-1]):
+        y,x = np.where(frame[-24:,:,0]>90)
+        assert len(x)>5
+        assert x.max()-x.min()<24  # Only one star, no repeated row or filled trail.
+        positions.append(x.mean())
+    assert positions[0]<24
+    assert 65<positions[1]<95
+    assert positions[2]>136

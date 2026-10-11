@@ -122,7 +122,7 @@ def validate(project: dict[str, Any], assets: dict[str, dict]) -> dict[str, Any]
     post["pip_rotation_end"] = number(post.get("pip_rotation_end", 999), 0, 999, "图片旋转终点")
     post["sticker_visible"] = number(post.get("sticker_visible", .002), 0, .05, "贴纸露出比例")
     post["progress_height"] = int(number(post.get("progress_height", 6), 2, min(240, p["height"]//4), "进度条高度"))
-    if post.get("progress_style", "solid") not in {"solid", "striped", "glow", "animated"}:
+    if post.get("progress_style", "solid") not in {"solid", "striped", "glow", "animated", "moving_star"}:
         raise ValueError("不支持的进度条样式")
     import re
     if not re.fullmatch(r"[0-9a-fA-F]{6}", str(post.get("progress_color", "58d5b0"))):
@@ -137,7 +137,7 @@ def validate(project: dict[str, Any], assets: dict[str, dict]) -> dict[str, Any]
     for key, kind in (("pip_video_asset", "video"), ("pip_image_asset", "image"), ("progress_asset", "image")):
         if post.get(key) and assets[post[key]]["kind"] != kind:
             raise ValueError("后处理素材类型不匹配")
-    if post.get("progress") and post.get("progress_style") == "animated" and not post.get("progress_asset"):
+    if post.get("progress") and post.get("progress_style") in {"animated", "moving_star"} and not post.get("progress_asset"):
         raise ValueError("请选择动态进度条图案")
     return p
 

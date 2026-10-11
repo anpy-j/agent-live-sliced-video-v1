@@ -184,7 +184,7 @@ def build_command(project, output: Path):
         color = str(post.get("progress_color", "58d5b0"))
         style = post.get("progress_style", "solid")
         filters.append(f"[{base}]scale={w}:{h-band},pad={w}:{h}:0:0:color=black[reserved]")
-        if style == "animated":
+        if style in {"animated", "moving_star"}:
             a = assets[post["progress_asset"]]
             path = Path(a["path"])
             stat = path.stat()
@@ -192,16 +192,21 @@ def build_command(project, output: Path):
                 raise ValueError(f"素材已修改：{a['name']}")
             command += (["-stream_loop", "-1"] if path.suffix.lower() == ".gif" else ["-loop", "1"])
             command += ["-threads", "1", "-t", str(duration), "-i", str(path)]
-            tile_width = max(2, round(a["width"]*band/max(1,a["height"])/2)*2)
-            repeats = max(1, math.ceil(w/tile_width))
-            filters.append(f"[{input_index}:v]setpts=PTS-STARTPTS,fps={fps},scale={tile_width}:{band},format=rgba[pattern]")
-            if repeats>1:
-                filters.append(f"[pattern]split={repeats}"+"".join(f"[tile{i}]" for i in range(repeats)))
-                filters.append("".join(f"[tile{i}]" for i in range(repeats))+f"hstack=inputs={repeats}[patternrow]")
-            pattern_label = "patternrow" if repeats>1 else "pattern"
-            filters.append(f"[{pattern_label}]crop={w}:{band}:0:0,"
-                           f"geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='alpha(X,Y)*lte(X,W*T/{duration})'[bar]")
-            filters.append(f"[reserved][bar]overlay=x=0:y=H-{band}:shortest=1[progress]")
+            if style == "moving_star":
+                motion_duration = max(1/fps, duration-1/fps)
+                filters.append(f"[{input_index}:v]setpts=PTS-STARTPTS,fps={fps},scale={band}:{band},format=rgba[bar]")
+                filters.append(f"[reserved][bar]overlay=x='(W-w)*min(1,max(0,t/{motion_duration}))':y=H-{band}:shortest=1[progress]")
+            else:
+                tile_width = max(2, round(a["width"]*band/max(1,a["height"])/2)*2)
+                repeats = max(1, math.ceil(w/tile_width))
+                filters.append(f"[{input_index}:v]setpts=PTS-STARTPTS,fps={fps},scale={tile_width}:{band},format=rgba[pattern]")
+                if repeats>1:
+                    filters.append(f"[pattern]split={repeats}"+"".join(f"[tile{i}]" for i in range(repeats)))
+                    filters.append("".join(f"[tile{i}]" for i in range(repeats))+f"hstack=inputs={repeats}[patternrow]")
+                pattern_label = "patternrow" if repeats>1 else "pattern"
+                filters.append(f"[{pattern_label}]crop={w}:{band}:0:0,"
+                               f"geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='alpha(X,Y)*lte(X,W*T/{duration})'[bar]")
+                filters.append(f"[reserved][bar]overlay=x=0:y=H-{band}:shortest=1[progress]")
         else:
             bar = f"color=c=0x{color}:s={w}x{band}:r={fps}:d={duration}"
             if style == "striped":

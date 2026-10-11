@@ -27,14 +27,16 @@ class PostprocessService(EditorService):
             self.register(self.library_id, str(texture(folder, 20261011)))
         # Migrate existing libraries without replacing user resources.
         self.progress_ids = []
+        self.progress_modes = {}
         known = {a["path"]: a for a in self.get(self.library_id)["assets"]}
-        names = {"hearts": "跳动爱心", "floating": "漂浮爱心", "sparkles": "闪耀星光"}
-        for style in ("hearts", "floating", "sparkles"):
+        names = {"hearts": "跳动爱心", "floating": "漂浮爱心", "sparkles": "闪耀星光", "travelling_star": "游走小星星"}
+        for style in names:
             path = folder / f"进度条-{names[style]}.gif"
             if not path.exists():
                 path = animated_progress(folder, style)
             asset = known.get(str(path.resolve())) or self.register(self.library_id, str(path))["asset"]
             self.progress_ids.append(asset["id"])
+            self.progress_modes[asset["id"]] = "moving_star" if style == "travelling_star" else "animated"
         from .music import MusicQueue
         self.music = MusicQueue(self)
         from .runtime import CpuMusicRuntime
@@ -61,7 +63,8 @@ class PostprocessService(EditorService):
         return data
 
     def library(self):
-        return {"id": self.library_id, "assets": self.get(self.library_id)["assets"], "progress_ids": self.progress_ids}
+        return {"id": self.library_id, "assets": self.get(self.library_id)["assets"], "progress_ids": self.progress_ids,
+                "progress_modes": self.progress_modes}
 
     def scan_folder(self, payload):
         folder = Path(str(payload.get("path") or "")).expanduser()
