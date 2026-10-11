@@ -43,8 +43,11 @@ class PostprocessService(EditorService):
         self.runtime = CpuMusicRuntime(self)
         from .materials import MaterialQueue
         self.materials = MaterialQueue(self)
+        from .watcher import FolderWatcher
+        self.watcher = FolderWatcher(self)
 
     def close(self):
+        self.watcher.close()
         self.materials.close()
         self.music.close()
         self.runtime.close()

@@ -228,7 +228,10 @@ class EditorService:
         settings = self.settings()
         job_id = ident()
         name = re.sub(r'[\\/:*?"<>|\x00-\x1f]', '_', f"{p['title']}-{timeline['name']}")[:150]
-        output = Path(settings["output_dir"]) / f"{name}-{job_id[:8]}.mp4"
+        directory = Path(str(payload.get("output_dir") or settings["output_dir"])).expanduser()
+        if not directory.is_absolute():
+            raise ValueError("输出目录必须是绝对路径")
+        output = directory / f"{name}-{job_id[:8]}.mp4"
         snapshot = copy.deepcopy(p)
         snapshot["timelines"] = [timeline]
         snapshot["audio_bitrate"] = settings["audio_bitrate"]

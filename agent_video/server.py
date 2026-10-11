@@ -62,6 +62,9 @@ class Application:
         self.label_overrides = self.store.get_setting("label_overrides", {}) or {}
         self.label_profile = activate_labels(self.label_overrides)
         self.mcp = McpEndpoint(self.invoke_tool)
+        # Resume persisted folder monitoring even when the postprocess page is closed.
+        if (self.data_dir / "postprocess" / "editor.db").exists():
+            self.postprocess
 
     @property
     def editor(self):
@@ -902,6 +905,12 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.import_asset(payload)
             elif parts == ["folder"] and method == "POST":
                 result = service.scan_folder(payload)
+            elif parts == ["watcher"] and method in {"GET", "POST"}:
+                result = service.watcher.configure(payload) if method == "POST" else service.watcher.status()
+            elif parts == ["watcher", "stop"] and method == "POST":
+                result = service.watcher.pause()
+            elif len(parts) == 3 and parts[0] == "watcher" and parts[2] == "retry" and method == "POST":
+                result = service.watcher.retry(parts[1])
             elif parts == ["materials"] and method in {"GET", "POST"}:
                 result = service.materials.start(payload) if method == "POST" else service.materials.jobs()
             elif len(parts) == 3 and parts[0] == "materials" and parts[2] == "cancel" and method == "POST":
