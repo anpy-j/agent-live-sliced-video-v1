@@ -52,7 +52,11 @@
     $('#playEdit').onclick=play;$('#frameBack').onclick=()=>seek(s.time-1/p.fps);$('#frameNext').onclick=()=>seek(s.time+1/p.fps);$('#editSeek').oninput=e=>seek(Number(e.target.value));
     $('#addTrack').onclick=()=>edit(()=>tl().tracks.push({id:C.id(),name:$('#newTrackKind').selectedOptions[0].textContent,kind:$('#newTrackKind').value,clips:[]}));
     $('#addSubtitle').onclick=async()=>{const text=await ask('字幕文字','');if(text)edit(()=>{let t=tl().tracks.find(t=>t.kind==='subtitle'&&!t.locked);if(!t){t={id:C.id(),name:'字幕',kind:'subtitle',clips:[]};tl().tracks.push(t);}const c={id:C.id(),start:s.time,duration:3,in:0,speed:1,text,style:'classic',font_size:56};t.clips.push(c);s.selected=c.id;});};
-    $('#importSubtitle').onclick=importSrt;$('#recognizeSubtitle').onclick=recognize;$('#timelineZoom').oninput=e=>{s.zoom=Number(e.target.value);rows();};for(const b of s.root.querySelectorAll('[data-action]'))b.onclick=()=>action(b.dataset.action);
+    $('#importSubtitle').onclick=importSrt;$('#recognizeSubtitle').onclick=recognize;$('#timelineZoom').title='Ctrl + 鼠标滚轮缩放时间线';$('#timelineZoom').oninput=e=>zoomTimeline(Number(e.target.value));
+    $('.editor-scroll').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();e.stopPropagation();
+      const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?e.currentTarget.clientHeight:1);
+      zoomTimeline(s.zoom*Math.exp(-delta*.002),e.clientX);
+    },{passive:false});for(const b of s.root.querySelectorAll('[data-action]'))b.onclick=()=>action(b.dataset.action);
     for(const [selector,key,type] of [['#postProgress','progress','checked'],['#postPip','pip_asset','value'],['#postSticker','sticker_asset','value'],['#postOpacity','pip_opacity','value']])$(selector).onchange=e=>edit(()=>s.p.postprocess[key]=key==='pip_opacity'?Number(e.target.value)/100:e.target[type]);
     tabs();assets();rows();properties();poll();tick();
   }
@@ -69,6 +73,13 @@
     for(const b of el.querySelectorAll('[data-add]'))b.onclick=()=>edit(()=>{const a=asset(b.dataset.add);let t=tl().tracks.find(t=>!t.locked&&t.kind===a.kind);if(!t){t={id:C.id(),name:a.kind,kind:a.kind,clips:[]};tl().tracks.push(t);}s.selected=C.addClip(t,a,Math.max(0,...t.clips.map(C.end))).id;});}
   const waves=new Map();
   async function wave(a,canvas,c){try{if(!waves.has(a.id))waves.set(a.id,fetch(url(a)+'/waveform').then(r=>r.json()).then(d=>d.peaks));const peaks=await waves.get(a.id);if(!canvas.isConnected||!peaks?.length)return;canvas.width=Math.min(800,canvas.clientWidth||100);const ctx=canvas.getContext('2d');ctx.strokeStyle='#8ce7da';ctx.beginPath();for(let i=0;i<canvas.width;i++){const sec=(c.in||0)+(i/canvas.width)*c.duration*(c.speed||1),v=Math.min(1,peaks[Math.floor(sec/a.duration*peaks.length)]||0)*10;ctx.moveTo(i,10-v);ctx.lineTo(i,10+v);}ctx.stroke();}catch{}}
+  function zoomTimeline(value,clientX){const scroll=$('.editor-scroll'),slider=$('#timelineZoom');if(!scroll||!slider)return;
+    const next=Math.max(Number(slider.min),Math.min(Number(slider.max),Math.round(value)));if(next===s.zoom)return;
+    const label=$('.editor-track-label',scroll).offsetWidth,rect=scroll.getBoundingClientRect();
+    const anchor=Math.max(label,Math.min(scroll.clientWidth,(clientX??rect.left+scroll.clientWidth/2)-rect.left));
+    const seconds=(scroll.scrollLeft+anchor-label)/s.zoom,top=scroll.scrollTop;
+    s.zoom=next;slider.value=String(next);rows();scroll.scrollLeft=seconds*next+label-anchor;scroll.scrollTop=top;
+  }
   function rows(){const el=$('#timelineRows');if(!el)return;const length=Math.max(15,total()+3),width=length*s.zoom,marks=Array.from({length:Math.ceil(length/5)},(_,i)=>`<span style="left:${i*5*s.zoom}px">${time(i*5)}</span>`).join('');el.style.width=width+150+'px';
     el.innerHTML=`<div class="editor-ruler"><div class="editor-track-label">时间</div><div class="editor-lane ruler" style="width:${width}px">${marks}</div></div>`+tl().tracks.map(t=>`<div class="editor-track"><div class="editor-track-label"><b>${esc(t.name)}</b><div><button data-track="${t.id}" data-toggle="hidden" title="显示 / 隐藏">${t.hidden?'○':'◉'}</button><button data-track="${t.id}" data-toggle="muted" title="静音">${t.muted?'静':'声'}</button><button data-track="${t.id}" data-toggle="locked" title="锁定">${t.locked?'锁':'开'}</button></div></div><div class="editor-lane ${esc(t.kind)}" data-track="${t.id}" style="width:${width}px">${t.clips.map(c=>`<div class="edit-clip ${c.id===s.selected?'selected':''}" tabindex="0" data-clip="${c.id}" style="left:${c.start*s.zoom}px;width:${Math.max(4,c.duration*s.zoom)}px"><i data-trim="left"></i><span>${esc(c.text||asset(c.asset_id)?.name||'素材缺失')}</span><small>${time(c.duration)}</small>${t.kind==='audio'||t.kind==='video'?'<canvas class="clip-wave" height="20"></canvas>':''}<i data-trim="right"></i></div>`).join('')}</div></div>`).join('')+`<div id="editorPlayhead" style="left:${150+s.time*s.zoom}px"></div>`;
     for(const b of el.querySelectorAll('[data-toggle]'))b.onclick=()=>edit(()=>{const t=tl().tracks.find(t=>t.id===b.dataset.track);t[b.dataset.toggle]=!t[b.dataset.toggle];});
