@@ -106,3 +106,18 @@ button.status:hover{transform:none;background:rgba(168,255,53,.08)}
 .viral-reference-choice .viral-dna small{margin-top:2px}
 .viral-reference-tag{display:inline-block;margin:2px 5px 2px 0;padding:3px 7px;border:1px solid rgba(104,167,255,.28);border-radius:99px;background:rgba(104,167,255,.07);color:var(--blue);font-size:10px}
 @media(max-width:680px){.viral-source-row{align-items:stretch;flex-direction:column}.viral-reference-picker{grid-template-columns:1fr}}
+
+/* Job-local pipeline selection, keyboard and touch accessible. */
+.draft-version-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pipeline-version-picker{display:flex;gap:8px;align-items:center}
+.pipeline-version-picker button{min-width:48px;min-height:44px;border:1px solid var(--line,#26313e);border-radius:8px;background:var(--panel,#fff);color:var(--text,#202632);cursor:pointer;padding:8px 12px}
+.pipeline-version-picker button[aria-pressed="true"]{background:#263f78;color:#fff;border-color:#263f78}
+.pipeline-version-picker button:focus-visible{outline:3px solid #688ee0;outline-offset:3px}
+.pipeline-version-picker button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:600px){.draft-version-actions{width:100%}.hero{flex-wrap:wrap}}
+
+#modelRefreshRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#modelRefreshRow[hidden]{display:none}
+#modelCatalogStatus{min-width:0;overflow-wrap:anywhere}
+
+#refreshModels{min-height:44px}

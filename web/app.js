@@ -1,7 +1,7 @@
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const app = $('#app');
-const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
+const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, draftPipelineVersion:'v1', label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
 const labels = {queued:'排队中',running:'执行中',waiting_input:'待继续',completed:'已完成',failed:'执行失败',cancelled:'已取消',pending:'等待',succeeded:'完成'};
 const stageLabels = {asr:'语音转写与切分',filter:'规则粗筛',judge:'AI 可用性判定',order:'AI 排序编排',render:'渲染成片'};
 const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
@@ -44,6 +44,10 @@ function loading(){app.innerHTML='<div class="loading"><div class="spinner"></di
 function setCrumb(text){$('#pageCrumb').textContent=text;$$('[data-nav]').forEach(x=>{const active=location.hash.includes(x.dataset.nav);x.classList.toggle('active',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});}
 function jobFlags(job){return {active:['queued','running'].includes(job.status)};}
 function jobStageLabel(job,id,stored=''){
+  if(job?.pipeline_version==='v2'){
+    return ({judge:'V2 完整表达整理',order:'V2 成片编排',review:'V2 成片验收'})[id]||stored||stageLabel(id);
+  }
+  if(job?.pipeline_version==='v3'&&id==='order')return 'V3 AI 精选编排';
   if(job?.job_type==='remix'){
     const remixLabels={asr:'片段文字识别',filter:'文字字面去重',judge:'语义去重与分类',order:'动态内容重排',render:'生成新成片'};
     return remixLabels[id]||stored||stageLabel(id);
@@ -52,8 +56,16 @@ function jobStageLabel(job,id,stored=''){
 }
 function jobTypeTag(job){
   if(job.job_type==='remix')return '<span class="timeline-tag">成片重组</span>';
-  if(job.job_type==='timeline')return '<span class="timeline-tag">虚拟时间线</span>';
-  return '';
+  const version=['v1','v2','v3'].includes(job.pipeline_version)?job.pipeline_version:'v1';
+  return `<span class="timeline-tag">${job.job_type==='timeline'?'剪映草稿 · ':''}${version.toUpperCase()}</span>`;
+}
+function jobAiConfigurationText(job){
+  try{
+    const config=typeof job.remote_model_json==='string'?JSON.parse(job.remote_model_json):job.remote_model_json;
+    if(!config)return 'AI 配置将在首次执行时确定';
+    const names={auto:'自动选择',workbuddy:'WorkBuddy',opencode:'OpenCode',codex:'Codex',antigravity:'Antigravity',api:'API 直连'};
+    return `本次 AI 配置：${config.ai_engine==='jev'?'JEV':names[config.ai_provider]||config.ai_provider||'自动选择'} · ${config.ai_model||'auto'}`;
+  }catch{return 'AI 配置无法读取，请重试任务更新配置'}
 }
 function jobTargetText(job,prefix='目标'){
   if(job.job_type==='remix')return ' · 全部去重后片段';
@@ -210,13 +222,21 @@ async function renderJianyingDrafts(force=false){
   }
   const data=state.jianying;
   const drafts=data.drafts||[],defaults=data.defaults||{};
+  const supported=data.pipeline_versions||['v1'];
+  if(!supported.includes(state.draftPipelineVersion))state.draftPipelineVersion='v1';
+  const descriptions={v1:'原有流程，保留句单元和时长约束',v2:'完整表达整理、编排和独立验收',v3:'逐子句精选，时长为软目标'};
+  const picker=`<div class="pipeline-version-picker" role="group" aria-label="本次剪辑版本">${['v1','v2','v3'].map(version=>`<button type="button" data-pipeline-version="${version}" aria-pressed="${state.draftPipelineVersion===version}" ${supported.includes(version)?'':'disabled'} title="${supported.includes(version)?descriptions[version]:'后台尚未支持此版本，请重启后台'}">${version.toUpperCase()}</button>`).join('')}</div>`;
   const cards=drafts.map(draft=>{
     const timeline=draft.recommended_timeline;
     const recommendation=timeline?`最长时间线：${escapeHtml(timeline.name||timeline.title||timeline.timeline_id)} · ${durationText(timeline.timeline_duration)}`:(draft.timeline_error?'时间线解析失败':'未发现有效时间线');
     const activeCount=Number(draft.active_job_count||0);
-    return `<article class="jianying-card"><div class="jianying-card-body"><div class="jianying-card-head"><h2>${escapeHtml(draft.name)}</h2><span>${formatTime(draft.modified_at)}</span></div><p>${recommendation}</p><div class="jianying-card-foot"><div class="jianying-title-preview"><span>成片名称</span><b>${escapeHtml(draft.suggested_title)}</b></div><div class="jianying-action">${activeCount?`<span class="jianying-running">剪辑中 ${activeCount}</span>`:''}<button type="button" class="button primary small" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'}>剪辑</button></div></div></div></article>`;
+    return `<article class="jianying-card"><div class="jianying-card-body"><div class="jianying-card-head"><h2>${escapeHtml(draft.name)}</h2><span>${formatTime(draft.modified_at)}</span></div><p>${recommendation}</p>${draft.timeline_error?`<details class="jianying-read-error"><summary>查看无法读取的原因</summary><p>${escapeHtml(draft.timeline_error)}</p></details>`:''}<div class="jianying-card-foot"><div class="jianying-title-preview"><span>成片名称</span><b>${escapeHtml(draft.suggested_title)}</b></div><div class="jianying-action">${activeCount?`<span class="jianying-running">剪辑中 ${activeCount}</span>`:''}<button type="button" class="button primary small" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'}>剪辑</button></div></div></div></article>`;
   }).join('');
-  app.innerHTML=`<div class="hero"><div><span class="eyebrow">JIANYING DRAFTS</span><h1>剪映草稿</h1><p>点击“剪辑”即按最长时间线、120–180 秒深度和分段版直接加入队列。</p></div><button class="button ghost" data-refresh-jianying>刷新草稿</button></div><div class="jianying-defaults"><span>默认导出目录</span><b>${escapeHtml(defaults.export_dir||'—')}</b></div>${drafts.length?`<div class="jianying-grid">${cards}</div>`:`<div class="panel"><div class="empty">${icons.empty}<h3>没有找到剪映草稿</h3><p>请确认本机已安装剪映专业版并保存过草稿。</p></div></div>`}`;
+  app.innerHTML=`<div class="hero"><div><span class="eyebrow">JIANYING DRAFTS</span><h1>剪映草稿</h1><p>点击“剪辑”即按最长时间线、120–180 秒深度和分段版直接加入队列。</p></div><div class="draft-version-actions">${picker}<button class="button ghost" data-refresh-jianying>刷新草稿</button></div></div><div class="jianying-defaults"><span>默认导出目录</span><b>${escapeHtml(defaults.export_dir||'—')}</b></div>${drafts.length?`<div class="jianying-grid">${cards}</div>`:`<div class="panel"><div class="empty">${icons.empty}<h3>没有找到剪映草稿</h3><p>请确认本机已安装剪映专业版并保存过草稿。</p></div></div>`}`;
+  $$('[data-pipeline-version]').forEach(button=>button.addEventListener('click',()=>{
+    state.draftPipelineVersion=button.dataset.pipelineVersion;
+    $$('[data-pipeline-version]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.pipelineVersion===state.draftPipelineVersion)));
+  }));
   $('[data-refresh-jianying]')?.addEventListener('click',()=>renderJianyingDrafts(true));
   $$('[data-edit-jianying]').forEach(button=>button.addEventListener('click',()=>{
     const draft=drafts.find(item=>item.id===button.dataset.editJianying);
@@ -228,13 +248,14 @@ function nextSuggestedTitle(title){const match=String(title).match(/-(\d+)$/);re
 async function enqueueJianyingDraft(draft,defaults,button){
   const timeline=draft.recommended_timeline;
   if(!timeline)return;
+  const pipelineVersion=state.draftPipelineVersion;
   button.disabled=true;button.textContent='加入中…';
   try{
-    const job=await api('/api/jobs',{method:'POST',body:JSON.stringify({job_type:'timeline',draft_path:timeline.path,title:draft.suggested_title,draft_name:draft.name,auto_title:true,product_name:'',export_mode:defaults.export_mode||'segments',export_dir:defaults.export_dir||'',target_min:defaults.target_min||120,target_max:defaults.target_max||180})});
+    const job=await api('/api/jobs',{method:'POST',body:JSON.stringify({job_type:'timeline',pipeline_version:pipelineVersion,draft_path:timeline.path,title:draft.suggested_title,draft_name:draft.name,auto_title:true,product_name:'',export_mode:defaults.export_mode||'segments',export_dir:defaults.export_dir||'',target_min:defaults.target_min||120,target_max:defaults.target_max||180})});
     draft.active_job_count=Number(draft.active_job_count||0)+1;
     draft.suggested_title=nextSuggestedTitle(job.title||draft.suggested_title);
     renderJianyingDrafts();
-    toast(`“${draft.name}”已加入剪辑队列`);
+    toast(`“${draft.name}”已加入 ${pipelineVersion.toUpperCase()} 剪辑队列`);
   }catch(err){button.disabled=false;button.textContent='剪辑';toast(err.message)}
 }
 
@@ -254,7 +275,7 @@ function stageDetailHtml(job){
   if(!stage)return `<div class="empty">${icons.empty}<h3>暂无节点</h3><p>任务尚未初始化流程节点。</p></div>`;
   const events=job.events.filter(e=>e.stage_id===id),artifacts=job.artifacts.filter(a=>a.stage_id===id),isCurrent=job.current_stage===id&&jobFlags(job).active,runtime=job.runtime||{};
   const runState=isCurrent?(runtime.process_active?'本地子进程正在执行':runtime.worker_alive?'工作进程正在处理':'后台服务未运行'):(labels[stage.status]||stage.status);
-  const rerunnable=job.job_type!=='remix'&&['filter','judge','order','render'].includes(id),index=job.stages.indexOf(stage),upstreamReady=index>0&&job.stages[index-1].status==='succeeded';
+  const rerunnable=job.job_type!=='remix'&&['filter','judge','order','render',...(job.pipeline_version==='v2'?['review']:[])].includes(id),index=job.stages.indexOf(stage),upstreamReady=index>0&&job.stages[index-1].status==='succeeded';
   const canRerun=rerunnable&&upstreamReady&&!jobFlags(job).active;
   const actionLabel=id==='render'?(stage.status==='succeeded'?'重新渲染成片':'渲染成片'):(stage.status==='succeeded'?'重新执行此节点':'执行此节点');
   return `<div class="stage-detail-head"><div><span class="eyebrow">NODE ${String(index+1).padStart(2,'0')}</span><h2>${escapeHtml(jobStageLabel(job,stage.stage_id,stage.name))}</h2><p>${escapeHtml(stage.error||stage.message||'等待上游节点完成')}</p></div><div class="stage-detail-actions"><span class="runtime-state ${isCurrent&&runtime.worker_alive?'live':''}"><i></i>${escapeHtml(runState)}</span>${canRerun?`<button class="button ghost small" data-rerun-stage="${escapeHtml(id)}">${actionLabel}</button>`:''}</div></div>
@@ -393,6 +414,7 @@ async function refreshJob(jobId){
   const job=await api(`/api/jobs/${jobId}`);state.job=job;
   const connection=$('#jobConnectionState');if(connection){connection.classList.remove('offline');connection.innerHTML='<i></i>实时连接正常';}
   if(patchJobRegion('#jobControls',jobControlsHtml(job),deliverablesControlsKey(job)))bindJobControls(jobId);
+  const aiConfig=$('#jobAiConfiguration');if(aiConfig)aiConfig.textContent=jobAiConfigurationText(job);
   const meta=$('#jobProgressMeta');if(meta)meta.textContent=`${Math.round(job.progress||0)}% · 当前节点 ${jobStageLabel(job,job.current_stage)||'—'}`;
   if(patchJobRegion('#jobWorkflow',workflowHtml(job),workflowKey(job)))bindStageSelection(jobId);
   if(patchJobRegion('#jobStageDetail',stageDetailHtml(job),stageDetailKey(job))){bindStageRerun(jobId);bindArtifactPreviews($('#jobStageDetail'));updateLiveTimes();}
@@ -409,7 +431,7 @@ async function renderJob(jobId){
   setCrumb('任务详情');loading();const job=await api(`/api/jobs/${jobId}`);
   state.job=job;state.selectedStage=job.current_stage||job.stages[0]?.stage_id;
   app.innerHTML=`<a href="#/queue" class="back-link">${icons.arrow}返回队列</a>
-<div class="detail-head"><div class="detail-title"><span class="eyebrow">${escapeHtml(job.id)}</span><h1>${escapeHtml(job.title)}${jobTypeTag(job)}</h1><p>${escapeHtml(job.source_path)}${jobTargetText(job,'目标时长')}</p></div><div class="detail-actions" id="jobControls" data-render-key="${escapeHtml(deliverablesControlsKey(job))}">${jobControlsHtml(job)}</div></div>
+<div class="detail-head"><div class="detail-title"><span class="eyebrow">${escapeHtml(job.id)}</span><h1>${escapeHtml(job.title)}${jobTypeTag(job)}</h1><p>${escapeHtml(job.source_path)}${jobTargetText(job,'目标时长')}</p><p id="jobAiConfiguration" role="status">${escapeHtml(jobAiConfigurationText(job))}</p></div><div class="detail-actions" id="jobControls" data-render-key="${escapeHtml(deliverablesControlsKey(job))}">${jobControlsHtml(job)}</div></div>
   <div class="panel"><div class="panel-head"><div><h2>整体流程</h2><p id="jobProgressMeta">${Math.round(job.progress||0)}% · 当前节点 ${escapeHtml(jobStageLabel(job,job.current_stage)||'—')}</p></div><div class="workflow-meta"><span class="connection-state" id="jobConnectionState"><i></i>实时连接正常</span><span class="panel-hint">点击节点查看详情</span></div></div><div class="workflow" id="jobWorkflow" data-render-key="${escapeHtml(workflowKey(job))}">${workflowHtml(job)}</div></div>
   <div class="detail-grid"><div><div class="panel stage-detail" id="jobStageDetail" data-render-key="${escapeHtml(stageDetailKey(job))}">${stageDetailHtml(job)}</div>
   <div class="panel"><div class="panel-head"><div><h2>任务产物</h2><p>图片、时间线、日志与视频均可打开</p></div></div><div id="jobArtifacts" data-render-key="${escapeHtml(artifactsKey(job))}">${artifactsHtml(job)}</div></div></div>
@@ -445,7 +467,8 @@ async function renderSettings(){
   setCrumb('系统设置');loading();const data=await api('/api/settings');
   const opts=(map,selected)=>Object.entries(map).map(([value,label])=>`<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('');
   const modelOpts=(provider,selected)=>{
-    const models=data.ai_models?.[provider]||data.ai_models?.auto||[{id:'auto',name:'自动选择'}];
+    let models=data.ai_models?.[provider]||data.ai_models?.auto||[{id:'auto',name:'自动选择'}];
+    if(selected&&selected!=='auto'&&!models.some(model=>model.id===selected))models=[{id:selected,name:'已保存的模型（目录暂未显示）'},...models];
     const selectedExists=models.some(model=>model.id===selected);
     return models.map(model=>`<option value="${escapeHtml(model.id)}" ${model.id===(selectedExists?selected:'auto')?'selected':''}>${escapeHtml(model.name)}${model.id==='auto'?'':`（${escapeHtml(model.id)}）`}</option>`).join('');
   };
@@ -473,6 +496,7 @@ async function renderSettings(){
     <label>AI 引擎<select name="ai_engine">${opts({llm:'AI 模型（账号或 API Key）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>AI 模型支持账号登录或 API Key；JEV 使用独立云端服务。</small></label>
     <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
     <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型选项会根据 AI 提供方自动更新。</small></label>
+    <div class="job-row-actions" id="modelRefreshRow"><button class="button ghost" id="refreshModels" type="button">刷新模型列表</button><small id="modelCatalogStatus" role="status"></small></div>
     <div class="settings-section"><b>JEV 云端</b><small>${data.jev_api_key_configured?'已配置密钥。':'尚未配置密钥。'}</small></div>
     <label>JEV API Key<input name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥"><small>仅为安全展示，留空或保持掩码不会覆盖现有密钥。</small></label>
     <label>JEV Base URL<input name="jev_base_url" value="${escapeHtml(data.jev_base_url||'')}"></label>
@@ -483,7 +507,26 @@ async function renderSettings(){
     <button class="button primary" type="submit">保存设置</button>
   </form></div>`;
   setupAIConnection();
-  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto')});
+  const showCatalogStatus=()=>{
+    const provider=$('#aiProvider').value;
+    $('#modelRefreshRow').hidden=provider!=='workbuddy';
+    const info=data.ai_model_catalogs?.workbuddy||{};
+    const descriptions={cli_desktop:'已同步 WorkBuddy 客户端目录，并由 CLI 确认',cli:'已读取当前 CLI 模型目录',desktop:'已读取客户端目录，CLI 尚未确认',product:'当前为安装包参考目录',builtin:'当前为内置参考目录，请打开并登录 WorkBuddy 后刷新'};
+    $('#modelCatalogStatus').textContent=(descriptions[info.source]||'可刷新 WorkBuddy 模型目录')+(info.count?` · ${info.count} 个选项`:'');
+  };
+  showCatalogStatus();
+  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto');showCatalogStatus()});
+  $('#refreshModels').addEventListener('click',async()=>{
+    const button=$('#refreshModels');button.disabled=true;button.textContent='刷新中…';
+    try{
+      const fresh=await api('/api/settings?refresh_models=1');
+      data.ai_models=fresh.ai_models;data.ai_model_catalogs=fresh.ai_model_catalogs;
+      const selected=$('#aiModel').value;
+      $('#aiModel').innerHTML=modelOpts($('#aiProvider').value,selected);
+      showCatalogStatus();toast('模型列表已刷新');
+    }catch(err){$('#modelCatalogStatus').textContent=err.message}
+    finally{button.disabled=false;button.textContent='刷新模型列表'}
+  });
   $('#settingsForm').addEventListener('submit',async e=>{
     e.preventDefault();const f=new FormData(e.target),error=$('#settingsError');error.textContent='';
     try{

@@ -36,6 +36,8 @@ tools-dir 中 `bin` 目录放 `ffmpeg.exe`、`ffprobe.exe`、`codex.exe`、`open
 
 ## 开发与验证
 
+macOS 已配置开发环境后，在项目目录运行 `npm run desktop` 即可启动当前本地桌面端。该快捷命令调用 `.venv/bin/python -m agent_video.desktop`，无需安装 Electron 或执行 `npm install`。
+
 ```sh
 uv venv --python 3.13.12
 uv pip install --python .venv/bin/python -e '.[desktop,portable-asr]'
@@ -44,3 +46,19 @@ uv pip install --python .venv/bin/python -e '.[desktop,portable-asr]'
 ```
 
 原有 `python -m agent_video` 浏览器服务继续可用。桌面入口默认绑定本机随机端口，可用 `--headless --data-dir 路径` 排查服务启动，运行地址记录在该数据目录 runtime.json，启动错误记录在 logs/desktop.log。
+
+## macOS 剪映草稿目录
+
+默认优先读取 `~/Movies/JianyingPro/User Data/Projects/com.lveditor.draft/root_meta_info.json`，也检查 Application Support 和剪映容器目录。自定义目录可用 `JIANYING_DRAFT_ROOT` 指定。索引里的草稿路径可以指向其他磁盘。macOS 不需要 `LOCALAPPDATA`，默认导出目录为 `~/Movies/LiveCut/exports`。
+
+macOS 加密草稿通过本机剪映的 `libvideoeditor.dylib` 读取，调用在独立进程完成，不修改原草稿。按应用标识自动寻找安装目录，改名为 `VideoFusion-macOS.app` 等名称也可识别；非标准安装可设置 `JIANYING_INSTALL_DIR` 指向 .app，或 `JIANYING_MAC_LIBRARY` 指向 dylib。
+
+源码启动首次读取时自动编译并缓存小型 C++ 读取器，需要 Xcode 命令行工具；缓存命中不再编译。桌面构建脚本会打包我们自己的读取器，最终用户无需编译工具，但仍需本机安装剪映。不会将剪映的原生库打包分发。剪映内部接口随版本可能变化，当前在 Apple Silicon、剪映 11.3.0 上实测。
+
+旧的 macOS“读取失败”摘要缓存会自动失效，重新读取无需手动删除文件。Mac 冷读取最多两路并发，避免多份原生库同时加载导致内存压力。草稿为空、解密失败或缺少素材时给出对应原因，不创建假时间线。
+
+## ASR 音频依赖兼容
+
+`faster-whisper 1.2.1` 会向 `av.open()` 传入 `metadata_errors`；[PyAV 19 的变更说明](https://pyav.basswood.io/docs/stable/development/changelog.html)明确移除了该参数。项目的 `portable-asr` 依赖限制为 `av>=11,<19`，当前锁定 PyAV 18.1.0。源码环境和后续桌面构建均使用此范围，不修改模型、解码参数或三个剪辑版本的规则。
+
+如果旧环境出现 `open() got an unexpected keyword argument 'metadata_errors'`，可在项目目录执行 `uv pip install --python .venv/bin/python 'av>=11,<19'`，随后退出桌面端并重新运行 `npm run desktop`。真实音频解码回归测试使用中文文件名的 48 kHz 双声道 WAV，验证转换为 16 kHz 单声道浮点数组，无需下载模型。

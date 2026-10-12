@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import plistlib
 import re
 import signal
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path, PureWindowsPath
 from typing import Any, Callable
@@ -36,6 +38,19 @@ WORKBUDDY_MODELS = [
 _WORKBUDDY_HELP_MODELS = re.compile(r"Currently supported:\s*\(([^)]+)\)")
 _WORKBUDDY_CATALOG_TTL_SECONDS = 300
 _workbuddy_catalog_cache: dict[str, tuple[float, list[tuple[str, str]]]] = {}
+_workbuddy_catalog_metadata: dict[str, dict] = {}
+_workbuddy_catalog_state = threading.local()
+
+
+def workbuddy_model_environment() -> dict[str, str]:
+    from .workbuddy_models import model_environment
+    return model_environment()
+
+
+def workbuddy_catalog_info() -> dict:
+    return dict(_workbuddy_catalog_metadata.get(getattr(_workbuddy_catalog_state, "key", ""),
+                                               {"source": "builtin", "confirmed": False}))
+
 
 
 def _workbuddy_cli_roots(executable: Path | None = None) -> list[Path]:
@@ -45,13 +60,34 @@ def _workbuddy_cli_roots(executable: Path | None = None) -> list[Path]:
         executable_path = Path(executable).expanduser()
         if executable_path.parent.name == "bin":
             roots.append(executable_path.parent.parent)
+    install = os.environ.get("WORKBUDDY_INSTALL_DIR")
+    if install:
+        base = Path(install).expanduser()
+        roots.extend([base / "Contents/Resources/app.asar.unpacked/cli",
+                      base / "resources/app.asar.unpacked/cli", base])
+    local = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData/Local")
+    roots.append(local / "Programs/WorkBuddy/resources/app.asar.unpacked/cli")
+    for variable in ("ProgramFiles", "ProgramFiles(x86)"):
+        if os.environ.get(variable):
+            roots.append(Path(os.environ[variable]) / "WorkBuddy/resources/app.asar.unpacked/cli")
     roots.extend([
+        Path("/Applications/WorkBuddy.app/Contents/Resources/app.asar.unpacked/cli"),
         Path.home() / "AppData" / "Local" / "Programs" / "WorkBuddy" / "resources"
         / "app.asar.unpacked" / "cli",
         Path("/Applications/AI/WorkBuddy.app/Contents/Resources/app.asar.unpacked/cli"),
         Path.home() / "Applications" / "WorkBuddy.app" / "Contents" / "Resources"
         / "app.asar.unpacked" / "cli",
     ])
+    if sys.platform == "darwin":
+        for directory in (Path("/Applications"), Path.home() / "Applications"):
+            for app in [*directory.glob("*.app"), *directory.glob("*/*.app")]:
+                try:
+                    with (app / "Contents/Info.plist").open("rb") as stream:
+                        identifier = plistlib.load(stream).get("CFBundleIdentifier")
+                except (OSError, ValueError, plistlib.InvalidFileException):
+                    continue
+                if identifier == "com.tencent.workbuddy.mac":
+                    roots.append(app / "Contents/Resources/app.asar.unpacked/cli")
     unique: list[Path] = []
     seen: set[Path] = set()
     for root in roots:
@@ -65,6 +101,7 @@ def _workbuddy_cli_roots(executable: Path | None = None) -> list[Path]:
 
 def _workbuddy_cli_entries(executable: Path | None = None) -> list[Path]:
     """WorkBuddy CLI 入口（bin/codebuddy），优先使用调用方给定的可执行文件。"""
+    executable = executable or os.environ.get("WORKBUDDY_CLI")
     if executable:
         given = Path(executable).expanduser()
         if given.is_file():
@@ -73,7 +110,7 @@ def _workbuddy_cli_entries(executable: Path | None = None) -> list[Path]:
     seen: set[Path] = set()
     # 优先使用独立安装且可交互登录的 CodeBuddy。Windows 直接运行 Node
     # 入口，避免 .cmd 包装层的参数转义及命令行长度限制。
-    npm_entry = (Path.home() / "AppData" / "Roaming" / "npm" / "node_modules"
+    npm_entry = (Path(os.environ.get("APPDATA") or Path.home() / "AppData/Roaming") / "npm" / "node_modules"
                  / "@tencent-ai" / "codebuddy-code" / "bin" / "codebuddy")
     if sys.platform == "win32" and npm_entry.is_file():
         return [npm_entry]
@@ -89,24 +126,41 @@ def _workbuddy_cli_entries(executable: Path | None = None) -> list[Path]:
     return entries
 
 
+def _workbuddy_node() -> str:
+    if shutil.which("node"):
+        return "node"
+    root = Path(os.environ.get("WORKBUDDY_CONFIG_DIR") or Path.home() / ".workbuddy").expanduser()
+    candidates = list((root / "binaries/node/versions").glob("*/bin/node"))
+    candidates += list((root / "binaries/node/versions").glob("*/node.exe"))
+    candidates += list((root / "binaries/node/versions").glob("*/bin/node.exe"))
+    for candidate in sorted(candidates, reverse=True):
+        if candidate.is_file():
+            return str(candidate)
+    return "node"
+
+
 def _workbuddy_live_models(executable: Path | None = None) -> list[tuple[str, str]]:
     """解析 WorkBuddy CLI `--help` 的账户实时模型列表（与客户端一致）。"""
     for entry in _workbuddy_cli_entries(executable):
         if not entry.is_file():
             continue
         command = [str(entry), "--help"]
+        if sys.platform != "win32" and not shutil.which("node"):
+            command = [_workbuddy_node(), str(entry), "--help"]
         # Windows 上 WorkBuddy 的 bin 入口是无扩展名的 Node 脚本，需显式用 node 启动。
-        if sys.platform == "win32" and not entry.suffix:
-            command = ["node", str(entry), "--help"]
+        if (sys.platform == "win32" and not entry.suffix) or (entry.is_file() and not os.access(entry, os.X_OK)):
+            command = [_workbuddy_node(), str(entry), "--help"]
         try:
             result = subprocess.run(
                 command, capture_output=True, text=True, encoding="utf-8",
                 errors="replace", timeout=30,
-                env={**os.environ, "NO_COLOR": "1"},
+                env={**os.environ, "NO_COLOR": "1", **workbuddy_model_environment()},
             )
         except (OSError, subprocess.SubprocessError):
             continue
-        match = _WORKBUDDY_HELP_MODELS.search(result.stdout or "")
+        if getattr(result, "returncode", 0) not in (0, None) and isinstance(getattr(result, "returncode", 0), int):
+            continue
+        match = _WORKBUDDY_HELP_MODELS.search(re.sub(r"\x1b\[[0-9;]*m", "", result.stdout or ""))
         if not match:
             continue
         models: list[tuple[str, str]] = []
@@ -149,25 +203,37 @@ def _workbuddy_product_models(executable: Path | None = None) -> list[tuple[str,
     return []
 
 
-def workbuddy_model_catalog(executable: Path | None = None) -> list[tuple[str, str]]:
+def workbuddy_model_catalog(executable: Path | None = None, *, refresh: bool = False) -> list[tuple[str, str]]:
     """读取 WorkBuddy 当前可用的文本/工具调用模型目录。
 
-    三级回退：
-    1. WorkBuddy CLI `--help` 的账户实时模型列表（与客户端一致，含最新模型）；
-    2. 安装目录里打包的 product.json；
-    3. 内置静态 WORKBUDDY_MODELS。
+    先以当前客户端的模型和 CLI 允许列表对齐子进程，再读取帮助目录。
+    若探测失败，按客户端目录、安装包目录、内置参考目录回退。
+    登录授权和实际模型权限仍由 CLI 服务端确认。
     """
     if executable is None:
         executable = next((entry for entry in _workbuddy_cli_entries() if entry.is_file()), None)
-    cache_key = str(Path(executable).expanduser()) if executable else "*"
+    from .workbuddy_models import desktop_model_context
+    context, fingerprint = desktop_model_context()
+    cache_key = (str(Path(executable).expanduser()) if executable else "*") + ":" + fingerprint
+    stamps = []
+    for root in _workbuddy_cli_roots(executable):
+        try: stamps.append((str(root), (root / "product.json").stat().st_mtime_ns))
+        except OSError: pass
+    if executable:
+        try: stamps.append((str(executable), Path(executable).stat().st_mtime_ns))
+        except OSError: pass
+    cache_key += repr(stamps)
+
+    _workbuddy_catalog_state.key = cache_key
     now = time.monotonic()
     cached = _workbuddy_catalog_cache.get(cache_key)
-    if cached and now - cached[0] < _WORKBUDDY_CATALOG_TTL_SECONDS:
+    if not refresh and cached and now - cached[0] < _WORKBUDDY_CATALOG_TTL_SECONDS:
         return cached[1]
 
     product_models = _workbuddy_product_models(executable)
     display_names = {model_id: name for model_id, name in product_models}
     display_names.update(WORKBUDDY_MODELS)
+    display_names.update({m["id"]: m.get("name") or m["id"] for m in context.get("models", [])})
 
     live_models = _workbuddy_live_models(executable)
     if live_models:
@@ -178,11 +244,18 @@ def workbuddy_model_catalog(executable: Path | None = None) -> list[tuple[str, s
                 continue
             seen_ids.add(model_id)
             catalog.append((model_id, display_names.get(model_id, model_id)))
+    elif context:
+        catalog = [("auto", "自动选择"), *[(m["id"], m.get("name") or m["id"])
+                   for m in context["models"] if m["id"] != "auto"]]
     elif product_models:
         catalog = product_models
     else:
         catalog = list(WORKBUDDY_MODELS)
 
+    source = ("cli_desktop" if context else "cli") if live_models else "desktop" if context else "product" if product_models else "builtin"
+    _workbuddy_catalog_metadata[cache_key] = {"source": source, "count": len(catalog),
+                                           "cli_found": bool(executable),
+                                           "confirmed": bool(live_models)}
     _workbuddy_catalog_cache[cache_key] = (now, catalog)
     return catalog
 
@@ -740,13 +813,71 @@ class WorkBuddyCli(CliProvider):
     def models(self) -> list[tuple[str, str]]:
         return workbuddy_model_catalog(self.executable)
 
+    def runtime_environment(self) -> dict[str, str]:
+        return workbuddy_model_environment()
+
+    @staticmethod
+    def _authentication_failure(cwd: Path, pid: int, launched_at: float) -> str | None:
+        """Read only this invocation's diagnostic markers; never expose log contents."""
+        root = Path.home() / ".codebuddy" / "logs"
+        try:
+            folders = sorted((p for p in root.iterdir() if p.is_dir()
+                              and re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.name)),
+                             reverse=True)[:2]
+            for folder in folders:
+                for path in folder.iterdir():
+                    if not (path.name.startswith(cwd.name + "__") and path.suffix == ".log"):
+                        continue
+                    if path.stat().st_mtime < launched_at:
+                        continue
+                    with path.open("rb") as stream:
+                        stream.seek(max(0, path.stat().st_size - 200000))
+                        lines = stream.read().decode("utf-8", errors="replace").splitlines()
+                    own = [line for line in lines if f"[pid={pid}]" in line]
+                    if not any("AuthenticationRequiredError" in line or
+                               "Authentication required. Please use /login" in line for line in own):
+                        continue
+                    if any("[AtRestEncryption]" in line and "category=missing-key" in line for line in own):
+                        return ("WorkBuddy CLI 无法读取桌面端的加密登录凭据。"
+                                "请先在 WorkBuddy 中重新登录；若仍失败，请启动 CLI 执行 /login 后重试")
+                    return "WorkBuddy CLI 尚未登录或登录已失效，请启动 CLI 并执行 /login 后重试"
+        except OSError:
+            pass
+        return None
+
+    def _complete(self, command: list[str], *, cwd: Path,
+                  on_process: Callable[[subprocess.Popen[str]], None] | None,
+                  timeout: int, started: float,
+                  env_overrides: dict[str, str] | None = None,
+                  stdin_text: str | None = None) -> tuple[str, str, float]:
+        launched_at = time.time()
+        pid = None
+
+        def capture(process: subprocess.Popen[str]) -> None:
+            nonlocal pid
+            pid = process.pid
+            if on_process:
+                on_process(process)
+
+        result = super()._complete(command, cwd=cwd, on_process=capture,
+                                   timeout=timeout, started=started,
+                                   env_overrides=env_overrides, stdin_text=stdin_text)
+        if not result[0].strip() and pid is not None:
+            detail = self._authentication_failure(cwd, pid, launched_at)
+            if detail:
+                raise ProviderResponseError(detail, {"reason": "authentication_required",
+                                                    "returncode": 0})
+        return result
+
     def _command_prefix(self) -> list[str]:
         if sys.platform == "win32" and not self.executable.suffix:
             # CLI 的异步初始化使用 unref 定时器；并发时曾在响应前因
             # event_loop_drain 以 0 退出。保持事件循环直到 CLI 显式退出，
             # 超时仍由 _complete 的进程树终止机制约束。
-            return ["node", "-e", "setInterval(() => {}, 1000); require(process.argv[1]);",
+            return [_workbuddy_node(), "-e", "setInterval(() => {}, 1000); require(process.argv[1]);",
                     str(PureWindowsPath(self.executable)) if PureWindowsPath(self.executable).drive else str(self.executable)]
+        if self.executable.is_file() and (not os.access(self.executable, os.X_OK) or not shutil.which("node")):
+            return [_workbuddy_node(), str(self.executable)]
         return [str(self.executable)]
 
     def _parse_response(self, stdout: str, stderr: str) -> Any:
@@ -810,7 +941,7 @@ class WorkBuddyCli(CliProvider):
         started = time.monotonic()
         stdout, stderr, seconds = self._complete(
             command, cwd=cwd, on_process=on_process, timeout=timeout, started=started,
-            stdin_text=prompt)
+            stdin_text=prompt, env_overrides=self.runtime_environment())
         envelope = self._parse_response(stdout, stderr)
         plan = self._find_plan(envelope)
         if not plan:
@@ -838,7 +969,7 @@ class WorkBuddyCli(CliProvider):
         started = time.monotonic()
         stdout, stderr, seconds = self._complete(
             command, cwd=cwd, on_process=on_process, timeout=timeout, started=started,
-            stdin_text=prompt)
+            stdin_text=prompt, env_overrides=self.runtime_environment())
         envelope = self._parse_response(stdout, stderr)
         data = self._find_object(envelope, required)
         if not data:

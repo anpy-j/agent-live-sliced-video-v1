@@ -1,0 +1,9 @@
+{
+  "name": "livecut-local-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local macOS desktop launcher for LiveCut",
+  "scripts": {
+    "desktop": ".venv/bin/python -m agent_video.desktop"
+  }
+}

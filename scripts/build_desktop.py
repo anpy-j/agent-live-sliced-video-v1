@@ -177,6 +177,14 @@ def build(args):
     freeze = subprocess.check_output([uv, 'pip', 'freeze', '--python', interpreter], text=True)
     (resources / 'python-packages.txt').write_text(freeze)
     collect_tools(resources, args.tools_dir)
+    if sys.platform == 'darwin':
+        # Ship our bridge, not Jianying's proprietary dylibs. Runtime uses the
+        # user's own installed app and does not require development tools.
+        helper = resources / 'tools' / 'bin' / 'jianying-decrypt'
+        run(['xcrun', 'clang++', '-std=c++17', '-O2', '-arch', architecture,
+             '-mmacosx-version-min=11.0', ROOT / 'agent_video' / 'native' / 'jianying_decrypt.cpp',
+             '-Wl,-rpath,@loader_path', '-o', helper])
+        run(['codesign', '--force', '--sign', '-', helper])
     # Verify runtime imports and bundled binaries before emitting an archive.
     run([interpreter, '-c', 'import webview, keyring, faster_whisper, PIL, pypinyin, zhconv'])
     if sys.platform == 'darwin':

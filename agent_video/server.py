@@ -25,7 +25,7 @@ from .ai import (
     ANTIGRAVITY_FALLBACK_MODELS,
     CODEX_MODELS,
     OPENCODE_FALLBACK_MODELS,
-    workbuddy_model_catalog,
+    workbuddy_model_catalog, workbuddy_catalog_info,
 )
 from .db import Store, utc_now
 from .ai_access import AIAccess
@@ -120,6 +120,10 @@ class Application:
         return ""
 
     def create_job(self, payload: dict[str, Any]) -> dict[str, Any]:
+        from .pipeline_versions import normalize_version
+        version = normalize_version(payload.get("pipeline_version"))
+        if str(payload.get("job_type") or "direct").lower() == "remix" and version != "v1":
+            raise ValueError("成片重组仅支持 V1 流程")
         job_type = str(payload.get("job_type") or "direct").lower()
         if job_type == "remix":
             return self._create_timeline_job(payload, job_type="remix")
@@ -167,7 +171,8 @@ class Application:
                                        target_seconds=target_seconds,
                                        export_dir=export_dir,
                                        product_name=product_name,
-                                       export_mode=export_mode)
+                                       export_mode=export_mode,
+                                       pipeline_version=payload.get("pipeline_version", "v1"))
         edit_name = f"{job_id}-{self._path_slug(title, 48)}"
         workspace = source_workspace / "edits" / edit_name
         workspace.mkdir(parents=True, exist_ok=True)
@@ -192,8 +197,8 @@ class Application:
             raise ValueError("虚拟时间线不包含任何有效片段")
 
         if job_type != "remix" and payload.get("auto_title") and payload.get("draft_name"):
-            from .jianying import DEFAULT_EXPORT_DIR, next_available_title
-            output_dir = payload.get("export_dir") or DEFAULT_EXPORT_DIR
+            from .jianying import default_export_dir, next_available_title
+            output_dir = payload.get("export_dir") or default_export_dir()
             title = next_available_title(
                 str(payload["draft_name"]), self.store.list_job_titles(), output_dir
             )
@@ -255,7 +260,8 @@ class Application:
                                        target_seconds=target_seconds,
                                        export_dir=export_dir,
                                        product_name=product_name,
-                                       export_mode=export_mode)
+                                       export_mode=export_mode,
+                                       pipeline_version=payload.get("pipeline_version", "v1"))
         edit_name = f"{job_id}-{self._path_slug(title, 48)}"
         workspace = root / "edits" / edit_name
         workspace.mkdir(parents=True, exist_ok=True)
@@ -317,18 +323,19 @@ class Application:
 
     def list_jianying_drafts(self) -> dict[str, Any]:
         from .jianying import (
-            DEFAULT_EXPORT_DIR, draft_title_base, list_jianying_drafts, next_available_title,
+            default_export_dir, draft_title_base, list_jianying_drafts, next_available_title,
         )
 
         drafts = list_jianying_drafts(
             cache_path=self.root / "data" / "jianying_draft_cache.json"
         )
+        export_dir = default_export_dir()
         titles = self.store.list_job_titles()
         active_titles = self.store.list_active_job_titles()
         covers: dict[str, Path] = {}
         for draft in drafts:
             draft["suggested_title"] = next_available_title(
-                draft["name"], titles, DEFAULT_EXPORT_DIR
+                draft["name"], titles, export_dir
             )
             title_pattern = re.compile(
                 rf"^{re.escape(draft_title_base(draft['name']))}(?:-\d+)?$", re.IGNORECASE
@@ -345,10 +352,12 @@ class Application:
         self._jianying_covers = covers
         return {
             "drafts": drafts,
+            "pipeline_versions": ["v1", "v2", "v3"],
+            "default_pipeline_version": "v1",
             "defaults": {
                 "target_min": 120,
                 "target_max": 180,
-                "export_dir": DEFAULT_EXPORT_DIR,
+                "export_dir": export_dir,
                 "export_mode": "segments",
                 "timeline_strategy": "longest",
             },
@@ -457,6 +466,8 @@ class Application:
             raise KeyError("任务不存在")
         workspace = Path(str(job.get("workspace") or ""))
         timeline = self._read_workspace_json(workspace / "timeline.json")
+        if job.get("pipeline_version") == "v2":
+            timeline = self._read_workspace_json(workspace / "v2" / "clauses.judged.json") or timeline
         filtered = self._read_workspace_json(workspace / "clauses.filtered.json")
         timeline_clauses = timeline.get("clauses") if isinstance(timeline, dict) else None
         filtered_clauses = filtered.get("clauses") if isinstance(filtered, dict) else None
@@ -705,7 +716,7 @@ try {{
             return {"job_id": job_id, "stage_id": stage_id, "queued": True}
         raise KeyError(f"未知工具: {name}")
 
-    def settings(self) -> dict[str, Any]:
+    def settings(self, *, refresh_models: bool = False) -> dict[str, Any]:
         keys = ["engine_python", "skill_path", "mcp_enabled", "mcp_token",
                 "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir"]
         result = {key: self.store.get_setting(key) for key in keys}
@@ -732,13 +743,14 @@ try {{
             ],
             "workbuddy": [
                 {"id": model_id, "name": name}
-                for model_id, name in workbuddy_model_catalog()
+                for model_id, name in workbuddy_model_catalog(refresh=refresh_models)
             ],
             "antigravity": [
                 {"id": model_id, "name": name}
                 for model_id, name in ANTIGRAVITY_FALLBACK_MODELS
             ],
         }
+        result["ai_model_catalogs"] = {"workbuddy": workbuddy_catalog_info()}
         return result
 
     def update_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -943,7 +955,7 @@ class Handler(BaseHTTPRequestHandler):
                     job["deliverables"] = self.app.deliverable_info(job)
                 return self.json_response(job or {"error": "任务不存在"}, 200 if job else 404)
             if path == "/api/settings":
-                return self.json_response(self.app.settings())
+                return self.json_response(self.app.settings(refresh_models=urllib.parse.parse_qs(query).get("refresh_models") == ["1"]))
             if path == "/api/skill":
                 return self.json_response(self.app.skill())
             if path == "/api/mcp":
