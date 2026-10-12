@@ -1,9 +1,71 @@
 {
-  "name": "livecut-local-desktop",
-  "version": "0.1.0",
+  "name": "livecut-desktop",
+  "version": "0.3.0",
   "private": true,
-  "description": "Local macOS desktop launcher for LiveCut",
+  "description": "LiveCut local editing workstation",
+  "author": "LiveCut",
+  "main": "desktop/main.cjs",
   "scripts": {
-    "desktop": ".venv/bin/python -m agent_video.desktop"
+    "desktop": "electron .",
+    "build:mobile": "node mobile/build.cjs",
+    "sync:android": "npm run build:mobile && cap sync android",
+    "open:android": "cap open android",
+    "test:editor": "node --test tests/editor-core.test.cjs",
+    "test:cloud": "node tests/cloud-ui.test.cjs",
+    "build:runtime": "node desktop/build-runtime.cjs",
+    "dist:win": "npm run build:runtime && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "npm run build:runtime && electron-builder --mac dmg --publish never",
+    "pack:desktop": "npm run build:runtime && electron-builder --dir --publish never",
+    "postinstall": "install-electron",
+    "test:desktop": "node tests/desktop-ui.test.cjs",
+    "test:product-ui": "node tests/product-ui.test.cjs",
+    "test:desktop-native": "node tests/desktop-native.test.cjs",
+    "desktop:legacy": ".venv/bin/python -m agent_video.desktop"
+  },
+  "build": {
+    "appId": "app.livecut.desktop",
+    "productName": "LiveCut",
+    "directories": {
+      "output": "desktop/dist"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop/runtime",
+        "to": "runtime"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "LiveCut-Setup-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.video",
+      "artifactName": "LiveCut-${version}-${arch}.${ext}",
+      "identity": null
+    }
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/file-transfer": "^2.0.6",
+    "@capacitor/filesystem": "^8.1.4",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/cli": "^8.5.3",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "^0.28.2",
+    "playwright": "1.64.0"
   }
 }

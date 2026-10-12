@@ -1,0 +1,144 @@
+{
+  "title": "【百搭私服】素材1010",
+  "target_seconds": 120,
+  "selected_seconds": 15.76,
+  "target_met": false,
+  "input_usable_clauses": 38,
+  "input_seconds": 70.75,
+  "selected_clause_count": 9,
+  "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\CC7F827A-A507-439b-8B8D-724EB03922A3-c8f1c8287871\\edits\\job_20261010_001209_fddcb9-【百搭私服】素材1010",
+  "paragraphs": [
+    {
+      "section": "开头：裙子搭配",
+      "ids": [
+        22,
+        23
+      ],
+      "text": "姐妹们这条裙子你们后面都可以去搭各种各样的真枝马甲"
+    },
+    {
+      "section": "面料",
+      "ids": [
+        64,
+        65
+      ],
+      "text": "现在这条裙子给大家准备的是高枝羊毛然后做的浑坊"
+    },
+    {
+      "section": "格子与颜色",
+      "ids": [
+        69,
+        71
+      ],
+      "text": "有这种小格子的设计灰色的"
+    },
+    {
+      "section": "秋冬搭配收尾",
+      "ids": [
+        54,
+        55,
+        56
+      ],
+      "text": "这条裙子的话我觉得秋冬的话比较适配的就是一些毛衣的感觉"
+    }
+  ],
+  "segments": [
+    {
+      "id": 22,
+      "section": "开头：裙子搭配",
+      "start": 62.02,
+      "end": 64.3,
+      "output_start": 0,
+      "output_end": 2.28,
+      "duration": 2.28,
+      "text": "姐妹们这条裙子你们后面"
+    },
+    {
+      "id": 23,
+      "section": "开头：裙子搭配",
+      "start": 64.3,
+      "end": 66.28,
+      "output_start": 2.28,
+      "output_end": 4.26,
+      "duration": 1.98,
+      "text": "都可以去搭各种各样的真枝马甲"
+    },
+    {
+      "id": 64,
+      "section": "面料",
+      "start": 145.23,
+      "end": 148.37,
+      "output_start": 4.26,
+      "output_end": 7.4,
+      "duration": 3.14,
+      "text": "现在这条裙子给大家准备的是高枝羊毛"
+    },
+    {
+      "id": 65,
+      "section": "面料",
+      "start": 148.37,
+      "end": 149.61,
+      "output_start": 7.4,
+      "output_end": 8.64,
+      "duration": 1.24,
+      "text": "然后做的浑坊"
+    },
+    {
+      "id": 69,
+      "section": "格子与颜色",
+      "start": 154.23,
+      "end": 155.73,
+      "output_start": 8.64,
+      "output_end": 10.14,
+      "duration": 1.5,
+      "text": "有这种小格子的设计"
+    },
+    {
+      "id": 71,
+      "section": "格子与颜色",
+      "start": 156.73,
+      "end": 157.69,
+      "output_start": 10.14,
+      "output_end": 11.1,
+      "duration": 0.96,
+      "text": "灰色的"
+    },
+    {
+      "id": 54,
+      "section": "秋冬搭配收尾",
+      "start": 128.91,
+      "end": 130.13,
+      "output_start": 11.1,
+      "output_end": 12.32,
+      "duration": 1.22,
+      "text": "这条裙子的话"
+    },
+    {
+      "id": 55,
+      "section": "秋冬搭配收尾",
+      "start": 130.13,
+      "end": 132.07,
+      "output_start": 12.32,
+      "output_end": 14.26,
+      "duration": 1.94,
+      "text": "我觉得秋冬的话比较适配的"
+    },
+    {
+      "id": 56,
+      "section": "秋冬搭配收尾",
+      "start": 132.07,
+      "end": 133.57,
+      "output_start": 14.26,
+      "output_end": 15.76,
+      "duration": 1.5,
+      "text": "就是一些毛衣的感觉"
+    }
+  ],
+  "selection_notes": "剔除“双白者”“色高不高极”等难以理解的转写、换装调度、对比残句以及重复毛衣搭配。原S3全部放行仅70.75秒，无法仅靠选择得到120秒。",
+  "limitations": [
+    "仅文本精选；未听审原音和审核画面。",
+    "保留ASR原始字词，未对错字或术语作猜测改写。",
+    "选取整条S3放行子句，未删改句内字词；时长是所选虚拟时间线口播区间之和。",
+    "目标120秒未达到；不拉长、不循环、不补写、不用垃圾话填充。"
+  ]
+}

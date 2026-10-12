@@ -1,0 +1,261 @@
+{
+  "fingerprint": "f62c0d59014a182228387787c79bc3aa22a73564c05d1e1bce46bfcd89ff90e2",
+  "data": {
+    "main_product": "醋酸小外套",
+    "sections": [
+      {
+        "role": "hook",
+        "ids": [
+          3,
+          4
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          65,
+          28,
+          29,
+          68,
+          329
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          32,
+          33,
+          34,
+          35,
+          36
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          143
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          7,
+          134
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          467,
+          468,
+          469
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          465,
+          13,
+          14
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          392
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          27,
+          37,
+          408
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          284,
+          285
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          276,
+          277
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          479
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          46,
+          47
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          49,
+          50
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          463
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          283
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          398
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          321
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          82,
+          83,
+          84
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          102
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          487,
+          488
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          503
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          462,
+          390,
+          391
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          395,
+          396
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          387
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          412,
+          413,
+          414
+        ]
+      },
+      {
+        "role": "cta",
+        "ids": [
+          495,
+          496
+        ]
+      }
+    ],
+    "ordered_ids": [
+      3,
+      4,
+      65,
+      28,
+      29,
+      68,
+      329,
+      32,
+      33,
+      34,
+      35,
+      36,
+      143,
+      7,
+      134,
+      467,
+      468,
+      469,
+      465,
+      13,
+      14,
+      392,
+      27,
+      37,
+      408,
+      284,
+      285,
+      276,
+      277,
+      479,
+      46,
+      47,
+      49,
+      50,
+      463,
+      283,
+      398,
+      321,
+      82,
+      83,
+      84,
+      102,
+      487,
+      488,
+      503,
+      462,
+      390,
+      391,
+      395,
+      396,
+      387,
+      412,
+      413,
+      414,
+      495,
+      496
+    ]
+  },
+  "usage": {
+    "input_tokens": 15789,
+    "output_tokens": 40060
+  }
+}

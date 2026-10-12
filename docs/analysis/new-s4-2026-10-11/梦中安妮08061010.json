@@ -1,0 +1,305 @@
+{
+  "title": "梦中安妮08061010",
+  "target_seconds": 120,
+  "selected_seconds": 51.36,
+  "target_met": false,
+  "input_usable_clauses": 161,
+  "input_seconds": 321.96,
+  "selected_clause_count": 22,
+  "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\4EEB55EF-F36F-40C4-9B22-BAF6D8CF5C49-e1143851bca9\\edits\\job_20261010_001305_762e3d-梦中安妮08061010",
+  "paragraphs": [
+    {
+      "section": "开头：马甲与外套两件套",
+      "ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "text": "我们是之前一直卖的马甲,然后今年给大家加了一个外套,就是你可以当成两件套来穿,你也可以直接买一个马甲单穿,它真的是好好看,收到了之后一定会感受到它的整个材质,它的质感非常的有感觉,很高级,非常的高级,这个马甲可以一直穿到深冬,你可以搭各种各样的打底梯蓄在里面直接套着穿,外套开衫可以跟马甲做一个两件套的一个叠穿方式。"
+    },
+    {
+      "section": "弹力与针织版型",
+      "ids": [
+        11,
+        12,
+        13
+      ],
+      "text": "衣服有弹性的特别大的弹性它是这种小乡风的真枝你们自己看一下小乡风的真枝带有瘦腰的"
+    },
+    {
+      "section": "金边细节",
+      "ids": [
+        14,
+        15,
+        16
+      ],
+      "text": "看一下它的整个的这种边边的金色的质感这种东西其实我给你们做的这种两件套就是让你们穿的非常显贵奇的"
+    },
+    {
+      "section": "黑白两色",
+      "ids": [
+        30,
+        31
+      ],
+      "text": "白色我觉得就是那种很气质的一个感觉黑色的话就是很显瘦"
+    },
+    {
+      "section": "经典款",
+      "ids": [
+        159
+      ],
+      "text": "这个马甲都是我们的经典款去年一直在卖的"
+    },
+    {
+      "section": "外套单穿与叠穿",
+      "ids": [
+        74,
+        75,
+        235,
+        236
+      ],
+      "text": "可以水洗只穿外套也很好看你裡面可以搭一件小T恤去穿散着穿叠着穿都行"
+    },
+    {
+      "section": "空调房搭配",
+      "ids": [
+        245,
+        246,
+        247,
+        248,
+        249
+      ],
+      "text": "你现在如果空调房你就可以穿这个白开衫穿这白裤子里面可以配一件小T恤配一个小无绣什么的都可以"
+    }
+  ],
+  "segments": [
+    {
+      "id": 0,
+      "section": "开头：马甲与外套两件套",
+      "start": 0.38,
+      "end": 6.34,
+      "output_start": 0,
+      "output_end": 5.96,
+      "duration": 5.96,
+      "text": "我们是之前一直卖的马甲,然后今年给大家加了一个外套,就是你可以当成两件套来"
+    },
+    {
+      "id": 1,
+      "section": "开头：马甲与外套两件套",
+      "start": 6.34,
+      "end": 12.18,
+      "output_start": 5.96,
+      "output_end": 11.8,
+      "duration": 5.84,
+      "text": "穿,你也可以直接买一个马甲单穿,它真的是好好看,收到了之后一定会感受到它的整个材"
+    },
+    {
+      "id": 2,
+      "section": "开头：马甲与外套两件套",
+      "start": 12.18,
+      "end": 16.58,
+      "output_start": 11.8,
+      "output_end": 16.2,
+      "duration": 4.4,
+      "text": "质,它的质感非常的有感觉,很高级,非常的高级,这个马甲可以一直穿到深冬,"
+    },
+    {
+      "id": 3,
+      "section": "开头：马甲与外套两件套",
+      "start": 16.68,
+      "end": 22.06,
+      "output_start": 16.2,
+      "output_end": 21.58,
+      "duration": 5.38,
+      "text": "你可以搭各种各样的打底梯蓄在里面直接套着穿,外套开衫可以跟马甲做一个两件套的一个叠穿方式。"
+    },
+    {
+      "id": 11,
+      "section": "弹力与针织版型",
+      "start": 42.98,
+      "end": 44.6,
+      "output_start": 21.58,
+      "output_end": 23.2,
+      "duration": 1.62,
+      "text": "衣服有弹性的特别大的弹性"
+    },
+    {
+      "id": 12,
+      "section": "弹力与针织版型",
+      "start": 45.1,
+      "end": 47.74,
+      "output_start": 23.2,
+      "output_end": 25.84,
+      "duration": 2.64,
+      "text": "它是这种小乡风的真枝你们自己看一下"
+    },
+    {
+      "id": 13,
+      "section": "弹力与针织版型",
+      "start": 48.75,
+      "end": 50.47,
+      "output_start": 25.84,
+      "output_end": 27.56,
+      "duration": 1.72,
+      "text": "小乡风的真枝带有瘦腰的"
+    },
+    {
+      "id": 14,
+      "section": "金边细节",
+      "start": 51.11,
+      "end": 53.31,
+      "output_start": 27.56,
+      "output_end": 29.76,
+      "duration": 2.2,
+      "text": "看一下它的整个的这种边边的金色的质感"
+    },
+    {
+      "id": 15,
+      "section": "金边细节",
+      "start": 53.59,
+      "end": 55.49,
+      "output_start": 29.76,
+      "output_end": 31.66,
+      "duration": 1.9,
+      "text": "这种东西其实我给你们做的这种两件套"
+    },
+    {
+      "id": 16,
+      "section": "金边细节",
+      "start": 55.49,
+      "end": 57.39,
+      "output_start": 31.66,
+      "output_end": 33.56,
+      "duration": 1.9,
+      "text": "就是让你们穿的非常显贵奇的"
+    },
+    {
+      "id": 30,
+      "section": "黑白两色",
+      "start": 126.84,
+      "end": 129.34,
+      "output_start": 33.56,
+      "output_end": 36.06,
+      "duration": 2.5,
+      "text": "白色我觉得就是那种很气质的一个感觉"
+    },
+    {
+      "id": 31,
+      "section": "黑白两色",
+      "start": 129.34,
+      "end": 130.98,
+      "output_start": 36.06,
+      "output_end": 37.7,
+      "duration": 1.64,
+      "text": "黑色的话就是很显瘦"
+    },
+    {
+      "id": 159,
+      "section": "经典款",
+      "start": 452.42,
+      "end": 455.06,
+      "output_start": 37.7,
+      "output_end": 40.34,
+      "duration": 2.64,
+      "text": "这个马甲都是我们的经典款去年一直在卖的"
+    },
+    {
+      "id": 74,
+      "section": "外套单穿与叠穿",
+      "start": 289.82,
+      "end": 291.8,
+      "output_start": 40.34,
+      "output_end": 42.32,
+      "duration": 1.98,
+      "text": "可以水洗只穿外套也很好看"
+    },
+    {
+      "id": 75,
+      "section": "外套单穿与叠穿",
+      "start": 291.8,
+      "end": 293.16,
+      "output_start": 42.32,
+      "output_end": 43.68,
+      "duration": 1.36,
+      "text": "你裡面可以搭一件小T恤去穿"
+    },
+    {
+      "id": 235,
+      "section": "外套单穿与叠穿",
+      "start": 673.2,
+      "end": 674.08,
+      "output_start": 43.68,
+      "output_end": 44.56,
+      "duration": 0.88,
+      "text": "散着穿"
+    },
+    {
+      "id": 236,
+      "section": "外套单穿与叠穿",
+      "start": 674.08,
+      "end": 674.94,
+      "output_start": 44.56,
+      "output_end": 45.42,
+      "duration": 0.86,
+      "text": "叠着穿都行"
+    },
+    {
+      "id": 245,
+      "section": "空调房搭配",
+      "start": 688.72,
+      "end": 690.02,
+      "output_start": 45.42,
+      "output_end": 46.72,
+      "duration": 1.3,
+      "text": "你现在如果空调房"
+    },
+    {
+      "id": 246,
+      "section": "空调房搭配",
+      "start": 690.02,
+      "end": 691.06,
+      "output_start": 46.72,
+      "output_end": 47.76,
+      "duration": 1.04,
+      "text": "你就可以穿这个白开衫"
+    },
+    {
+      "id": 247,
+      "section": "空调房搭配",
+      "start": 691.06,
+      "end": 692.0,
+      "output_start": 47.76,
+      "output_end": 48.7,
+      "duration": 0.94,
+      "text": "穿这白裤子里面"
+    },
+    {
+      "id": 248,
+      "section": "空调房搭配",
+      "start": 692.0,
+      "end": 692.92,
+      "output_start": 48.7,
+      "output_end": 49.62,
+      "duration": 0.92,
+      "text": "可以配一件小T恤"
+    },
+    {
+      "id": 249,
+      "section": "空调房搭配",
+      "start": 692.92,
+      "end": 694.66,
+      "output_start": 49.62,
+      "output_end": 51.36,
+      "duration": 1.74,
+      "text": "配一个小无绣什么的都可以"
+    }
+  ],
+  "selection_notes": "保留开头0–3的完整连续表达，避免“来/穿”和“材/质”断开。剔除厚度重复问答、场控、独立裤子推销、尺码回答及制作周期闲聊。空调房段保留明确的开衫、裤子、内搭搭配原话，不给模糊衣物指代强行归属。",
+  "limitations": [
+    "仅文本精选；未听审原音和审核画面。",
+    "保留ASR原始字词，未对错字或术语作猜测改写。",
+    "选取整条S3放行子句，未删改句内字词；时长是所选虚拟时间线口播区间之和。",
+    "目标120秒未达到；不拉长、不循环、不补写、不用垃圾话填充。"
+  ]
+}

@@ -1,0 +1,458 @@
+{
+  "title": "【百搭私服】素材1010",
+  "revision": "v2",
+  "target_seconds": 120,
+  "selected_seconds": 31.76,
+  "near_120_seconds": false,
+  "input_usable_clauses": 38,
+  "input_seconds": 70.75,
+  "selected_clause_count": 20,
+  "narrative_blocks": 7,
+  "contiguous_source_clips": 9,
+  "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\CC7F827A-A507-439b-8B8D-724EB03922A3-c8f1c8287871\\edits\\job_20261010_001209_fddcb9-【百搭私服】素材1010",
+  "selection_notes": "保留完整的风格、宽松试穿感与面料说明，容忍少量ASR同音字。仍排除换装调度77、拿马甲57、孤立“它是小细节”68、“色高不高极”82以及48–49缺参照的比较。没有把裤装调度45–47拼成裙子卖点。",
+  "review_needed": [
+    "真枝、简凌、muse、高枝、浑坊、千尿格等字词保持原样；“很muse的风格”未猜成具体品牌。"
+  ],
+  "paragraphs": [
+    {
+      "section": "裙子与针织马甲",
+      "ids": [
+        22,
+        23
+      ],
+      "text": "姐妹们这条裙子你们后面，都可以去搭各种各样的真枝马甲。",
+      "seconds": 4.26
+    },
+    {
+      "section": "穿法风格",
+      "ids": [
+        38,
+        39,
+        40
+      ],
+      "text": "而且就这种穿法的话，其实就是很简凌，很muse的那个风格。",
+      "seconds": 3.7
+    },
+    {
+      "section": "主播试穿宽松感",
+      "ids": [
+        63
+      ],
+      "text": "就是对我穿是有点肥了。",
+      "seconds": 1.74
+    },
+    {
+      "section": "羊毛混纺、格子与灰色",
+      "ids": [
+        64,
+        65,
+        66,
+        69,
+        70,
+        71
+      ],
+      "text": "现在这条裙子给大家准备的是高枝羊毛，然后做的浑坊，而且它是千尿格的一个设计，有这种小格子的设计，所以它非常好看，灰色的。",
+      "seconds": 10.02
+    },
+    {
+      "section": "毛衣搭配",
+      "ids": [
+        33,
+        34,
+        35
+      ],
+      "text": "这小裙子我告诉你，就搭各种各样的毛衣，真的很好看。",
+      "seconds": 3.6
+    },
+    {
+      "section": "毛衣与小打底",
+      "ids": [
+        50,
+        59
+      ],
+      "text": "然后外面再可以穿一件毛衣，小打底也是很好看的。",
+      "seconds": 3.78
+    },
+    {
+      "section": "秋冬搭配收尾",
+      "ids": [
+        54,
+        55,
+        56
+      ],
+      "text": "这条裙子的话，我觉得秋冬的话比较适配的，就是一些毛衣的感觉。",
+      "seconds": 4.66
+    }
+  ],
+  "segments": [
+    {
+      "id": 22,
+      "section": 1,
+      "start": 62.02,
+      "end": 64.3,
+      "text": "姐妹们这条裙子你们后面",
+      "output_start": 0.0,
+      "output_end": 2.28
+    },
+    {
+      "id": 23,
+      "section": 1,
+      "start": 64.3,
+      "end": 66.28,
+      "text": "都可以去搭各种各样的真枝马甲",
+      "output_start": 2.28,
+      "output_end": 4.26
+    },
+    {
+      "id": 38,
+      "section": 2,
+      "start": 94.92,
+      "end": 96.3,
+      "text": "而且就这种穿法的话",
+      "output_start": 4.26,
+      "output_end": 5.64
+    },
+    {
+      "id": 39,
+      "section": 2,
+      "start": 96.3,
+      "end": 97.3,
+      "text": "其实就是很简凌",
+      "output_start": 5.64,
+      "output_end": 6.64
+    },
+    {
+      "id": 40,
+      "section": 2,
+      "start": 97.3,
+      "end": 98.62,
+      "text": "很muse的那个风格",
+      "output_start": 6.64,
+      "output_end": 7.96
+    },
+    {
+      "id": 63,
+      "section": 3,
+      "start": 143.49,
+      "end": 145.23,
+      "text": "就是对我穿是有点肥了",
+      "output_start": 7.96,
+      "output_end": 9.7
+    },
+    {
+      "id": 64,
+      "section": 4,
+      "start": 145.23,
+      "end": 148.37,
+      "text": "现在这条裙子给大家准备的是高枝羊毛",
+      "output_start": 9.7,
+      "output_end": 12.84
+    },
+    {
+      "id": 65,
+      "section": 4,
+      "start": 148.37,
+      "end": 149.61,
+      "text": "然后做的浑坊",
+      "output_start": 12.84,
+      "output_end": 14.08
+    },
+    {
+      "id": 66,
+      "section": 4,
+      "start": 149.61,
+      "end": 151.79,
+      "text": "而且它是千尿格的一个设计",
+      "output_start": 14.08,
+      "output_end": 16.26
+    },
+    {
+      "id": 69,
+      "section": 4,
+      "start": 154.23,
+      "end": 155.73,
+      "text": "有这种小格子的设计",
+      "output_start": 16.26,
+      "output_end": 17.76
+    },
+    {
+      "id": 70,
+      "section": 4,
+      "start": 155.73,
+      "end": 156.73,
+      "text": "所以它非常好看",
+      "output_start": 17.76,
+      "output_end": 18.76
+    },
+    {
+      "id": 71,
+      "section": 4,
+      "start": 156.73,
+      "end": 157.69,
+      "text": "灰色的",
+      "output_start": 18.76,
+      "output_end": 19.72
+    },
+    {
+      "id": 33,
+      "section": 5,
+      "start": 86.52,
+      "end": 87.88,
+      "text": "这小裙子我告诉你",
+      "output_start": 19.72,
+      "output_end": 21.08
+    },
+    {
+      "id": 34,
+      "section": 5,
+      "start": 87.88,
+      "end": 89.16,
+      "text": "就搭各种各样的毛衣",
+      "output_start": 21.08,
+      "output_end": 22.36
+    },
+    {
+      "id": 35,
+      "section": 5,
+      "start": 89.16,
+      "end": 90.12,
+      "text": "真的很好看",
+      "output_start": 22.36,
+      "output_end": 23.32
+    },
+    {
+      "id": 50,
+      "section": 6,
+      "start": 117.17,
+      "end": 119.63,
+      "text": "然后外面再可以穿一件毛衣",
+      "output_start": 23.32,
+      "output_end": 25.78
+    },
+    {
+      "id": 59,
+      "section": 6,
+      "start": 137.35,
+      "end": 138.67,
+      "text": "小打底也是很好看的",
+      "output_start": 25.78,
+      "output_end": 27.1
+    },
+    {
+      "id": 54,
+      "section": 7,
+      "start": 128.91,
+      "end": 130.13,
+      "text": "这条裙子的话",
+      "output_start": 27.1,
+      "output_end": 28.32
+    },
+    {
+      "id": 55,
+      "section": 7,
+      "start": 130.13,
+      "end": 132.07,
+      "text": "我觉得秋冬的话比较适配的",
+      "output_start": 28.32,
+      "output_end": 30.26
+    },
+    {
+      "id": 56,
+      "section": 7,
+      "start": 132.07,
+      "end": 133.57,
+      "text": "就是一些毛衣的感觉",
+      "output_start": 30.26,
+      "output_end": 31.76
+    }
+  ],
+  "clips": [
+    {
+      "section": 1,
+      "ids": [
+        22,
+        23
+      ],
+      "start": 62.02,
+      "end": 66.28,
+      "text": "姐妹们这条裙子你们后面都可以去搭各种各样的真枝马甲"
+    },
+    {
+      "section": 2,
+      "ids": [
+        38,
+        39,
+        40
+      ],
+      "start": 94.92,
+      "end": 98.62,
+      "text": "而且就这种穿法的话其实就是很简凌很muse的那个风格"
+    },
+    {
+      "section": 3,
+      "ids": [
+        63
+      ],
+      "start": 143.49,
+      "end": 145.23,
+      "text": "就是对我穿是有点肥了"
+    },
+    {
+      "section": 4,
+      "ids": [
+        64,
+        65,
+        66
+      ],
+      "start": 145.23,
+      "end": 151.79,
+      "text": "现在这条裙子给大家准备的是高枝羊毛然后做的浑坊而且它是千尿格的一个设计"
+    },
+    {
+      "section": 4,
+      "ids": [
+        69,
+        70,
+        71
+      ],
+      "start": 154.23,
+      "end": 157.69,
+      "text": "有这种小格子的设计所以它非常好看灰色的"
+    },
+    {
+      "section": 5,
+      "ids": [
+        33,
+        34,
+        35
+      ],
+      "start": 86.52,
+      "end": 90.12,
+      "text": "这小裙子我告诉你就搭各种各样的毛衣真的很好看"
+    },
+    {
+      "section": 6,
+      "ids": [
+        50
+      ],
+      "start": 117.17,
+      "end": 119.63,
+      "text": "然后外面再可以穿一件毛衣"
+    },
+    {
+      "section": 6,
+      "ids": [
+        59
+      ],
+      "start": 137.35,
+      "end": 138.67,
+      "text": "小打底也是很好看的"
+    },
+    {
+      "section": 7,
+      "ids": [
+        54,
+        55,
+        56
+      ],
+      "start": 128.91,
+      "end": 133.57,
+      "text": "这条裙子的话我觉得秋冬的话比较适配的就是一些毛衣的感觉"
+    }
+  ],
+  "not_selected": [
+    {
+      "id": 21,
+      "text": "对我们用的是高枝的羊毛",
+      "seconds": 3.0
+    },
+    {
+      "id": 36,
+      "text": "非常非常的好看",
+      "seconds": 1.3
+    },
+    {
+      "id": 37,
+      "text": "非常因私的一个小裙子",
+      "seconds": 2.46
+    },
+    {
+      "id": 41,
+      "text": "很muse的感觉",
+      "seconds": 1.46
+    },
+    {
+      "id": 45,
+      "text": "配一下皮裤都能配很好看",
+      "seconds": 2.08
+    },
+    {
+      "id": 46,
+      "text": "但是我不给你配皮",
+      "seconds": 0.9
+    },
+    {
+      "id": 47,
+      "text": "我给你们配个西装裤穿的",
+      "seconds": 1.56
+    },
+    {
+      "id": 48,
+      "text": "这个其实跟我之前穿P的",
+      "seconds": 5.17
+    },
+    {
+      "id": 49,
+      "text": "那个感觉很像的",
+      "seconds": 1.34
+    },
+    {
+      "id": 52,
+      "text": "穿上毛衣的感觉就这样对吧裙子来",
+      "seconds": 5.72
+    },
+    {
+      "id": 57,
+      "text": "可以搭你各种各样帮我的毛衣马甲拿来",
+      "seconds": 2.42
+    },
+    {
+      "id": 58,
+      "text": "有个100毛的羊毛马甲",
+      "seconds": 1.36
+    },
+    {
+      "id": 62,
+      "text": "裙子是双白者的",
+      "seconds": 1.78
+    },
+    {
+      "id": 68,
+      "text": "它是小细节",
+      "seconds": 1.08
+    },
+    {
+      "id": 75,
+      "text": "直接配这个就可以",
+      "seconds": 1.0
+    },
+    {
+      "id": 77,
+      "text": "你也可以把里面换成黑色衬衫一会儿我给你们换一下黑衬衫",
+      "seconds": 4.08
+    },
+    {
+      "id": 78,
+      "text": "就像这种感觉搭",
+      "seconds": 1.32
+    },
+    {
+      "id": 82,
+      "text": "色高不高极",
+      "seconds": 0.96
+    }
+  ],
+  "publish_ready": false,
+  "limitations": "文本实验；未回听原音、审核画面或渲染；时长是选中原话区间之和；模糊商品指代不强行归属。"
+}

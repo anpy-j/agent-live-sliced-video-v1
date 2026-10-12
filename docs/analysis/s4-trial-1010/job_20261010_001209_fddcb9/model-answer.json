@@ -1,0 +1,60 @@
+{
+  "main_product": "裙子",
+  "sections": [
+    {
+      "role": "selling_point",
+      "ids": [
+        64,
+        65
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        66
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        23
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        50
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        45
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        59
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        55,
+        56
+      ]
+    }
+  ],
+  "ordered_ids": [
+    64,
+    65,
+    66,
+    23,
+    50,
+    45,
+    59,
+    55,
+    56
+  ]
+}

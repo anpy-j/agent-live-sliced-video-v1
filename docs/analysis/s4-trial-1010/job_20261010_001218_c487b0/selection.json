@@ -1,0 +1,426 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "蛋白皮裙",
+  "sections": [
+    {
+      "role": "styling",
+      "ids": [
+        19
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        25
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        27,
+        28,
+        29
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        42
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        55,
+        56,
+        57
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        60
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        61,
+        65
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        106,
+        107
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        117
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        123
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        124,
+        125,
+        126
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        127,
+        128
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        129,
+        130
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        139,
+        140
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        143
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        144
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        145
+      ]
+    }
+  ],
+  "ordered_ids": [
+    19,
+    21,
+    22,
+    23,
+    25,
+    27,
+    28,
+    29,
+    42,
+    55,
+    56,
+    57,
+    60,
+    61,
+    65,
+    106,
+    107,
+    117,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    139,
+    140,
+    143,
+    144,
+    145
+  ],
+  "total_seconds": 48.66,
+  "selected_clauses": [
+    {
+      "id": 19,
+      "start": 32.42,
+      "end": 34.02,
+      "text": "搭你所有的毛衣毛衫都很好看",
+      "members": [
+        19
+      ],
+      "group": 0,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 21,
+      "start": 35.34,
+      "end": 40.54,
+      "text": "后腰有松紧的上身数据度非常的高而且把你的腰显得特别细你的肚子大的根本看不到",
+      "members": [
+        21,
+        22,
+        23
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 25,
+      "start": 41.42,
+      "end": 43.56,
+      "text": "现在这个季节刚好穿里面搭上司法去穿",
+      "members": [
+        25
+      ],
+      "group": 2,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 27,
+      "start": 45.46,
+      "end": 50.44,
+      "text": "上1米592斤可以穿最小码我上身就是最小码的裙子都带松紧腰的",
+      "members": [
+        27,
+        28,
+        29
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 42,
+      "start": 80.33,
+      "end": 81.83,
+      "text": "你这种你配个小腰带就行",
+      "members": [
+        42
+      ],
+      "group": 4,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 55,
+      "start": 104.26,
+      "end": 107.74,
+      "text": "裙子的面料是蛋白的优质蛋白蛋白纤维提取物",
+      "members": [
+        55,
+        56,
+        57
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 60,
+      "start": 111.32,
+      "end": 112.6,
+      "text": "扎一点我都给我送回来",
+      "members": [
+        60
+      ],
+      "group": 6,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 61,
+      "start": 112.6,
+      "end": 113.66,
+      "text": "面料的话非常舒服",
+      "members": [
+        61
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 65,
+      "start": 120.9,
+      "end": 122.84,
+      "text": "阿玛裙子拍一小裙子超级的软",
+      "members": [
+        65
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 106,
+      "start": 205.82,
+      "end": 206.82,
+      "text": "裙子腰围有弹力",
+      "members": [
+        106
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 107,
+      "start": 209.2,
+      "end": 210.78,
+      "text": "所以你卡码一定要玩小牌",
+      "members": [
+        107
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 117,
+      "start": 229.01,
+      "end": 230.13,
+      "text": "蛋白皮不是皮优",
+      "members": [
+        117
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 123,
+      "start": 239.25,
+      "end": 241.09,
+      "text": "这个衣服其实特别适合冬天穿",
+      "members": [
+        123
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 124,
+      "start": 241.09,
+      "end": 245.33,
+      "text": "一点都不冰它不是冰丝的它不是夏天我们买的那种冰丝",
+      "members": [
+        124,
+        125,
+        126
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 127,
+      "start": 245.33,
+      "end": 246.67,
+      "text": "它是高弹的看到没",
+      "members": [
+        127
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 128,
+      "start": 247.05,
+      "end": 248.31,
+      "text": "它的弹力是特别舒服",
+      "members": [
+        128
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 129,
+      "start": 248.31,
+      "end": 252.51,
+      "text": "它不冰而且它不粘毛明白吗你冬天穿任何大一袋毛毛的它不粘",
+      "members": [
+        129,
+        130
+      ],
+      "group": 13,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 139,
+      "start": 277.65,
+      "end": 280.31,
+      "text": "你看你秋冬你就搭软靴去配这种裙子",
+      "members": [
+        139,
+        140
+      ],
+      "group": 14,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 143,
+      "start": 286.81,
+      "end": 287.83,
+      "text": "裙子就是冬天穿的",
+      "members": [
+        143
+      ],
+      "group": 15,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 144,
+      "start": 288.62,
+      "end": 291.42,
+      "text": "你所有的这种小外套感觉的都可以去配这条裙子",
+      "members": [
+        144
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 145,
+      "start": 291.42,
+      "end": 293.84,
+      "text": "这条裙子的材质就是那种很有质感",
+      "members": [
+        145
+      ],
+      "group": 17,
+      "role": "selling_point",
+      "usable": true
+    }
+  ]
+}

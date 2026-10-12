@@ -1,5 +1,7 @@
 # LiveCut 女装切片 Agent
 
+云端成片管理及 Android 构建见 [LIVECUT_CLOUD.md](docs/LIVECUT_CLOUD.md)。后端接入现有千川项目，桌面与 APK 共享云端模块。
+
 一个本地优先、模型可配置的女装直播切片 Agent。转写、文本筛查、切点对齐、音画双轨混剪和渲染由项目内置执行内核完成，并通过 MCP 供 WorkBuddy、Codex、Antigravity、OpenCode 等客户端触发。
 
 ## 核心能力
@@ -17,6 +19,8 @@
 - 已发布成片重组：导入同商品的剪映集合时间线，以现有片段为单位，仅按口播文字去重、动态分类与重排
 
 ## 启动
+
+桌面开发版使用 `npm ci` 安装依赖后运行 `npm run desktop`（Electron）。macOS 会继续使用已有 LiveCut 数据目录和项目 `.venv`；先关闭旧桌面端。完整环境与原桌面端入口见 [DESKTOP.md](DESKTOP.md)。剪映草稿支持 V1/V2/V3，版本来源与共享范围见 [docs/pipeline-versions.md](docs/pipeline-versions.md)。
 
 首次使用时建议建立独立 Python 3.13 环境安装项目与引擎依赖。
 

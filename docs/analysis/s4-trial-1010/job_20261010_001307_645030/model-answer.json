@@ -1,0 +1,196 @@
+{
+  "main_product": "马甲",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        6
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        15,
+        16
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        161,
+        162,
+        163
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30,
+        31
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        42,
+        46
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        74,
+        75
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        186
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        81,
+        82,
+        83
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        84,
+        85
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        88,
+        89,
+        90
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        91,
+        92,
+        94,
+        95
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        115,
+        116
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        121,
+        122,
+        123
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        132,
+        133
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        171,
+        172
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        296,
+        297
+      ]
+    }
+  ],
+  "ordered_ids": [
+    0,
+    1,
+    2,
+    3,
+    6,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    161,
+    162,
+    163,
+    30,
+    31,
+    42,
+    46,
+    69,
+    74,
+    75,
+    186,
+    81,
+    82,
+    83,
+    84,
+    85,
+    88,
+    89,
+    90,
+    91,
+    92,
+    94,
+    95,
+    115,
+    116,
+    121,
+    122,
+    123,
+    132,
+    133,
+    171,
+    172,
+    296,
+    297
+  ]
+}

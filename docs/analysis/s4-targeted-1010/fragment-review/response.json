@@ -1,0 +1,172 @@
+{
+  "fingerprint": "a628128db8d8dfdb6c7988576c0c2a0377f710965e681367d793ca0211ec2e7a",
+  "data": {
+    "keep": [
+      {
+        "key": "job_20261010_001322_ddf5be:51",
+        "need": "suffix"
+      },
+      {
+        "key": "job_20261010_001322_ddf5be:58",
+        "need": "suffix"
+      },
+      {
+        "key": "job_20261010_001322_ddf5be:129",
+        "need": "suffix"
+      },
+      {
+        "key": "job_20261010_001248_b18cb0:135",
+        "need": "suffix"
+      },
+      {
+        "key": "job_20261010_001248_b18cb0:480",
+        "need": "suffix"
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 5487,
+    "output_tokens": 3877
+  },
+  "usage_fields": [
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens",
+      "value": 5487
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens",
+      "value": 3877
+    },
+    {
+      "path": "$[2].providerData.rawUsage.total_tokens",
+      "value": 9364
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 3707
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 5359
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_thinking_tokens",
+      "value": 3707
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.usage.inputTokens",
+      "value": 5487
+    },
+    {
+      "path": "$[2].providerData.usage.outputTokens",
+      "value": 3877
+    },
+    {
+      "path": "$[2].providerData.usage.totalTokens",
+      "value": 9364
+    },
+    {
+      "path": "$[2].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[2].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 3707
+    },
+    {
+      "path": "$[4].duration_ms",
+      "value": 18672
+    },
+    {
+      "path": "$[4].duration_api_ms",
+      "value": 18669
+    },
+    {
+      "path": "$[4].num_turns",
+      "value": 4
+    },
+    {
+      "path": "$[4].usage.input_tokens",
+      "value": 5487
+    },
+    {
+      "path": "$[4].usage.output_tokens",
+      "value": 3877
+    },
+    {
+      "path": "$[4].usage.cache_creation_input_tokens",
+      "value": 5359
+    },
+    {
+      "path": "$[4].usage.cache_read_input_tokens",
+      "value": 128
+    }
+  ],
+  "envelope_keys": [],
+  "settings": {
+    "effort": "low",
+    "max_output_tokens": 6000,
+    "max_thinking_tokens": 2048,
+    "max_turns": 2
+  },
+  "seconds": 21.94,
+  "final_json_characters": 313,
+  "error_subtype": null,
+  "is_error": null
+}

@@ -1,0 +1,29 @@
+{
+  "reviewed_count": 15,
+  "kept": [
+    {
+      "key": "job_20261010_001322_ddf5be:51",
+      "need": "suffix"
+    },
+    {
+      "key": "job_20261010_001322_ddf5be:58",
+      "need": "suffix"
+    },
+    {
+      "key": "job_20261010_001322_ddf5be:129",
+      "need": "suffix"
+    },
+    {
+      "key": "job_20261010_001248_b18cb0:135",
+      "need": "suffix"
+    },
+    {
+      "key": "job_20261010_001248_b18cb0:480",
+      "need": "suffix"
+    }
+  ],
+  "usage": {
+    "input_tokens": 5487,
+    "output_tokens": 3877
+  }
+}

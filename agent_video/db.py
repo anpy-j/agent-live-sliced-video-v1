@@ -17,7 +17,7 @@ STAGE_DEFINITIONS = [
     ("asr", "语音转写与切分", 20),
     ("filter", "规则粗筛", 40),
     ("judge", "AI 可用性判定", 60),
-    ("order", "AI 排序编排", 80),
+    ("order", "AI 精选编排", 80),
     ("render", "渲染成片", 100),
 ]
 

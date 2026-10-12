@@ -1,0 +1,605 @@
+{
+  "fingerprint": "62ad378733373df4b0d4e5c7394c6fae68fd32845120cba053f6d4f104f2007e",
+  "data": {
+    "usable_ids": [
+      2,
+      4,
+      5,
+      9,
+      10,
+      16,
+      17,
+      24,
+      28,
+      29,
+      30,
+      36,
+      37,
+      42,
+      43,
+      45,
+      49,
+      54,
+      55,
+      56,
+      57,
+      59,
+      68,
+      69,
+      70,
+      71,
+      82,
+      83,
+      84,
+      97,
+      125,
+      126,
+      127,
+      128,
+      129,
+      133,
+      134,
+      135,
+      136,
+      141,
+      154,
+      155,
+      156,
+      157,
+      158,
+      160,
+      161,
+      162,
+      166,
+      170,
+      173,
+      174,
+      175,
+      182,
+      183,
+      184,
+      198,
+      199,
+      200,
+      215,
+      216,
+      217,
+      223,
+      224,
+      225,
+      226,
+      227,
+      229,
+      230,
+      231,
+      237,
+      258,
+      259,
+      260,
+      265,
+      266,
+      267,
+      268,
+      269,
+      275,
+      276,
+      281,
+      282,
+      283,
+      288,
+      289,
+      293,
+      295,
+      296,
+      298,
+      300,
+      304,
+      305,
+      307,
+      314,
+      315,
+      316,
+      317,
+      321,
+      322,
+      323,
+      330,
+      332,
+      340,
+      353,
+      354,
+      367,
+      368,
+      370,
+      371,
+      378,
+      379,
+      380,
+      381,
+      382,
+      383,
+      385,
+      386,
+      387,
+      388,
+      389,
+      392,
+      393,
+      395,
+      396,
+      397,
+      399,
+      400,
+      402,
+      403,
+      405,
+      406,
+      407,
+      408,
+      409,
+      410,
+      411,
+      412,
+      415,
+      416,
+      419,
+      424,
+      445,
+      446,
+      447,
+      452,
+      453,
+      454,
+      455,
+      456,
+      457,
+      469,
+      471,
+      475,
+      476,
+      481,
+      482,
+      487,
+      488,
+      489
+    ],
+    "fragments": [
+      {
+        "id": 2,
+        "need": "both"
+      },
+      {
+        "id": 4,
+        "need": "prefix"
+      },
+      {
+        "id": 5,
+        "need": "both"
+      },
+      {
+        "id": 9,
+        "need": "suffix"
+      },
+      {
+        "id": 16,
+        "need": "prefix"
+      },
+      {
+        "id": 17,
+        "need": "prefix"
+      },
+      {
+        "id": 29,
+        "need": "prefix"
+      },
+      {
+        "id": 36,
+        "need": "prefix"
+      },
+      {
+        "id": 37,
+        "need": "prefix"
+      },
+      {
+        "id": 42,
+        "need": "prefix"
+      },
+      {
+        "id": 43,
+        "need": "prefix"
+      },
+      {
+        "id": 45,
+        "need": "prefix"
+      },
+      {
+        "id": 49,
+        "need": "prefix"
+      },
+      {
+        "id": 54,
+        "need": "prefix"
+      },
+      {
+        "id": 55,
+        "need": "prefix"
+      },
+      {
+        "id": 56,
+        "need": "prefix"
+      },
+      {
+        "id": 57,
+        "need": "prefix"
+      },
+      {
+        "id": 59,
+        "need": "suffix"
+      },
+      {
+        "id": 68,
+        "need": "prefix"
+      },
+      {
+        "id": 69,
+        "need": "prefix"
+      },
+      {
+        "id": 70,
+        "need": "prefix"
+      },
+      {
+        "id": 71,
+        "need": "suffix"
+      },
+      {
+        "id": 82,
+        "need": "prefix"
+      },
+      {
+        "id": 83,
+        "need": "prefix"
+      },
+      {
+        "id": 84,
+        "need": "prefix"
+      },
+      {
+        "id": 97,
+        "need": "prefix"
+      },
+      {
+        "id": 125,
+        "need": "prefix"
+      },
+      {
+        "id": 126,
+        "need": "prefix"
+      },
+      {
+        "id": 127,
+        "need": "prefix"
+      },
+      {
+        "id": 128,
+        "need": "prefix"
+      },
+      {
+        "id": 135,
+        "need": "suffix"
+      },
+      {
+        "id": 136,
+        "need": "prefix"
+      },
+      {
+        "id": 141,
+        "need": "prefix"
+      },
+      {
+        "id": 154,
+        "need": "suffix"
+      },
+      {
+        "id": 155,
+        "need": "prefix"
+      },
+      {
+        "id": 157,
+        "need": "suffix"
+      },
+      {
+        "id": 158,
+        "need": "prefix"
+      },
+      {
+        "id": 160,
+        "need": "suffix"
+      },
+      {
+        "id": 161,
+        "need": "prefix"
+      },
+      {
+        "id": 162,
+        "need": "prefix"
+      },
+      {
+        "id": 170,
+        "need": "prefix"
+      },
+      {
+        "id": 173,
+        "need": "prefix"
+      },
+      {
+        "id": 174,
+        "need": "prefix"
+      },
+      {
+        "id": 175,
+        "need": "prefix"
+      },
+      {
+        "id": 182,
+        "need": "prefix"
+      },
+      {
+        "id": 198,
+        "need": "prefix"
+      },
+      {
+        "id": 199,
+        "need": "suffix"
+      },
+      {
+        "id": 200,
+        "need": "prefix"
+      },
+      {
+        "id": 215,
+        "need": "suffix"
+      },
+      {
+        "id": 216,
+        "need": "prefix"
+      },
+      {
+        "id": 217,
+        "need": "prefix"
+      },
+      {
+        "id": 223,
+        "need": "prefix"
+      },
+      {
+        "id": 225,
+        "need": "suffix"
+      },
+      {
+        "id": 226,
+        "need": "prefix"
+      },
+      {
+        "id": 227,
+        "need": "suffix"
+      },
+      {
+        "id": 229,
+        "need": "prefix"
+      },
+      {
+        "id": 230,
+        "need": "prefix"
+      },
+      {
+        "id": 231,
+        "need": "prefix"
+      },
+      {
+        "id": 237,
+        "need": "prefix"
+      },
+      {
+        "id": 266,
+        "need": "suffix"
+      },
+      {
+        "id": 267,
+        "need": "prefix"
+      },
+      {
+        "id": 275,
+        "need": "prefix"
+      },
+      {
+        "id": 276,
+        "need": "prefix"
+      },
+      {
+        "id": 293,
+        "need": "prefix"
+      },
+      {
+        "id": 295,
+        "need": "prefix"
+      },
+      {
+        "id": 298,
+        "need": "suffix"
+      },
+      {
+        "id": 300,
+        "need": "prefix"
+      },
+      {
+        "id": 304,
+        "need": "suffix"
+      },
+      {
+        "id": 305,
+        "need": "prefix"
+      },
+      {
+        "id": 307,
+        "need": "prefix"
+      },
+      {
+        "id": 314,
+        "need": "prefix"
+      },
+      {
+        "id": 316,
+        "need": "prefix"
+      },
+      {
+        "id": 317,
+        "need": "prefix"
+      },
+      {
+        "id": 321,
+        "need": "suffix"
+      },
+      {
+        "id": 322,
+        "need": "prefix"
+      },
+      {
+        "id": 323,
+        "need": "prefix"
+      },
+      {
+        "id": 330,
+        "need": "prefix"
+      },
+      {
+        "id": 332,
+        "need": "prefix"
+      },
+      {
+        "id": 340,
+        "need": "prefix"
+      },
+      {
+        "id": 353,
+        "need": "suffix"
+      },
+      {
+        "id": 354,
+        "need": "prefix"
+      },
+      {
+        "id": 368,
+        "need": "prefix"
+      },
+      {
+        "id": 370,
+        "need": "prefix"
+      },
+      {
+        "id": 385,
+        "need": "prefix"
+      },
+      {
+        "id": 386,
+        "need": "suffix"
+      },
+      {
+        "id": 388,
+        "need": "prefix"
+      },
+      {
+        "id": 393,
+        "need": "prefix"
+      },
+      {
+        "id": 395,
+        "need": "prefix"
+      },
+      {
+        "id": 396,
+        "need": "suffix"
+      },
+      {
+        "id": 397,
+        "need": "prefix"
+      },
+      {
+        "id": 402,
+        "need": "prefix"
+      },
+      {
+        "id": 403,
+        "need": "prefix"
+      },
+      {
+        "id": 405,
+        "need": "suffix"
+      },
+      {
+        "id": 406,
+        "need": "prefix"
+      },
+      {
+        "id": 407,
+        "need": "prefix"
+      },
+      {
+        "id": 408,
+        "need": "suffix"
+      },
+      {
+        "id": 409,
+        "need": "prefix"
+      },
+      {
+        "id": 410,
+        "need": "prefix"
+      },
+      {
+        "id": 412,
+        "need": "prefix"
+      },
+      {
+        "id": 416,
+        "need": "prefix"
+      },
+      {
+        "id": 419,
+        "need": "prefix"
+      },
+      {
+        "id": 424,
+        "need": "prefix"
+      },
+      {
+        "id": 447,
+        "need": "suffix"
+      },
+      {
+        "id": 453,
+        "need": "prefix"
+      },
+      {
+        "id": 457,
+        "need": "prefix"
+      },
+      {
+        "id": 481,
+        "need": "prefix"
+      },
+      {
+        "id": 488,
+        "need": "prefix"
+      },
+      {
+        "id": 489,
+        "need": "prefix"
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 18860,
+    "output_tokens": 41588
+  }
+}

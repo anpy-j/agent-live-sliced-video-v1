@@ -1,0 +1,34 @@
+{
+  "id": "job_20261010_001210_6eaf8f",
+  "title": "【百搭私服】素材1010-1",
+  "original_target": "120-180",
+  "test_target": "110-130",
+  "model": "deepseek-v4.1-flash",
+  "provider": "workbuddy",
+  "candidate_count": 25,
+  "candidate_seconds": 56.89,
+  "prompt_characters": 6091,
+  "context_characters": 398,
+  "usage": {
+    "input_tokens": 9843,
+    "output_tokens": 18314
+  },
+  "live_model_called": true,
+  "status": "structural_pass",
+  "selected_seconds": 24.62,
+  "selected_ids": [
+    62,
+    63,
+    64,
+    53,
+    71,
+    47,
+    58
+  ],
+  "groups": 5,
+  "physical_segments": 6,
+  "export_groups": 5,
+  "issues": [],
+  "manual_review": "pending",
+  "elapsed_seconds": 86.17
+}

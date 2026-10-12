@@ -1,0 +1,266 @@
+{
+  "main_product": "羊毛半裙",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        7
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        20
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        107
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        110
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        163,
+        164
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        209,
+        210
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        134,
+        135
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        47,
+        48,
+        49
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        56,
+        81
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        53
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        98,
+        99,
+        100
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        153,
+        160,
+        185
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        130
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        138
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        154
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        15
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        178
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        181
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        14,
+        211
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        63
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        62
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        61
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        189
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        212,
+        213,
+        214
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        218
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        52
+      ]
+    },
+    {
+      "role": "cta",
+      "ids": [
+        119,
+        120,
+        121
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    7,
+    20,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    30,
+    107,
+    110,
+    163,
+    164,
+    209,
+    210,
+    134,
+    135,
+    47,
+    48,
+    49,
+    56,
+    81,
+    53,
+    98,
+    99,
+    100,
+    153,
+    160,
+    185,
+    130,
+    69,
+    138,
+    154,
+    15,
+    178,
+    181,
+    14,
+    211,
+    63,
+    62,
+    61,
+    189,
+    212,
+    213,
+    214,
+    218,
+    52,
+    119,
+    120,
+    121
+  ]
+}

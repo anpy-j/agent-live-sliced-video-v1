@@ -83,7 +83,7 @@ async function run(){
   await page.screenshot({path:path.join(output,'v2-review-detail.png')});
   await page.setViewportSize({width:390,height:900});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'V2 detail overflow');
-  assert.match(await page.locator('.detail-title .timeline-tag').textContent(),/V2/);
+  assert.match(await page.locator('.detail-title .pipeline-version-tag').textContent(),/V2/);
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({passed:true,submissions:submissions.map(s=>s.pipeline_version),screenshots:output}));
 }

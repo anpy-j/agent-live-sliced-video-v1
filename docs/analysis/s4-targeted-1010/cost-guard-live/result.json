@@ -1,0 +1,13 @@
+{
+  "material": "【D家高定】素材1010",
+  "single_live_call": true,
+  "same_prompt_and_schema_as_targeted_trial": true,
+  "no_empty_retry_setting": 1,
+  "reported_output_tokens": 18643,
+  "reported_input_tokens": 56112,
+  "returned_usable_structure": false,
+  "budget_check_pass": false,
+  "error": "Bounded call did not finish: aggregate_output_budget_exceeded; audit saved",
+  "seconds": 78.28199999999924,
+  "inference": "累计输出超过6000，最新开关未能把本次调用限制在单请求预算内；源码函数验证不足以证明真实调用总预算受控。"
+}

@@ -1,0 +1,7 @@
+{
+  "appId": "app.livecut.mobile",
+  "appName": "LiveCut",
+  "webDir": "mobile/www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}

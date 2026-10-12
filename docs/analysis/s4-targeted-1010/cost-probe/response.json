@@ -1,0 +1,151 @@
+{
+  "fingerprint": "5054753f03536c976694a97bc7414112798569767c1672268478235a416593e2",
+  "data": {
+    "ok": true
+  },
+  "usage": {
+    "input_tokens": 3320,
+    "output_tokens": 53
+  },
+  "usage_fields": [
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens",
+      "value": 3320
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens",
+      "value": 53
+    },
+    {
+      "path": "$[2].providerData.rawUsage.total_tokens",
+      "value": 3373
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 14
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 3320
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.rawUsage.completion_thinking_tokens",
+      "value": 14
+    },
+    {
+      "path": "$[2].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.usage.inputTokens",
+      "value": 3320
+    },
+    {
+      "path": "$[2].providerData.usage.outputTokens",
+      "value": 53
+    },
+    {
+      "path": "$[2].providerData.usage.totalTokens",
+      "value": 3373
+    },
+    {
+      "path": "$[2].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[2].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 14
+    },
+    {
+      "path": "$[4].duration_ms",
+      "value": 2525
+    },
+    {
+      "path": "$[4].duration_api_ms",
+      "value": 2523
+    },
+    {
+      "path": "$[4].num_turns",
+      "value": 4
+    },
+    {
+      "path": "$[4].usage.input_tokens",
+      "value": 3320
+    },
+    {
+      "path": "$[4].usage.output_tokens",
+      "value": 53
+    },
+    {
+      "path": "$[4].usage.cache_creation_input_tokens",
+      "value": 3320
+    },
+    {
+      "path": "$[4].usage.cache_read_input_tokens",
+      "value": 0
+    }
+  ],
+  "envelope_keys": [],
+  "settings": {
+    "effort": "low",
+    "max_output_tokens": 6000,
+    "max_thinking_tokens": 2048,
+    "max_turns": 2
+  },
+  "seconds": 6.72,
+  "final_json_characters": 12,
+  "error_subtype": null,
+  "is_error": null
+}

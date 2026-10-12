@@ -48,7 +48,8 @@ class Application:
         self.root = Path(data_root or root).resolve()
         self.data_dir = self.root / "data"
         self.workspace_root = self.root / "workspaces"
-        self.web_root = self.resource_root / "web"
+        self.asset_root = Path(os.environ.get("LIVECUT_ASSET_ROOT", str(self.resource_root))).resolve()
+        self.web_root = self.asset_root / "web"
         self.store = Store(self.data_dir / "agent.db")
         self.ai_access = AIAccess(self.store, self.root, vault=vault)
         self.runner = JobRunner(self.store, self.root, vault=self.ai_access.vault)
@@ -57,10 +58,33 @@ class Application:
         self._viral: ViralPipelineService | None = None
         self._smart: SmartService | None = None
         self._smart_init_lock = threading.Lock()
+        self._editor = None
+        self._editor_init_lock = threading.Lock()
+        self._postprocess = None
+        self._postprocess_init_lock = threading.Lock()
         self._defaults()
         self.label_overrides = self.store.get_setting("label_overrides", {}) or {}
         self.label_profile = activate_labels(self.label_overrides)
         self.mcp = McpEndpoint(self.invoke_tool)
+        # Resume persisted folder monitoring even when the postprocess page is closed.
+        if (self.data_dir / "postprocess" / "editor.db").exists():
+            self.postprocess
+
+    @property
+    def editor(self):
+        from .editor import EditorService
+        with self._editor_init_lock:
+            if self._editor is None:
+                self._editor = EditorService(self.root)
+        return self._editor
+
+    @property
+    def postprocess(self):
+        from .postprocess import PostprocessService
+        with self._postprocess_init_lock:
+            if self._postprocess is None:
+                self._postprocess = PostprocessService(self.root)
+        return self._postprocess
 
     @property
     def smart(self) -> SmartService:
@@ -87,7 +111,7 @@ class Application:
         is_windows = sys.platform == "win32"
         venv_python = self.root / ".venv" / ("Scripts/python.exe" if is_windows else "bin/python")
         defaults = {
-            "engine_python": str(Path(sys.executable) if self.resource_root != self.root else venv_python),
+            "engine_python": str(Path(sys.executable) if getattr(sys, "frozen", False) or self.resource_root != self.root else venv_python),
             "skill_path": str(self.root / "integrations" / "skill" / "SKILL.md"),
             "mcp_enabled": True,
             "mcp_token": secrets.token_urlsafe(24),
@@ -125,6 +149,8 @@ class Application:
         if str(payload.get("job_type") or "direct").lower() == "remix" and version != "v1":
             raise ValueError("成片重组仅支持 V1 流程")
         job_type = str(payload.get("job_type") or "direct").lower()
+        if job_type == "remix" and version == "v2":
+            raise ValueError("成片重组不支持 V2 剪辑流程")
         if job_type == "remix":
             return self._create_timeline_job(payload, job_type="remix")
         if job_type == "timeline" or "timeline_data" in payload or payload.get("draft_path"):
@@ -892,11 +918,183 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"[http] {self.address_string()} {fmt % args}")
 
+    def postprocess_route(self, method, path, payload=None):
+        if not path.startswith("/api/postprocess/"):
+            return False
+        try:
+            service = self.app.postprocess
+            parts = path.strip("/").split("/")[2:]
+            payload = payload or {}
+            result = None
+            if parts == ["library"] and method == "GET":
+                result = service.library()
+            elif parts == ["assets"] and method == "POST":
+                result = service.import_asset(payload)
+            elif parts == ["folder"] and method == "POST":
+                result = service.scan_folder(payload)
+            elif parts == ["watcher"] and method in {"GET", "POST"}:
+                result = service.watcher.configure(payload) if method == "POST" else service.watcher.status()
+            elif parts == ["watcher", "stop"] and method == "POST":
+                result = service.watcher.pause()
+            elif len(parts) == 3 and parts[0] == "watcher" and parts[2] == "retry" and method == "POST":
+                result = service.watcher.retry(parts[1])
+            elif parts == ["materials"] and method in {"GET", "POST"}:
+                result = service.materials.start(payload) if method == "POST" else service.materials.jobs()
+            elif len(parts) == 3 and parts[0] == "materials" and parts[2] == "cancel" and method == "POST":
+                result = service.materials.cancel(parts[1])
+            elif parts == ["texture"] and method == "POST":
+                result = service.generate_texture()
+            elif parts == ["jobs"]:
+                result = service.submit(payload) if method == "POST" else service.exports()
+            elif len(parts) == 3 and parts[0] == "jobs" and parts[2] == "cancel" and method == "POST":
+                result = service.cancel(parts[1])
+            elif len(parts) == 3 and parts[0] == "jobs" and parts[2] == "output" and method == "GET":
+                job = service.get_export(parts[1])
+                if job["status"] != "completed":
+                    raise ValueError("任务尚未完成")
+                self.send_media(Path(job["output"]))
+                return True
+            elif len(parts) == 2 and parts[0] == "assets" and method == "GET":
+                asset = service.asset(service.library_id, parts[1])
+                self.send_media(Path(asset["path"]))
+                return True
+            elif parts == ["settings"] and method in {"GET", "PUT"}:
+                result = service.settings(payload if method == "PUT" else None)
+            elif parts == ["music"] and method in {"GET", "POST"}:
+                result = service.music.start(payload) if method == "POST" else service.music.jobs()
+            elif parts == ["music-runtime"] and method in {"GET", "POST"}:
+                result = service.runtime.start() if method == "POST" else service.runtime.status()
+            elif parts == ["music-runtime", "stop"] and method == "POST":
+                result = service.runtime.stop()
+            if result is None:
+                self.json_response({"error": "后处理接口不存在"}, 404)
+            else:
+                self.json_response(result, 201 if method == "POST" else 200)
+        except KeyError as exc:
+            self.json_response({"error": str(exc)}, 404)
+        except (ValueError, FileNotFoundError) as exc:
+            self.json_response({"error": str(exc)}, 400)
+        except Exception as exc:
+            self.json_response({"error": str(exc)}, 500)
+        return True
+
+    def editor_route(self, method, path, payload=None):
+        if not path.startswith("/api/editor/"):
+            return False
+        from .editor.service import Conflict
+        try:
+            service = self.app.editor
+            parts = path.strip("/").split("/")[2:]
+            payload = payload or {}
+            result = None
+            if parts == ["settings"]:
+                result = service.settings(payload if method == "PUT" else None)
+            elif parts == ["projects"]:
+                result = service.create(payload) if method == "POST" else service.list_projects()
+            elif parts == ["exports"] and method == "GET":
+                result = service.exports()
+            elif len(parts) == 2 and parts[0] == "speech" and method == "GET":
+                result = service.speech.get(parts[1])
+            elif len(parts) == 3 and parts[0] == "speech" and parts[2] == "cancel" and method == "POST":
+                result = service.speech.cancel(parts[1])
+            elif len(parts) == 3 and parts[0] == "exports" and parts[2] == "cancel" and method == "POST":
+                result = service.cancel(parts[1])
+            elif len(parts) == 2 and parts[0] == "projects":
+                result = service.save(parts[1], payload) if method == "PUT" else service.get(parts[1])
+            elif len(parts) == 3 and parts[0] == "projects" and method == "POST":
+                if parts[2] == "assets":
+                    result = service.register(parts[1], str(payload.get("path") or ""))
+                elif parts[2] == "export":
+                    result = service.export(parts[1], payload)
+                elif parts[2] == "speech":
+                    result = service.speech.start(parts[1], payload)
+            elif len(parts) in {4, 5} and parts[0] == "projects" and parts[2] == "assets" and method == "GET":
+                asset = service.asset(parts[1], parts[3])
+                if len(parts) == 4:
+                    self.send_media(Path(asset["path"]))
+                    return True
+                if parts[4] in {"thumbnail", "waveform"}:
+                    cached = service.cache(parts[1], parts[3], parts[4])
+                    if parts[4] == "waveform":
+                        result = {"peaks": json.loads(cached.read_text(encoding="utf-8"))}
+                    else:
+                        self.send_file(cached)
+                        return True
+            if result is None:
+                self.json_response({"error": "剪辑接口不存在"}, 404)
+            else:
+                self.json_response(result, 201 if method == "POST" else 200)
+        except Conflict as exc:
+            self.json_response({"error": str(exc)}, 409)
+        except KeyError as exc:
+            self.json_response({"error": str(exc)}, 404)
+        except (ValueError, FileNotFoundError) as exc:
+            self.json_response({"error": str(exc)}, 400)
+        except Exception as exc:
+            self.json_response({"error": str(exc)}, 500)
+        return True
+
+    def send_media(self, path):
+        """Stream registered local media, including valid suffix/seek ranges."""
+        size = path.stat().st_size
+        start, end, code = 0, size - 1, 200
+        spec = self.headers.get("Range", "")
+        if spec:
+            match = re.fullmatch(r"bytes=(\d*)-(\d*)", spec)
+            if not match or not any(match.groups()):
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            left, right = match.groups()
+            start = int(left) if left else max(0, size - int(right))
+            end = min(size - 1, int(right)) if left and right else size - 1
+            if start >= size or end < start:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            code = 206
+        self.send_response(code)
+        self.send_header("Content-Type", mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(end - start + 1))
+        if code == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.end_headers()
+        try:
+            with path.open("rb") as handle:
+                handle.seek(start)
+                remaining = end - start + 1
+                while remaining > 0:
+                    chunk = handle.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def do_GET(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path, _, query = self.path.partition("?")
             if path == "/api/ai/access":
                 return self.json_response(self.app.ai_access.status())
+            if path == "/api/cloud/catalog":
+                from .cloud_catalog import catalog
+                return self.json_response(catalog(self.app.root))
+            if path.startswith("/api/cloud/catalog/") and path.endswith("/content"):
+                from .cloud_catalog import output_file
+                try:
+                    return self.send_media(output_file(self.app.root, path.split("/")[4]))
+                except KeyError as exc:
+                    return self.json_response({"error": str(exc)}, 404)
+            if self.postprocess_route("GET", path) or self.editor_route("GET", path):
+                return
             if path == "/api/smart-v3/jobs":
                 return self.json_response(self.app.smart.list_jobs())
             if path.startswith("/api/smart-v3/jobs/"):
@@ -981,6 +1179,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
             if path.startswith('/api/ai/'):
@@ -998,6 +1198,12 @@ class Handler(BaseHTTPRequestHandler):
                 action = actions.get(path)
                 if action: return self.json_response(action())
                 return self.json_response({'error': 'Not found'}, 404)
+            if path == "/api/desktop/shutdown" and os.environ.get("LIVECUT_DESKTOP_TOKEN"):
+                self.json_response({"stopping": True})
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
+                return
+            if self.postprocess_route("POST", path, payload) or self.editor_route("POST", path, payload):
+                return
             if path == "/api/smart-v3/drafts/timelines":
                 return self.json_response(self.app.smart.list_draft_timelines(payload))
             if path == "/api/smart-v3/jobs":
@@ -1075,8 +1281,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_PUT(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if self.postprocess_route("PUT", path, payload) or self.editor_route("PUT", path, payload):
+                return
             if path == "/api/settings":
                 return self.json_response(self.app.update_settings(payload))
             if path == "/api/skill":
@@ -1092,6 +1302,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self) -> None:
         try:
+            if not self.desktop_authorized():
+                return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             if path.startswith("/api/smart-v3/jobs/"):
                 parts = path.strip("/").split("/")
@@ -1125,6 +1337,12 @@ class Handler(BaseHTTPRequestHandler):
             return False
         expected = self.app.store.get_setting("mcp_token", "")
         return secrets.compare_digest(self.headers.get("Authorization", ""), f"Bearer {expected}")
+
+    def desktop_authorized(self) -> bool:
+        token = os.environ.get("LIVECUT_DESKTOP_TOKEN")
+        # MCP clients retain their separate Bearer authentication.
+        return not token or self.path.partition("?")[0] == "/mcp" or secrets.compare_digest(
+            self.headers.get("X-LiveCut-Desktop", ""), token)
 
     def read_json(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -1247,6 +1465,10 @@ class ServiceSession:
         if self.app:
             self.app.ai_access.close()
             self.app.runner.stop()
+            if self.app._editor is not None:
+                self.app._editor.close()
+            if self.app._postprocess is not None:
+                self.app._postprocess.close()
         if self.server:
             if self.thread:
                 self.server.shutdown()
@@ -1260,6 +1482,8 @@ class ServiceSession:
 
 def serve(root: Path, host: str = "127.0.0.1", port: int = 8787, data_root=None) -> None:
     with ServiceSession(root, host, port, data_root=data_root) as session:
+        if os.environ.get('LIVECUT_DESKTOP_TOKEN'):
+            print('LIVECUT_READY ' + json.dumps({'port': session.server.server_port}), flush=True)
         print(f'LiveCut: {session.url}', flush=True)
         try:
             session.thread.join()

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 111,
+    "text": "卡码的咱排大",
+    "rule": "structural_chatter",
+    "hit": "卡码的咱排大"
+  },
+  {
+    "id": 119,
+    "text": "卡码的话直接拍大码就可以了",
+    "rule": "structural_chatter",
+    "hit": "卡码的话直接拍大"
+  },
+  {
+    "id": 333,
+    "text": "真的好舒服放心拍一定要买的一套老好看",
+    "rule": "structural_chatter",
+    "hit": "放心拍"
+  }
+]

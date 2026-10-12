@@ -33,7 +33,7 @@ async function run(){
  fs.mkdirSync(output,{recursive:true});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=await chromium.launch({headless:true,...(process.env.LIVECUT_BROWSER?{executablePath:process.env.LIVECUT_BROWSER}:{})});
  const page=await browser.newPage({viewport:{width:1280,height:1000}});page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:'+server.address().port+'/#/settings');
+ await page.goto('http://127.0.0.1:'+server.address().port+'/#/settings/ai');
  await page.locator('#aiModel').waitFor();assert.equal(await page.locator('#aiModel').inputValue(),'saved-model');
  await page.locator('#refreshModels').click();await page.locator('#aiModel option[value="glm-5.3"]').waitFor({state:'attached'});
  assert.equal(await page.locator('#aiModel').inputValue(),'saved-model','Missing saved model must not silently reset');

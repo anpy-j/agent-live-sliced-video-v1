@@ -1,0 +1,720 @@
+{
+  "main_product": "丝绒鱼尾裙（丝绒裙）",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        87,
+        88
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        3,
+        4,
+        175,
+        5,
+        86
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        140,
+        141,
+        145,
+        148,
+        151,
+        149,
+        21,
+        29,
+        160
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        22,
+        23
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        33,
+        104,
+        103,
+        54,
+        56,
+        45,
+        46,
+        47,
+        48,
+        52
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        66,
+        67,
+        68,
+        69,
+        91,
+        92,
+        75,
+        76,
+        162,
+        163,
+        164
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        35,
+        36,
+        37,
+        137,
+        131
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        153,
+        157,
+        158,
+        159
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        154,
+        155,
+        152,
+        62,
+        65,
+        63,
+        138,
+        60
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        133
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        94
+      ]
+    }
+  ],
+  "ordered_ids": [
+    1,
+    87,
+    88,
+    3,
+    4,
+    175,
+    5,
+    86,
+    140,
+    141,
+    145,
+    148,
+    151,
+    149,
+    21,
+    29,
+    160,
+    22,
+    23,
+    33,
+    104,
+    103,
+    54,
+    56,
+    45,
+    46,
+    47,
+    48,
+    52,
+    66,
+    67,
+    68,
+    69,
+    91,
+    92,
+    75,
+    76,
+    162,
+    163,
+    164,
+    35,
+    36,
+    37,
+    137,
+    131,
+    153,
+    157,
+    158,
+    159,
+    154,
+    155,
+    152,
+    62,
+    65,
+    63,
+    138,
+    60,
+    133,
+    94
+  ],
+  "selected_clauses": [
+    {
+      "id": 1,
+      "start": 1.52,
+      "end": 6.08,
+      "text": "做丝绒这个品类里,我觉得我们做的是非常非常细的。",
+      "members": [
+        1
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 87,
+      "start": 200.28,
+      "end": 206.26,
+      "text": "每年一到冬季你就会看到这个丝绒的品类就像工作服务一样所有人都在穿因为它好洗穿起来还耐脏",
+      "members": [
+        87,
+        88
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 3,
+      "start": 8.72,
+      "end": 10.7,
+      "text": "以至于这么多年喜欢穿丝绒这个品类的女生,",
+      "members": [
+        3
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 4,
+      "start": 10.88,
+      "end": 13.5,
+      "text": "很多很多姐妹,只要买丝绒都会想到来泽泽家。",
+      "members": [
+        4
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 175,
+      "start": 359.9,
+      "end": 362.02,
+      "text": "真的是很多人都一直在创我们家的私容",
+      "members": [
+        175
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 5,
+      "start": 13.64,
+      "end": 15.26,
+      "text": "只要你泽泽做,我不会去其他家买。",
+      "members": [
+        5
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 86,
+      "start": 198.24,
+      "end": 200.28,
+      "text": "所有我们的员工都创我们家四龙都抢",
+      "members": [
+        86
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 140,
+      "start": 305.94,
+      "end": 309.16,
+      "text": "这种丝终都是我们开年定制上万米每一年都要卖",
+      "members": [
+        140,
+        141
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 145,
+      "start": 314.18,
+      "end": 315.42,
+      "text": "我们借机五万米的丝终面料",
+      "members": [
+        145
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 148,
+      "start": 317.2,
+      "end": 318.68,
+      "text": "这种能做定制定单的丝终",
+      "members": [
+        148
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 151,
+      "start": 322.16,
+      "end": 323.96,
+      "text": "这个跟你们外面买到的丝是不一样的",
+      "members": [
+        151
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 149,
+      "start": 318.68,
+      "end": 320.72,
+      "text": "一定是你今年买到的最好的制好的",
+      "members": [
+        149
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 21,
+      "start": 45.94,
+      "end": 47.34,
+      "text": "就是你觉得他那个料子在哪里都买不到",
+      "members": [
+        21
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 29,
+      "start": 61.83,
+      "end": 63.57,
+      "text": "这真真正正是品牌才做的东西",
+      "members": [
+        29
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 160,
+      "start": 338.72,
+      "end": 340.5,
+      "text": "我们家丝绒的版型裙形特别多",
+      "members": [
+        160
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 22,
+      "start": 47.34,
+      "end": 50.46,
+      "text": "然后感觉质感又很好耐穿性又很好各方面又是很强",
+      "members": [
+        22,
+        23
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 33,
+      "start": 70.83,
+      "end": 72.55,
+      "text": "而且这是松紧药的侧面有拉链",
+      "members": [
+        33
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 104,
+      "start": 243.62,
+      "end": 245.24,
+      "text": "丝绒的裙子是松紧腰的",
+      "members": [
+        104
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 103,
+      "start": 242.78,
+      "end": 243.62,
+      "text": "松紧腰的",
+      "members": [
+        103
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 54,
+      "start": 118.12,
+      "end": 119.0,
+      "text": "加一个拉链在这里",
+      "members": [
+        54
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 56,
+      "start": 120.52,
+      "end": 122.98,
+      "text": "它凸显的是它的整个侧面质感姐妹们",
+      "members": [
+        56
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 45,
+      "start": 106.04,
+      "end": 111.96,
+      "text": "如果没有这个拉链的话它就不像品牌的东西了它就很像市场货所以我们家拉链也是有我们的意思的",
+      "members": [
+        45,
+        46,
+        47,
+        48
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 52,
+      "start": 115.02,
+      "end": 116.34,
+      "text": "你才会买到这种细节的东西",
+      "members": [
+        52
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 66,
+      "start": 140.18,
+      "end": 150.1,
+      "text": "厚的嘛料子的话还可以克重还是比较高的姐妹们比咱们夏天的那个叫丝绒情书要厚它要比夏天的丝绒情书的克重要更高",
+      "members": [
+        66,
+        67,
+        68,
+        69
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 91,
+      "start": 212.5,
+      "end": 219.64,
+      "text": "比卡带山厚么厚点她要比卡带山那一批的那个料子的刻度是要高的比卡带山要厚比丝绒情书那个A字的都要厚的",
+      "members": [
+        91,
+        92
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 75,
+      "start": 159.98,
+      "end": 161.72,
+      "text": "对比之前的那个要厚一点",
+      "members": [
+        75
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 76,
+      "start": 162.16,
+      "end": 163.26,
+      "text": "比之前那个厚一点",
+      "members": [
+        76
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 162,
+      "start": 341.92,
+      "end": 346.02,
+      "text": "跟夏天丝绒裙不一样厚一点这个要更厚一点点更厚一点点",
+      "members": [
+        162,
+        163,
+        164
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 35,
+      "start": 73.97,
+      "end": 76.35,
+      "text": "我觉得咱家这个裙子啊最大马都能穿到150",
+      "members": [
+        35,
+        36
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 37,
+      "start": 76.65,
+      "end": 77.95,
+      "text": "而且我给大家准备了长短款",
+      "members": [
+        37
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 137,
+      "start": 300.4,
+      "end": 303.38,
+      "text": "这条丝终群85跟75两个长度",
+      "members": [
+        137
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 131,
+      "start": 291.42,
+      "end": 292.54,
+      "text": "我的裙子是长的",
+      "members": [
+        131
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 153,
+      "start": 325.76,
+      "end": 329.04,
+      "text": "这条裙子的版型就是那种鱼尾风格的非常女人的不爱粘",
+      "members": [
+        153
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 157,
+      "start": 333.62,
+      "end": 338.72,
+      "text": "只是说想让更多女人风格的女生能穿出这种很有母妹的感觉所以我们才做了这个鱼尾",
+      "members": [
+        157,
+        158,
+        159
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 154,
+      "start": 329.36,
+      "end": 332.0,
+      "text": "所有丝绒都粘但我们这条不爱粘懂我的意思吗",
+      "members": [
+        154,
+        155
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 152,
+      "start": 323.96,
+      "end": 325.76,
+      "text": "上手的手感是非常滑的而且不爱粘毛",
+      "members": [
+        152
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 62,
+      "start": 131.5,
+      "end": 134.0,
+      "text": "裙子的话不导毛不导毛不泛白",
+      "members": [
+        62
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 65,
+      "start": 138.36,
+      "end": 139.7,
+      "text": "不导毛不泛白特别好看",
+      "members": [
+        65
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 63,
+      "start": 134.0,
+      "end": 135.88,
+      "text": "随便穿洗随便丢击洗",
+      "members": [
+        63
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 138,
+      "start": 303.38,
+      "end": 304.96,
+      "text": "而且丝终的弹力非常的大",
+      "members": [
+        138
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 60,
+      "start": 128.08,
+      "end": 129.04,
+      "text": "其实差S我也能穿",
+      "members": [
+        60
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 133,
+      "start": 293.56,
+      "end": 295.2,
+      "text": "你去搭这种小大衣的时候它也很好看",
+      "members": [
+        133
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 94,
+      "start": 226.1,
+      "end": 229.04,
+      "text": "我都穿两年了是吧我觉得是就这种东西你就穿去吧",
+      "members": [
+        94
+      ],
+      "group": 11,
+      "role": "proof",
+      "usable": true
+    }
+  ],
+  "total_seconds": 110.93999999999993
+}

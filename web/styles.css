@@ -121,3 +121,4 @@ button.status:hover{transform:none;background:rgba(168,255,53,.08)}
 #modelCatalogStatus{min-width:0;overflow-wrap:anywhere}
 
 #refreshModels{min-height:44px}
+.settings-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}.settings-tabs a{text-decoration:none}.settings-form [hidden]{display:none!important}

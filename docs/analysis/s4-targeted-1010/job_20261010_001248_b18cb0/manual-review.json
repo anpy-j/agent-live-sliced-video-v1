@@ -1,0 +1,16 @@
+{
+  "passed": false,
+  "findings": [
+    "未再用“先把睡衣给你们上了…这一件的话”作开头。",
+    "仍有“我给你们穿那个米吧”等换色预告，及扣子比较、泛泛评价的混杂组；原音未核对，文本不能直接验收。"
+  ],
+  "replayed_gate_issues": [
+    {
+      "group": 12,
+      "kind": "chatter",
+      "text": "我给你们穿那个米吧穿个米穿一个灰没有差S宝这东西咱就做的是比较肥的啊你们就喜欢穿肥的就买大一码都很好看啊是的五颜色来可以点去先看一下你可以看一下用量4米用量但这个的话基本上就到我的这个手腕处裤子也不是个长裤啊子都是9分左右的"
+    }
+  ],
+  "call_output_budget_pass": true,
+  "live_called_with_latest_no_empty_retry_flag": false
+}

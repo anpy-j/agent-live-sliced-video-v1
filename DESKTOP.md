@@ -1,3 +1,23 @@
+# 桌面端启动（远端整体合并后）
+
+当前默认桌面端为 Electron，包含三版本剪辑、人工剪辑、后处理和云端管理入口。
+
+macOS 开发环境首次安装或更新依赖：
+
+```sh
+uv pip install --python .venv/bin/python -e '.[desktop,portable-asr]'
+npm ci
+npm run desktop
+```
+
+默认继续使用 `~/Library/Application Support/LiveCut` 中已有的任务、设置和工作文件。新桌面端会优先使用项目 `.venv`，不会误用系统 Python。请先等待原桌面端任务结束并退出，再启动新版；同一数据目录不能同时启动两个后台。自定义目录使用 `LIVE_CUT_DATA_DIR` 或 `LIVECUT_WORKSPACE`，测试用 Electron 配置目录可用 `LIVECUT_USER_DATA`。
+
+原 pywebview 启动方式保留为 `npm run desktop:legacy`。下面的原打包说明对应 pywebview；Electron 打包入口是 `npm run dist:mac` / `npm run dist:win`，需要另行构建原生运行包。本次只验证 macOS 开发桌面端，没有生成新的安装包。
+
+人工剪辑包含字幕时，优先使用现有支持 `subtitles` 的 FFmpeg；如果系统版本缺少该滤镜，自动使用项目依赖 `imageio-ffmpeg` 提供的程序。原 V1 渲染器保持不变。
+
+---
+
 # 桌面版
 
 桌面入口使用原有剪辑服务和界面，窗口关闭时停止后台服务。macOS 安装包中带独立 Python、FFmpeg、FFprobe、Codex、OpenCode 与 Python 依赖，不依赖开发机器的虚拟环境、Node.js 或 Homebrew。首次语音识别仍需联网下载模型，模型存入用户数据目录。
@@ -36,7 +56,7 @@ tools-dir 中 `bin` 目录放 `ffmpeg.exe`、`ffprobe.exe`、`codex.exe`、`open
 
 ## 开发与验证
 
-macOS 已配置开发环境后，在项目目录运行 `npm run desktop` 即可启动当前本地桌面端。该快捷命令调用 `.venv/bin/python -m agent_video.desktop`，无需安装 Electron 或执行 `npm install`。
+原 pywebview 桌面端可用 `npm run desktop:legacy`，对应 `.venv/bin/python -m agent_video.desktop`。
 
 ```sh
 uv venv --python 3.13.12

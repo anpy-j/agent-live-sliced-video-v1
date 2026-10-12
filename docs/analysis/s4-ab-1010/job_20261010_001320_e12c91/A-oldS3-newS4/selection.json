@@ -1,0 +1,783 @@
+{
+  "main_product": "羊毛精纺高克重九分小喇叭裤",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        7
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        14,
+        214,
+        215,
+        216
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        24,
+        26,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        217,
+        194,
+        192,
+        197
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        219,
+        33
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        224,
+        65
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        266,
+        267,
+        221,
+        195
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        100,
+        101,
+        226,
+        227,
+        107
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        41,
+        247,
+        261
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        125,
+        126
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        202,
+        203,
+        204
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        243,
+        244
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        184,
+        206,
+        175
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        98,
+        99
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        36,
+        37,
+        9
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        73,
+        74,
+        77,
+        78,
+        40
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        269,
+        275,
+        279,
+        282
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        249,
+        250,
+        251,
+        252
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        256,
+        253,
+        118
+      ]
+    }
+  ],
+  "ordered_ids": [
+    7,
+    14,
+    214,
+    215,
+    216,
+    24,
+    26,
+    28,
+    29,
+    30,
+    217,
+    194,
+    192,
+    197,
+    219,
+    33,
+    224,
+    65,
+    266,
+    267,
+    221,
+    195,
+    100,
+    101,
+    226,
+    227,
+    107,
+    41,
+    247,
+    261,
+    125,
+    126,
+    202,
+    203,
+    204,
+    243,
+    244,
+    184,
+    206,
+    175,
+    98,
+    99,
+    36,
+    37,
+    9,
+    73,
+    74,
+    77,
+    78,
+    40,
+    269,
+    275,
+    279,
+    282,
+    249,
+    250,
+    251,
+    252,
+    256,
+    253,
+    118
+  ],
+  "selected_clauses": [
+    {
+      "id": 7,
+      "start": 15.13,
+      "end": 17.99,
+      "text": "这条裤子整个的中心,它漂亮的一个精致的点,全部在这里。",
+      "members": [
+        7
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 14,
+      "start": 30.17,
+      "end": 32.55,
+      "text": "然后我们又做了这样的一个小脚口的设计",
+      "members": [
+        14
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 214,
+      "start": 455.61,
+      "end": 460.11,
+      "text": "它又不夸张又不夺带很好的让一个黑色的裤子有增添一点点的设计感",
+      "members": [
+        214,
+        215,
+        216
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 24,
+      "start": 51.83,
+      "end": 54.43,
+      "text": "这个做法需要把布料一个一个的",
+      "members": [
+        24
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 26,
+      "start": 55.41,
+      "end": 59.33,
+      "text": "它是细节每一个要做0.5毫米",
+      "members": [
+        26
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 28,
+      "start": 60.17,
+      "end": 67.45,
+      "text": "0.5的每一个车线要测0.5全部车好0.5之后再反转着去倒车所以这个裤子这个位置做起来是很难的",
+      "members": [
+        28,
+        29,
+        30
+      ],
+      "group": 2,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 217,
+      "start": 460.11,
+      "end": 461.49,
+      "text": "裤子是羊毛的惊访",
+      "members": [
+        217
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 194,
+      "start": 424.49,
+      "end": 425.93,
+      "text": "然后它的克重是比较高的",
+      "members": [
+        194
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 192,
+      "start": 420.27,
+      "end": 423.01,
+      "text": "裤子是秋冬的款了它不是薄的了随便去穿",
+      "members": [
+        192
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 197,
+      "start": 427.97,
+      "end": 430.01,
+      "text": "都是给大家做的单层无符合",
+      "members": [
+        197
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 219,
+      "start": 462.29,
+      "end": 464.15,
+      "text": "裤身非常宽松的小喇叭裤",
+      "members": [
+        219
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 33,
+      "start": 70.49,
+      "end": 71.75,
+      "text": "裤子一点都不肥",
+      "members": [
+        33
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 224,
+      "start": 468.97,
+      "end": 470.27,
+      "text": "你看后腰有松紧的",
+      "members": [
+        224
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 65,
+      "start": 135.94,
+      "end": 137.62,
+      "text": "松紧腰的是穿着很舒服的裤腰",
+      "members": [
+        65
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 266,
+      "start": 536.29,
+      "end": 539.59,
+      "text": "这种裤子是带有微微一点弹的一点都不会让你绷的难受",
+      "members": [
+        266,
+        267
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 221,
+      "start": 465.19,
+      "end": 466.23,
+      "text": "你里面搭个秋裤都能穿",
+      "members": [
+        221
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 195,
+      "start": 425.93,
+      "end": 427.05,
+      "text": "上身舒适度非常的高",
+      "members": [
+        195
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 100,
+      "start": 212.51,
+      "end": 216.45,
+      "text": "它的裤型是非常显腿直的特别有腿粗腿不直的女生",
+      "members": [
+        100,
+        101
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 226,
+      "start": 471.57,
+      "end": 472.75,
+      "text": "还嫌你的腿特别的直",
+      "members": [
+        226
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 227,
+      "start": 473.31,
+      "end": 474.33,
+      "text": "一点都不夸张",
+      "members": [
+        227
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 107,
+      "start": 224.51,
+      "end": 226.51,
+      "text": "它可以很好地拉直你的小腿",
+      "members": [
+        107
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 41,
+      "start": 86.65,
+      "end": 88.51,
+      "text": "而且裤子的话很精巧不挑人",
+      "members": [
+        41
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 247,
+      "start": 504.95,
+      "end": 506.55,
+      "text": "离型身材特别合适",
+      "members": [
+        247
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 261,
+      "start": 529.31,
+      "end": 530.35,
+      "text": "假跨也能穿",
+      "members": [
+        261
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 125,
+      "start": 280.17,
+      "end": 285.99,
+      "text": "不是是侧面拉链所以这个裤子很版正我告诉你超级的版正这里有口袋",
+      "members": [
+        125,
+        126
+      ],
+      "group": 9,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 202,
+      "start": 433.73,
+      "end": 440.05,
+      "text": "你去看裤子的整个的表现力它的那种质感是让你肉眼可见一下子就感受到裤子很高级的很好看",
+      "members": [
+        202,
+        203,
+        204
+      ],
+      "group": 10,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 243,
+      "start": 496.29,
+      "end": 500.25,
+      "text": "真的是我改版改了N多次能达到的一个真的很舒服的一个状态",
+      "members": [
+        243,
+        244
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 184,
+      "start": 397.95,
+      "end": 399.57,
+      "text": "是9分的宝贝是9分的",
+      "members": [
+        184
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 206,
+      "start": 441.29,
+      "end": 442.81,
+      "text": "这个裤子只有这一个长度",
+      "members": [
+        206
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 175,
+      "start": 383.75,
+      "end": 385.27,
+      "text": "小哥子的话裤子可以裁的",
+      "members": [
+        175
+      ],
+      "group": 12,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 98,
+      "start": 208.85,
+      "end": 212.51,
+      "text": "我觉得这种裤型你们但凡穿过咱们家裤子的话都会超级喜欢的",
+      "members": [
+        98,
+        99
+      ],
+      "group": 13,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 36,
+      "start": 76.81,
+      "end": 80.69,
+      "text": "就你秋冬穿它我觉得你搭皮靴搭一些运动鞋子什么的都很好穿",
+      "members": [
+        36,
+        37
+      ],
+      "group": 14,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 9,
+      "start": 20.93,
+      "end": 22.01,
+      "text": "秋冬了再穿一个小短靴,",
+      "members": [
+        9
+      ],
+      "group": 14,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 73,
+      "start": 147.92,
+      "end": 150.18,
+      "text": "你看你秋冬的时候你就搭一下这样的双面泥大衣",
+      "members": [
+        73,
+        74
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 77,
+      "start": 153.74,
+      "end": 156.28,
+      "text": "秋冬最大的一个魅力就在于我可以随便叠穿",
+      "members": [
+        77,
+        78
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 40,
+      "start": 84.51,
+      "end": 86.65,
+      "text": "就搭各种样大衣就这个裤子满分姐妹们",
+      "members": [
+        40
+      ],
+      "group": 15,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 269,
+      "start": 542.19,
+      "end": 546.17,
+      "text": "對就是那種上班日常生活都能穿的小西裝褲",
+      "members": [
+        269
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 275,
+      "start": 564.08,
+      "end": 566.42,
+      "text": "精簡俐落很帥氣",
+      "members": [
+        275
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 279,
+      "start": 572.64,
+      "end": 574.52,
+      "text": "你看就這樣穿上班",
+      "members": [
+        279
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 282,
+      "start": 579.18,
+      "end": 581.54,
+      "text": "是不是那种很精致的感觉",
+      "members": [
+        282
+      ],
+      "group": 16,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 249,
+      "start": 507.81,
+      "end": 510.17,
+      "text": "而且的话它是整个秋天南方穿到冬天",
+      "members": [
+        249,
+        250
+      ],
+      "group": 17,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 251,
+      "start": 510.51,
+      "end": 516.51,
+      "text": "这个裤子冬天搭个小短靴一直穿到冬天北方的女生也是可以穿到初冬的",
+      "members": [
+        251,
+        252
+      ],
+      "group": 17,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 256,
+      "start": 521.87,
+      "end": 524.53,
+      "text": "特别养气的裤子很好看",
+      "members": [
+        256
+      ],
+      "group": 18,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 253,
+      "start": 516.51,
+      "end": 518.05,
+      "text": "非常舒服的一条裤子",
+      "members": [
+        253
+      ],
+      "group": 18,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 118,
+      "start": 267.55,
+      "end": 268.39,
+      "text": "裤子超级好看",
+      "members": [
+        118
+      ],
+      "group": 18,
+      "role": "selling_point",
+      "usable": true
+    }
+  ],
+  "total_seconds": 115.61999999999976
+}

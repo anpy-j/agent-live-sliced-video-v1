@@ -30,3 +30,20 @@ AGENTS.md
 dist/
 build/
 *.spec
+# Independent editor runtime and desktop artifacts
+data/editor/
+data/postprocess/
+node_modules/
+desktop/runtime/
+desktop/dist/
+dist/
+build/
+mobile/www/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+*.keystore
+*.jks
+data/**/*.db-wal
+data/**/*.db-shm

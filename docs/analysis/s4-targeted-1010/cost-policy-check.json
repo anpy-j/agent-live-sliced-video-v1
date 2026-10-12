@@ -1,0 +1,7 @@
+{
+  "installed_source": "C:/Users/yu/AppData/Roaming/npm/node_modules/@tencent-ai/codebuddy-code/dist/codebuddy-headless.js",
+  "source_function_check": true,
+  "elapsed_threshold_1_rejects_reasoning_only_retry": true,
+  "zero_means_no_elapsed_limit": true,
+  "live_material_retest_with_this_flag": false
+}

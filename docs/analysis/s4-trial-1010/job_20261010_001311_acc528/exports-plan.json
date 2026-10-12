@@ -1,0 +1,704 @@
+[
+  [
+    {
+      "id": 1,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 2.26,
+      "timeline_end": 6.72,
+      "segment_id": "片段1",
+      "segment_offset": 2.26,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 887.805,
+      "source_end": 893.603,
+      "speed": 1.3,
+      "start": 887.805,
+      "end": 893.603,
+      "text": "这条裙子你看似简单,其实它用量非常的大,因为它这里有一个大褶,",
+      "selection_group": 0
+    }
+  ],
+  [
+    {
+      "id": 7,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 34.86,
+      "timeline_end": 39.02,
+      "segment_id": "片段1",
+      "segment_offset": 34.86,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 930.185,
+      "source_end": 935.593,
+      "speed": 1.3,
+      "start": 930.185,
+      "end": 935.593,
+      "text": "像这种面料的话基本上都是供应设置品的百分百羊毛的这条裙子",
+      "selection_group": 1
+    }
+  ],
+  [
+    {
+      "id": 20,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 70.83,
+      "timeline_end": 74.11,
+      "segment_id": "片段1",
+      "segment_offset": 70.83,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 976.946,
+      "source_end": 981.21,
+      "speed": 1.3,
+      "start": 976.946,
+      "end": 981.21,
+      "text": "百分百全羊毛而且是纯抢眼工艺的",
+      "selection_group": 2
+    }
+  ],
+  [
+    {
+      "id": 22,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 75.85,
+      "timeline_end": 80.79,
+      "segment_id": "片段1",
+      "segment_offset": 75.85,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 983.472,
+      "source_end": 989.894,
+      "speed": 1.3,
+      "start": 983.472,
+      "end": 989.894,
+      "text": "它是属于双色羊毛它的颜色是花纱工艺",
+      "selection_group": 3
+    },
+    {
+      "id": 24,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 81.15,
+      "timeline_end": 88.43,
+      "segment_id": "片段1",
+      "segment_offset": 81.15,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 990.362,
+      "source_end": 999.826,
+      "speed": 1.3,
+      "start": 990.362,
+      "end": 999.826,
+      "text": "它不是定染的这种料子是染不出来的这种东叫色芝它要用多种颜色的羊毛芝在一起深浅故意做出那种渐变的感觉",
+      "selection_group": 3
+    }
+  ],
+  [
+    {
+      "id": 30,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 89.49,
+      "timeline_end": 92.29,
+      "segment_id": "片段1",
+      "segment_offset": 89.49,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1001.204,
+      "source_end": 1004.844,
+      "speed": 1.3,
+      "start": 1001.204,
+      "end": 1004.844,
+      "text": "他整个的面料质感是非常贵气的",
+      "selection_group": 4
+    }
+  ],
+  [
+    {
+      "id": 107,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 251.96,
+      "timeline_end": 254.96,
+      "segment_id": "片段1",
+      "segment_offset": 251.96,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1212.415,
+      "source_end": 1216.315,
+      "speed": 1.3,
+      "start": 1212.415,
+      "end": 1216.315,
+      "text": "而且是强年的工艺去做的这款超细羊毛",
+      "selection_group": 5
+    }
+  ],
+  [
+    {
+      "id": 110,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 258.14,
+      "timeline_end": 259.66,
+      "segment_id": "片段1",
+      "segment_offset": 258.14,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1220.449,
+      "source_end": 1222.425,
+      "speed": 1.3,
+      "start": 1220.449,
+      "end": 1222.425,
+      "text": "姐妹们这是羊毛的整个双面",
+      "selection_group": 6
+    }
+  ],
+  [
+    {
+      "id": 163,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 365.05,
+      "timeline_end": 369.43,
+      "segment_id": "片段2",
+      "segment_offset": 17.317,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5589.045,
+      "source_end": 5594.739,
+      "speed": 1.3,
+      "start": 5589.045,
+      "end": 5594.739,
+      "text": "强颜的整个工艺经过毛林片的播出之后这种羊毛是一点一点都不再炸的",
+      "selection_group": 7
+    }
+  ],
+  [
+    {
+      "id": 209,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 450.22,
+      "timeline_end": 451.4,
+      "segment_id": "片段2",
+      "segment_offset": 102.487,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5699.766,
+      "source_end": 5701.3,
+      "speed": 1.3,
+      "start": 5699.766,
+      "end": 5701.3,
+      "text": "他透气性怎么这么好呢",
+      "selection_group": 8
+    },
+    {
+      "id": 210,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 452.08,
+      "timeline_end": 455.6,
+      "segment_id": "片段2",
+      "segment_offset": 104.347,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5702.184,
+      "source_end": 5706.76,
+      "speed": 1.3,
+      "start": 5702.184,
+      "end": 5706.76,
+      "text": "可舒服了一点都不扎你们自己看这个透光性你现在拿回去一直能",
+      "selection_group": 8
+    }
+  ],
+  [
+    {
+      "id": 134,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 308.29,
+      "timeline_end": 309.95,
+      "segment_id": "片段1",
+      "segment_offset": 308.29,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1285.644,
+      "source_end": 1287.802,
+      "speed": 1.3,
+      "start": 1285.644,
+      "end": 1287.802,
+      "text": "这款的灭料客众更高",
+      "selection_group": 9
+    },
+    {
+      "id": 135,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 310.39,
+      "timeline_end": 312.65,
+      "segment_id": "片段1",
+      "segment_offset": 310.39,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1288.374,
+      "source_end": 1291.312,
+      "speed": 1.3,
+      "start": 1288.374,
+      "end": 1291.312,
+      "text": "而且它的整个支法工艺更加的高级",
+      "selection_group": 9
+    }
+  ],
+  [
+    {
+      "id": 47,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 117.51,
+      "timeline_end": 119.79,
+      "segment_id": "片段1",
+      "segment_offset": 117.51,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1037.63,
+      "source_end": 1040.594,
+      "speed": 1.3,
+      "start": 1037.63,
+      "end": 1040.594,
+      "text": "它就是卡在胯上的它没有那么的瘦",
+      "selection_group": 10
+    },
+    {
+      "id": 49,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 120.25,
+      "timeline_end": 121.21,
+      "segment_id": "片段1",
+      "segment_offset": 120.25,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1041.192,
+      "source_end": 1042.44,
+      "speed": 1.3,
+      "start": 1041.192,
+      "end": 1042.44,
+      "text": "它是偏休闲的",
+      "selection_group": 10
+    }
+  ],
+  [
+    {
+      "id": 56,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 129.11,
+      "timeline_end": 130.23,
+      "segment_id": "片段1",
+      "segment_offset": 129.11,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1052.71,
+      "source_end": 1054.166,
+      "speed": 1.3,
+      "start": 1052.71,
+      "end": 1054.166,
+      "text": "有一点点学员风",
+      "selection_group": 11
+    },
+    {
+      "id": 81,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 194.78,
+      "timeline_end": 196.36,
+      "segment_id": "片段1",
+      "segment_offset": 194.78,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1138.081,
+      "source_end": 1140.135,
+      "speed": 1.3,
+      "start": 1138.081,
+      "end": 1140.135,
+      "text": "有一点点学院风的中群",
+      "selection_group": 11
+    }
+  ],
+  [
+    {
+      "id": 53,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 126.09,
+      "timeline_end": 127.05,
+      "segment_id": "片段1",
+      "segment_offset": 126.09,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1048.784,
+      "source_end": 1050.032,
+      "speed": 1.3,
+      "start": 1048.784,
+      "end": 1050.032,
+      "text": "这是今年最新一季的",
+      "selection_group": 12
+    }
+  ],
+  [
+    {
+      "id": 98,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 226.56,
+      "timeline_end": 233.02,
+      "segment_id": "片段1",
+      "segment_offset": 226.56,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1179.395,
+      "source_end": 1187.793,
+      "speed": 1.3,
+      "start": 1179.395,
+      "end": 1187.793,
+      "text": "但是这个长度我觉得既能让我穿出那种很简凌的感觉但是他整个的那种自在的松弛的感觉他还很在线",
+      "selection_group": 13
+    },
+    {
+      "id": 100,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 233.44,
+      "timeline_end": 235.52,
+      "segment_id": "片段1",
+      "segment_offset": 233.44,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1188.339,
+      "source_end": 1191.043,
+      "speed": 1.3,
+      "start": 1188.339,
+      "end": 1191.043,
+      "text": "所以这个裙子我觉得是超级漂亮啊姐妹们",
+      "selection_group": 13
+    }
+  ],
+  [
+    {
+      "id": 153,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 341.57,
+      "timeline_end": 343.71,
+      "segment_id": "片段1",
+      "segment_offset": 341.57,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1328.908,
+      "source_end": 1331.69,
+      "speed": 1.3,
+      "start": 1328.908,
+      "end": 1331.69,
+      "text": "上身又好看高级又洋气又有质感",
+      "selection_group": 14
+    },
+    {
+      "id": 160,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 359.01,
+      "timeline_end": 360.31,
+      "segment_id": "片段2",
+      "segment_offset": 11.277,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5581.193,
+      "source_end": 5582.883,
+      "speed": 1.3,
+      "start": 5581.193,
+      "end": 5582.883,
+      "text": "这条裙子很顶",
+      "selection_group": 14
+    },
+    {
+      "id": 185,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 405.7,
+      "timeline_end": 406.9,
+      "segment_id": "片段2",
+      "segment_offset": 57.967,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5641.89,
+      "source_end": 5643.45,
+      "speed": 1.3,
+      "start": 5641.89,
+      "end": 5643.45,
+      "text": "很有品味的一条裙子",
+      "selection_group": 14
+    }
+  ],
+  [
+    {
+      "id": 130,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 298.08,
+      "timeline_end": 300.78,
+      "segment_id": "片段1",
+      "segment_offset": 298.08,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1272.371,
+      "source_end": 1275.881,
+      "speed": 1.3,
+      "start": 1272.371,
+      "end": 1275.881,
+      "text": "这款灭料的整个风格就已经很高级了你们可以看一下",
+      "selection_group": 15
+    }
+  ],
+  [
+    {
+      "id": 69,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 168.19,
+      "timeline_end": 170.11,
+      "segment_id": "片段1",
+      "segment_offset": 168.19,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1103.514,
+      "source_end": 1106.01,
+      "speed": 1.3,
+      "start": 1103.514,
+      "end": 1106.01,
+      "text": "裙子就是很洋气我告诉你",
+      "selection_group": 16
+    }
+  ],
+  [
+    {
+      "id": 138,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 316.41,
+      "timeline_end": 318.15,
+      "segment_id": "片段1",
+      "segment_offset": 316.41,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1296.2,
+      "source_end": 1298.462,
+      "speed": 1.3,
+      "start": 1296.2,
+      "end": 1298.462,
+      "text": "一定是很专人眼球的",
+      "selection_group": 17
+    }
+  ],
+  [
+    {
+      "id": 154,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 344.03,
+      "timeline_end": 346.19,
+      "segment_id": "片段1",
+      "segment_offset": 344.03,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1332.106,
+      "source_end": 1334.914,
+      "speed": 1.3,
+      "start": 1332.106,
+      "end": 1334.914,
+      "text": "一定是懂高货的人必入的单品",
+      "selection_group": 18
+    }
+  ],
+  [
+    {
+      "id": 15,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 61.25,
+      "timeline_end": 63.75,
+      "segment_id": "片段1",
+      "segment_offset": 61.25,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 964.492,
+      "source_end": 967.742,
+      "speed": 1.3,
+      "start": 964.492,
+      "end": 967.742,
+      "text": "你们可以去看品质再看成分",
+      "selection_group": 19
+    }
+  ],
+  [
+    {
+      "id": 178,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 391.0,
+      "timeline_end": 392.78,
+      "segment_id": "片段2",
+      "segment_offset": 43.267,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5622.78,
+      "source_end": 5625.094,
+      "speed": 1.3,
+      "start": 5622.78,
+      "end": 5625.094,
+      "text": "我们是真正做原料出身的",
+      "selection_group": 20
+    }
+  ],
+  [
+    {
+      "id": 181,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 395.7,
+      "timeline_end": 397.18,
+      "segment_id": "片段2",
+      "segment_offset": 47.967,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5628.89,
+      "source_end": 5630.814,
+      "speed": 1.3,
+      "start": 5628.89,
+      "end": 5630.814,
+      "text": "你市面上最多最多买个50毛的",
+      "selection_group": 21
+    }
+  ],
+  [
+    {
+      "id": 14,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 59.97,
+      "timeline_end": 61.25,
+      "segment_id": "片段1",
+      "segment_offset": 59.97,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 962.828,
+      "source_end": 964.492,
+      "speed": 1.3,
+      "start": 962.828,
+      "end": 964.492,
+      "text": "整个冬天都能搭得了",
+      "selection_group": 22
+    },
+    {
+      "id": 211,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 455.6,
+      "timeline_end": 457.38,
+      "segment_id": "片段2",
+      "segment_offset": 107.867,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5706.76,
+      "source_end": 5709.074,
+      "speed": 1.3,
+      "start": 5706.76,
+      "end": 5709.074,
+      "text": "南方一直能穿到一个深球",
+      "selection_group": 22
+    }
+  ],
+  [
+    {
+      "id": 63,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 142.89,
+      "timeline_end": 146.93,
+      "segment_id": "片段1",
+      "segment_offset": 142.89,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1070.624,
+      "source_end": 1075.876,
+      "speed": 1.3,
+      "start": 1070.624,
+      "end": 1075.876,
+      "text": "三十来岁的女生你可以这样去搭你看到没穿一个小靴子穿着这种去搭配一个背心",
+      "selection_group": 23
+    }
+  ],
+  [
+    {
+      "id": 62,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 140.29,
+      "timeline_end": 141.79,
+      "segment_id": "片段1",
+      "segment_offset": 140.29,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1067.244,
+      "source_end": 1069.194,
+      "speed": 1.3,
+      "start": 1067.244,
+      "end": 1069.194,
+      "text": "感觉比较好搭",
+      "selection_group": 24
+    }
+  ],
+  [
+    {
+      "id": 61,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 134.25,
+      "timeline_end": 135.89,
+      "segment_id": "片段1",
+      "segment_offset": 134.25,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1059.392,
+      "source_end": 1061.524,
+      "speed": 1.3,
+      "start": 1059.392,
+      "end": 1061.524,
+      "text": "尖头的小高跟穿这条裙子",
+      "selection_group": 25
+    }
+  ],
+  [
+    {
+      "id": 189,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 410.5,
+      "timeline_end": 412.97,
+      "segment_id": "片段2",
+      "segment_offset": 62.767,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5648.13,
+      "source_end": 5651.341,
+      "speed": 1.3,
+      "start": 5648.13,
+      "end": 5651.341,
+      "text": "你看我就搭这个小T恤去配好好看",
+      "selection_group": 26
+    }
+  ],
+  [
+    {
+      "id": 212,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 457.38,
+      "timeline_end": 462.3,
+      "segment_id": "片段2",
+      "segment_offset": 109.647,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5709.074,
+      "source_end": 5715.47,
+      "speed": 1.3,
+      "start": 5709.074,
+      "end": 5715.47,
+      "text": "里面穿个羊毛袜特别好看特别氧气对你就配个袜子穿个小乐浮鞋是最氧气的搭配",
+      "selection_group": 27
+    }
+  ],
+  [
+    {
+      "id": 218,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 471.42,
+      "timeline_end": 474.5,
+      "segment_id": "片段2",
+      "segment_offset": 123.687,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 5727.326,
+      "source_end": 5731.33,
+      "speed": 1.3,
+      "start": 5727.326,
+      "end": 5731.33,
+      "text": "随便一件起批搭个小白袜的搭个小修衔鞋就可以了好",
+      "selection_group": 28
+    }
+  ],
+  [
+    {
+      "id": 52,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 124.83,
+      "timeline_end": 126.09,
+      "segment_id": "片段1",
+      "segment_offset": 124.83,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1047.146,
+      "source_end": 1048.784,
+      "speed": 1.3,
+      "start": 1047.146,
+      "end": 1048.784,
+      "text": "基本上都是明星的穿搭",
+      "selection_group": 29
+    }
+  ],
+  [
+    {
+      "id": 119,
+      "timeline_id": "650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1",
+      "timeline_start": 275.64,
+      "timeline_end": 280.24,
+      "segment_id": "片段1",
+      "segment_offset": 275.64,
+      "source_path": "E:\\切片\\袁艺灵\\直播视频\\2026\\2026-08\\2026-08-18\\第1场\\袁艺灵秋款大上新20260818195040第1场7675337658104597302.mp4",
+      "source_start": 1243.199,
+      "source_end": 1249.179,
+      "speed": 1.3,
+      "start": 1243.199,
+      "end": 1249.179,
+      "text": "如果你觉得你驾驭不了的话我建议你们试一下这条裙子它比较显瘦比较显跨窄",
+      "selection_group": 30
+    }
+  ]
+]

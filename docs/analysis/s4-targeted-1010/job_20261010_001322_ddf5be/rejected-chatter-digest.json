@@ -1,0 +1,20 @@
+[
+  {
+    "id": 71,
+    "text": "卡马的话拍大",
+    "rule": "structural_chatter",
+    "hit": "卡马的话拍大"
+  },
+  {
+    "id": 72,
+    "text": "卡马拍小啊",
+    "rule": "structural_chatter",
+    "hit": "卡马拍小"
+  },
+  {
+    "id": 170,
+    "text": "卡码裙子都可以拍小",
+    "rule": "structural_chatter",
+    "hit": "卡码裙子都可以拍小"
+  }
+]

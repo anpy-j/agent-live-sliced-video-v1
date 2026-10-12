@@ -1,0 +1,249 @@
+{
+  "main_product": "马甲外套两件套",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        3
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        11
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        12,
+        13
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        14
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        15,
+        16
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        30,
+        31
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        42
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        74,
+        75
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        147
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        159
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        161
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        162,
+        163
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        234,
+        235,
+        236
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        81,
+        82,
+        83
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        85
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        88,
+        89,
+        90
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        91,
+        92
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        96
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        106,
+        107,
+        108,
+        109
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        110,
+        111,
+        112,
+        113
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        115,
+        116
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        171
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        172
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        288
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        296,
+        297
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        314
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        316,
+        317
+      ]
+    }
+  ],
+  "ordered_ids": [
+    0,
+    1,
+    2,
+    3,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    30,
+    31,
+    42,
+    74,
+    75,
+    147,
+    159,
+    161,
+    162,
+    163,
+    234,
+    235,
+    236,
+    81,
+    82,
+    83,
+    85,
+    88,
+    89,
+    90,
+    91,
+    92,
+    96,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    115,
+    116,
+    171,
+    172,
+    288,
+    296,
+    297,
+    314,
+    316,
+    317
+  ]
+}

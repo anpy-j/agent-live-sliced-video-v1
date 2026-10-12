@@ -1,0 +1,124 @@
+{
+  "stage": "order",
+  "selection_version": 2,
+  "main_product": "裙子",
+  "sections": [
+    {
+      "role": "selling_point",
+      "ids": [
+        62,
+        63,
+        64
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        53
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        71
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        47
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        58
+      ]
+    }
+  ],
+  "ordered_ids": [
+    62,
+    63,
+    64,
+    53,
+    71,
+    47,
+    58
+  ],
+  "total_seconds": 24.62,
+  "selected_clauses": [
+    {
+      "id": 62,
+      "start": 145.43,
+      "end": 148.39,
+      "text": "这条裙子给大家准备的是高枝羊毛",
+      "members": [
+        62
+      ],
+      "group": 0,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 63,
+      "start": 148.65,
+      "end": 157.69,
+      "text": "然后做的浑坊而且它是千尿格的一个设计看到了吗他是小细节有这种小格子的设计所以他非常好看灰色的",
+      "members": [
+        63,
+        64
+      ],
+      "group": 0,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 53,
+      "start": 117.35,
+      "end": 119.61,
+      "text": "然后外面再可以穿一件毛衣",
+      "members": [
+        53
+      ],
+      "group": 1,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 71,
+      "start": 169.41,
+      "end": 171.79,
+      "text": "你也可以把里面换成黑色衬衫",
+      "members": [
+        71
+      ],
+      "group": 2,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 47,
+      "start": 105.84,
+      "end": 108.2,
+      "text": "配一下皮裤都能配很好看",
+      "members": [
+        47
+      ],
+      "group": 3,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 58,
+      "start": 128.25,
+      "end": 133.87,
+      "text": "啊这条裙子的话我觉得秋冬的话比较适配的就是一些毛衣的感觉",
+      "members": [
+        58
+      ],
+      "group": 4,
+      "role": "scene",
+      "usable": true
+    }
+  ]
+}

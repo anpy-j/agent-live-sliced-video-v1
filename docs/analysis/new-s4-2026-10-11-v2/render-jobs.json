@@ -1,0 +1,47 @@
+[
+  {
+    "id": "job_20261011_182618_2d91c2",
+    "title": "【巴黎香叙】素材1010",
+    "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\B2C32283-C8DC-42bc-864A-1516A25F0C9B-d8a74ab8c507\\edits\\job_20261010_001203_e4117d-【巴黎香叙】素材1010-s4-v2-render",
+    "export_dir": "D:\\切片\\袁艺灵\\AI粗筛视频\\新版S4-v2",
+    "seconds": 113.65,
+    "clips": 29,
+    "physical_segments": 29
+  },
+  {
+    "id": "job_20261011_182756_91ab6c",
+    "title": "【格雷日记】素材1010",
+    "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\650FFFB6-AF51-416f-A1DF-1C0CF5F75EF1-967bbc08ea3c\\edits\\job_20261010_001311_acc528-【格雷日记】素材1010-s4-v2-render",
+    "export_dir": "D:\\切片\\袁艺灵\\AI粗筛视频\\新版S4-v2",
+    "seconds": 101.37,
+    "clips": 29,
+    "physical_segments": 29
+  },
+  {
+    "id": "job_20261011_182756_5d342b",
+    "title": "【百搭私服】素材1010",
+    "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\CC7F827A-A507-439b-8B8D-724EB03922A3-c8f1c8287871\\edits\\job_20261010_001209_fddcb9-【百搭私服】素材1010-s4-v2-render",
+    "export_dir": "D:\\切片\\袁艺灵\\AI粗筛视频\\新版S4-v2",
+    "seconds": 31.76,
+    "clips": 9,
+    "physical_segments": 9
+  },
+  {
+    "id": "job_20261011_182756_e4a525",
+    "title": "【罗马假日】-半身裙素材1010",
+    "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\077D939E-1ABA-4116-BCC1-5A036F859A0C-1f06b4dcbe66\\edits\\job_20261010_001216_fa9de9-【罗马假日】-半身裙素材1010-s4-v2-render",
+    "export_dir": "D:\\切片\\袁艺灵\\AI粗筛视频\\新版S4-v2",
+    "seconds": 53.6,
+    "clips": 17,
+    "physical_segments": 19
+  },
+  {
+    "id": "job_20261011_182756_b22040",
+    "title": "梦中安妮08061010",
+    "workspace": "D:\\develop\\ai\\project\\agent-live-sliced-video-v1\\workspaces\\timelines\\4EEB55EF-F36F-40C4-9B22-BAF6D8CF5C49-e1143851bca9\\edits\\job_20261010_001305_762e3d-梦中安妮08061010-s4-v2-render",
+    "export_dir": "D:\\切片\\袁艺灵\\AI粗筛视频\\新版S4-v2",
+    "seconds": 110.12,
+    "clips": 33,
+    "physical_segments": 39
+  }
+]

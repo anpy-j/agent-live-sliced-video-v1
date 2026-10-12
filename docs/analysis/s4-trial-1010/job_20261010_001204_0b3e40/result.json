@@ -1,0 +1,12 @@
+{
+  "id": "job_20261010_001204_0b3e40",
+  "title": "【巴黎香叙】素材1010-1",
+  "original_target": "120-180",
+  "test_target": "110-130",
+  "model": "deepseek-v4.1-flash",
+  "provider": "workbuddy",
+  "status": "missing_s3",
+  "live_model_called": false,
+  "error": "原任务缺少S3结果，不能把其他任务的判断冒充本任务输入",
+  "elapsed_seconds": 0.0
+}

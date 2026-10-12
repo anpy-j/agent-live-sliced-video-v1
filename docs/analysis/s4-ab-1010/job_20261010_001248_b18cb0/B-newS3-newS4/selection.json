@@ -1,0 +1,632 @@
+{
+  "main_product": "蓝金莫代尔睡衣套装",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        3
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        182,
+        69,
+        183
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        17,
+        70,
+        416,
+        400,
+        407
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        275,
+        368,
+        10
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        25,
+        27,
+        30,
+        160,
+        161
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        24,
+        322,
+        323,
+        162
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        314,
+        315,
+        316
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        43,
+        45,
+        129
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        307,
+        49,
+        260,
+        475,
+        476,
+        393
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        224,
+        371,
+        230
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        455,
+        456,
+        471,
+        36,
+        385,
+        155,
+        156,
+        452,
+        453,
+        454
+      ]
+    }
+  ],
+  "ordered_ids": [
+    3,
+    182,
+    69,
+    183,
+    17,
+    70,
+    416,
+    400,
+    407,
+    275,
+    368,
+    10,
+    25,
+    27,
+    30,
+    160,
+    161,
+    24,
+    322,
+    323,
+    162,
+    314,
+    315,
+    316,
+    43,
+    45,
+    129,
+    307,
+    49,
+    260,
+    475,
+    476,
+    393,
+    224,
+    371,
+    230,
+    455,
+    456,
+    471,
+    36,
+    385,
+    155,
+    156,
+    452,
+    453,
+    454
+  ],
+  "selected_clauses": [
+    {
+      "id": 3,
+      "start": 16.27,
+      "end": 21.89,
+      "text": "就等睡衣了,OK,先把睡衣给你们上了,咱们就是按套给大家上的啊,姐妹们,这一件的话,",
+      "members": [
+        3
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 182,
+      "start": 421.38,
+      "end": 425.38,
+      "text": "93%的蓝金莫代尔他不是莫代尔是蓝金莫代尔",
+      "members": [
+        182
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 69,
+      "start": 176.58,
+      "end": 178.14,
+      "text": "他没有别的成分只有模特儿",
+      "members": [
+        69
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 183,
+      "start": 425.44,
+      "end": 429.62,
+      "text": "蓝金品牌在国内做莫代尔非常出名蓝金天司蓝金莫代尔",
+      "members": [
+        183
+      ],
+      "group": 1,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 17,
+      "start": 53.81,
+      "end": 56.49,
+      "text": "所以它整个上身弹力的同时非常柔",
+      "members": [
+        17
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 70,
+      "start": 178.14,
+      "end": 181.18,
+      "text": "所以他整个的体感上身超级舒服贼懦",
+      "members": [
+        70
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 416,
+      "start": 908.08,
+      "end": 910.16,
+      "text": "就是那种滑的弹的料子宝贝",
+      "members": [
+        416
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 400,
+      "start": 883.24,
+      "end": 884.74,
+      "text": "它不是薄它是软",
+      "members": [
+        400
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 407,
+      "start": 893.86,
+      "end": 896.44,
+      "text": "他是很足很足的那种柔肤体验感",
+      "members": [
+        407
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 275,
+      "start": 610.29,
+      "end": 615.57,
+      "text": "棉加莱卡的你觉得有弹力洗一洗就变色变形我给你的是93%的蓝金摩袋耳",
+      "members": [
+        275
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 368,
+      "start": 809.05,
+      "end": 811.67,
+      "text": "随便洗回弹性好不便洗不起球不黏毛",
+      "members": [
+        368
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 10,
+      "start": 40.45,
+      "end": 43.45,
+      "text": "穿十年二十年你随便丢洗衣机不会有任何变形变化",
+      "members": [
+        10
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 25,
+      "start": 85.92,
+      "end": 88.1,
+      "text": "正常来说你大翻脸的睡衣它是好看的",
+      "members": [
+        25
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 27,
+      "start": 89.26,
+      "end": 91.7,
+      "text": "但是翻领翻大的这个位置需要个脖子",
+      "members": [
+        27
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 30,
+      "start": 93.74,
+      "end": 96.74,
+      "text": "所以我们做出了这样一件无领的小翻领上衣",
+      "members": [
+        30
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 160,
+      "start": 366.72,
+      "end": 369.72,
+      "text": "这种衣服真的是会比你穿一个圆的要气质很多",
+      "members": [
+        160,
+        161
+      ],
+      "group": 4,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 24,
+      "start": 81.7,
+      "end": 85.92,
+      "text": "这件睡衣你整个去感受一下他的领子他的领子是你躺着睡觉不压脖子的",
+      "members": [
+        24
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 322,
+      "start": 712.88,
+      "end": 715.76,
+      "text": "根本就不會割脖子而且不會覺得這個領子有多窩呢",
+      "members": [
+        322,
+        323
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 162,
+      "start": 369.72,
+      "end": 371.24,
+      "text": "我特别是这种小翻领的感觉",
+      "members": [
+        162
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 314,
+      "start": 701.56,
+      "end": 706.56,
+      "text": "而且你們看一下它這個蕾絲的細節這個邊我們做的蕾絲全部是水溶的這種蕾絲你隨便洗不變",
+      "members": [
+        314,
+        315,
+        316
+      ],
+      "group": 6,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 43,
+      "start": 121.3,
+      "end": 125.04,
+      "text": "他不是齐焚袖啊没办法做齐焚袖但是我袖子做的都不长小个子穿就正常袖",
+      "members": [
+        43
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 45,
+      "start": 128.06,
+      "end": 132.96,
+      "text": "但这个的话基本上就到我的这个手腕处裤子也不是个长裤啊子都是9分左右的",
+      "members": [
+        45
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 129,
+      "start": 294.45,
+      "end": 297.55,
+      "text": "睡衣矮个子能穿吗都能穿所有人不挑人不挑身高",
+      "members": [
+        129
+      ],
+      "group": 7,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 307,
+      "start": 685.41,
+      "end": 687.57,
+      "text": "是睡衣是五个颜色大家可以看一下",
+      "members": [
+        307
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 49,
+      "start": 141.49,
+      "end": 143.99,
+      "text": "粉色蓝色米色灰色还有灰色",
+      "members": [
+        49
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 260,
+      "start": 584.59,
+      "end": 586.81,
+      "text": "蓝色很干净粉色也很干净",
+      "members": [
+        260
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 475,
+      "start": 1021.94,
+      "end": 1026.26,
+      "text": "蓝色是那种有一点点灰调的蓝有一点点灰调的蓝很高级",
+      "members": [
+        475,
+        476
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 393,
+      "start": 867.06,
+      "end": 869.46,
+      "text": "它是这种墨就是那种墨兰迪色系的粉",
+      "members": [
+        393
+      ],
+      "group": 8,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 224,
+      "start": 509.16,
+      "end": 511.1,
+      "text": "米调是很衬黑皮的",
+      "members": [
+        224
+      ],
+      "group": 9,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 371,
+      "start": 815.49,
+      "end": 818.71,
+      "text": "黄黑皮的话可以选择灰色黑色和卡奇色",
+      "members": [
+        371
+      ],
+      "group": 9,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 230,
+      "start": 519.36,
+      "end": 521.56,
+      "text": "但皮肤白你就首选粉蓝",
+      "members": [
+        230
+      ],
+      "group": 9,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 455,
+      "start": 975.6,
+      "end": 978.5,
+      "text": "而且非常适合你在春夏秋",
+      "members": [
+        455
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 456,
+      "start": 978.86,
+      "end": 982.02,
+      "text": "冬天的话如果是南方家里开空调完全可以的",
+      "members": [
+        456
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 471,
+      "start": 1014.84,
+      "end": 1016.66,
+      "text": "有暖气的穿这个东西太舒服了",
+      "members": [
+        471
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 36,
+      "start": 102.92,
+      "end": 104.52,
+      "text": "你穿这种东西正好在屋子里",
+      "members": [
+        36
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 385,
+      "start": 849.4,
+      "end": 851.92,
+      "text": "你穿在家里给自己看给老公看家里人看",
+      "members": [
+        385
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 155,
+      "start": 355.74,
+      "end": 360.5,
+      "text": "在家里面就可以聚会的时候都可以穿出来的东西真的是你随便穿着和睡觉也软",
+      "members": [
+        155,
+        156
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 452,
+      "start": 968.28,
+      "end": 972.34,
+      "text": "你是可以朋友來了你坐在這聊天你都觉得很自如很大气的感觉",
+      "members": [
+        452,
+        453
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 454,
+      "start": 973.08,
+      "end": 975.6,
+      "text": "所以说这种小睡衣真的是不挑人宝贝",
+      "members": [
+        454
+      ],
+      "group": 10,
+      "role": "scene",
+      "usable": true
+    }
+  ],
+  "total_seconds": 118.41999999999993
+}

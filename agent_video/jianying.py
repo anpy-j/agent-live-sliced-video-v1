@@ -153,7 +153,7 @@ def _save_discovery_cache() -> None:
 
 def _draft_content_signature(draft_path: Path, item: dict[str, Any]) -> str:
     """草稿内容指纹：任一 draft_content.json / 时间线布局变化都会让缓存失效。"""
-    parts = [str(item.get("tm_draft_modified") or "")]
+    parts = ["discovery-v2", str(item.get("tm_draft_modified") or "")]
     if sys.platform == "darwin":
         parts.insert(0, "mac-native-reader-v1")
     for relative in ("timeline_layout.json", "draft_content.json"):

@@ -1,0 +1,577 @@
+{
+  "main_product": "迪奥同款羊毛短外套",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        5,
+        13
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        24,
+        25,
+        26,
+        97,
+        98
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        34,
+        35,
+        60,
+        183
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        55,
+        56,
+        57,
+        169,
+        170,
+        166,
+        167
+      ]
+    },
+    {
+      "role": "scene",
+      "ids": [
+        6,
+        116,
+        117,
+        119,
+        120,
+        126
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        118,
+        191,
+        192,
+        41
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        68,
+        69,
+        70,
+        71,
+        72
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        135,
+        136,
+        137,
+        138,
+        139,
+        140
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        7,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        147,
+        148,
+        149,
+        150,
+        152,
+        153,
+        154,
+        155
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        44,
+        45,
+        46,
+        47,
+        48,
+        52,
+        128
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        156,
+        157,
+        158,
+        247,
+        258
+      ]
+    },
+    {
+      "role": "cta",
+      "ids": [
+        93,
+        94
+      ]
+    }
+  ],
+  "selected_clauses": [
+    {
+      "id": 5,
+      "start": 9.91,
+      "end": 11.85,
+      "text": "它是我们给大家准备的一个敌要同款。",
+      "members": [
+        5
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 13,
+      "start": 31.62,
+      "end": 34.64,
+      "text": "看一下这件底奥的非常漂亮的底奥的经典款",
+      "members": [
+        13
+      ],
+      "group": 0,
+      "role": "hook",
+      "usable": true
+    },
+    {
+      "id": 24,
+      "start": 60.38,
+      "end": 66.06,
+      "text": "今天我给大家加的是一件直捅版型很多女生说我日常上班生活穿搭我不想要那种收腰的",
+      "members": [
+        24,
+        25,
+        26
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 97,
+      "start": 193.62,
+      "end": 196.14,
+      "text": "而且我觉得直筒的更适合我日常穿着起来",
+      "members": [
+        97,
+        98
+      ],
+      "group": 1,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 34,
+      "start": 75.26,
+      "end": 79.04,
+      "text": "它也是一款奥毛的材质非常美的那种丝毛质感",
+      "members": [
+        34,
+        35
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 60,
+      "start": 120.35,
+      "end": 121.43,
+      "text": "这是我们的定制面料",
+      "members": [
+        60
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 183,
+      "start": 367.91,
+      "end": 369.67,
+      "text": "去给大家做的一个定制绵料给你们看一下",
+      "members": [
+        183
+      ],
+      "group": 2,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 55,
+      "start": 110.29,
+      "end": 117.01,
+      "text": "今年卖明年还会卖的不是灰色它就是黑这种奢侈品在卖的黑这叫脏青黑色如果是纯黑色就会非常的low",
+      "members": [
+        55,
+        56,
+        57
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 169,
+      "start": 338.13,
+      "end": 341.93,
+      "text": "你看就是这件你看他的颜色也是这种就泛有灰色光芒的黑",
+      "members": [
+        169,
+        170
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 166,
+      "start": 332.79,
+      "end": 336.65,
+      "text": "所以他这种黑就显出来他特别高级的感觉明白吗姐妹们他就是很高级的",
+      "members": [
+        166,
+        167
+      ],
+      "group": 3,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 6,
+      "start": 14.35,
+      "end": 16.65,
+      "text": "你看你这种打理山穿的这种衣服里边,是多么的好穿。",
+      "members": [
+        6
+      ],
+      "group": 4,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 116,
+      "start": 231.36,
+      "end": 233.26,
+      "text": "这件衣服给到你的感觉就是松弛的",
+      "members": [
+        116,
+        117
+      ],
+      "group": 4,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 119,
+      "start": 234.76,
+      "end": 237.18,
+      "text": "买这种小短外套其实穿起来就一年四季",
+      "members": [
+        119,
+        120
+      ],
+      "group": 4,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 126,
+      "start": 243.08,
+      "end": 244.82,
+      "text": "刚刚好是当下正好穿的东西",
+      "members": [
+        126
+      ],
+      "group": 4,
+      "role": "scene",
+      "usable": true
+    },
+    {
+      "id": 118,
+      "start": 233.26,
+      "end": 234.76,
+      "text": "而且很高级",
+      "members": [
+        118
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 191,
+      "start": 382.24,
+      "end": 386.0,
+      "text": "穿上是身之后就整个人生那种很着气的很贵气的感觉",
+      "members": [
+        191,
+        192
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 41,
+      "start": 84.92,
+      "end": 88.36,
+      "text": "也是那种很五妹的很明妹的很贵气的就正常来说",
+      "members": [
+        41
+      ],
+      "group": 5,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 68,
+      "start": 135.05,
+      "end": 145.49,
+      "text": "你知道咱们家的版型做的有多绝整个肩膀位置全部是手工修缘肩的看到了吗整个肩膀肩膀位没有高低肩这一定是一定是工人一个一个修出来的肩膀",
+      "members": [
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "group": 6,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 135,
+      "start": 258.18,
+      "end": 268.3,
+      "text": "而且这件衣服非常超级之难做因为它整个边边都要做得非常非常的细才能达到这个平衡度才能让两边做对称这全手工的所以这件衣服我还是真的很推荐的",
+      "members": [
+        135,
+        136,
+        137,
+        138,
+        139,
+        140
+      ],
+      "group": 7,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 7,
+      "start": 17.87,
+      "end": 19.03,
+      "text": "会起球,哪里会起球啊?",
+      "members": [
+        7
+      ],
+      "group": 8,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 9,
+      "start": 20.67,
+      "end": 24.32,
+      "text": "这件篮球模特儿,你要是能把它穿起球了,你就赢了。",
+      "members": [
+        9
+      ],
+      "group": 8,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 10,
+      "start": 25.56,
+      "end": 28.02,
+      "text": "你除非拿那种铁刷子刷的,那它就会起球了。",
+      "members": [
+        10
+      ],
+      "group": 8,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 11,
+      "start": 28.42,
+      "end": 29.56,
+      "text": "正常情况下是不会的。",
+      "members": [
+        11
+      ],
+      "group": 8,
+      "role": "proof",
+      "usable": true
+    },
+    {
+      "id": 147,
+      "start": 278.62,
+      "end": 286.02,
+      "text": "就是最早延续下来到现在就这种收腰的感觉的西装与迪拥有上百年以上的历史了但我觉得经典的东西就是用刘存",
+      "members": [
+        147,
+        148,
+        149,
+        150
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 152,
+      "start": 287.16,
+      "end": 294.12,
+      "text": "像你最喜欢的脚巷的外套那种都是香奶奶的风格它也是刘存的所以这种衣服你穿20年它也不会过时穿20年照样好看拿缓写年轻",
+      "members": [
+        152,
+        153,
+        154,
+        155
+      ],
+      "group": 9,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 44,
+      "start": 91.26,
+      "end": 95.48,
+      "text": "我觉得穿这种外套搭个牛仔裤也好看你搭丝绒这一条的话可能就会有那种",
+      "members": [
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 48,
+      "start": 95.9,
+      "end": 97.58,
+      "text": "非常非常显高显瘦的感觉",
+      "members": [
+        48
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 52,
+      "start": 102.82,
+      "end": 106.74,
+      "text": "日常生活的搭配就可以是这种这种搭上去我觉得也很时髦就这样简简单单",
+      "members": [
+        52
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 128,
+      "start": 246.2,
+      "end": 247.66,
+      "text": "你就配你的白牛就可以了",
+      "members": [
+        128
+      ],
+      "group": 10,
+      "role": "styling",
+      "usable": true
+    },
+    {
+      "id": 156,
+      "start": 294.12,
+      "end": 296.06,
+      "text": "直捅的会稍微年轻一点",
+      "members": [
+        156
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 157,
+      "start": 296.36,
+      "end": 299.18,
+      "text": "稍微活泼一点这件会稍微Lady一点你们自己敢生",
+      "members": [
+        157,
+        158
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 247,
+      "start": 493.0,
+      "end": 494.36,
+      "text": "精致的话收腰的更精致",
+      "members": [
+        247
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 258,
+      "start": 516.81,
+      "end": 518.01,
+      "text": "收腰的感觉",
+      "members": [
+        258
+      ],
+      "group": 11,
+      "role": "selling_point",
+      "usable": true
+    },
+    {
+      "id": 93,
+      "start": 186.48,
+      "end": 189.76,
+      "text": "你喜欢收腰的你就买收腰的这是今年的直筒版本你自己挑",
+      "members": [
+        93,
+        94
+      ],
+      "group": 12,
+      "role": "cta",
+      "usable": true
+    }
+  ],
+  "total_seconds": 116.42999999999992
+}

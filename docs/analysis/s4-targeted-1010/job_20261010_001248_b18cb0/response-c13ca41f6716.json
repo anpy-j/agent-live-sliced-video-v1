@@ -1,0 +1,523 @@
+{
+  "fingerprint": "c13ca41f6716c50c5ce75c6a8874234d02617e799d0ec0a00d3c8909731dfbbd",
+  "data": {
+    "main_product": "睡衣",
+    "sections": [
+      {
+        "role": "hook",
+        "ids": [
+          23,
+          182
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          184,
+          70,
+          400,
+          407,
+          416
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          30,
+          24,
+          170
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          314,
+          315,
+          316
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          10,
+          368,
+          84,
+          82
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          126,
+          330
+        ]
+      },
+      {
+        "role": "proof",
+        "ids": [
+          353,
+          354
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          307,
+          52,
+          20,
+          475,
+          476
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          379,
+          378,
+          258,
+          281
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          43,
+          45,
+          279
+        ]
+      },
+      {
+        "role": "styling",
+        "ids": [
+          163,
+          446
+        ]
+      },
+      {
+        "role": "scene",
+        "ids": [
+          153,
+          154,
+          155,
+          385,
+          471,
+          456,
+          389
+        ]
+      },
+      {
+        "role": "selling_point",
+        "ids": [
+          299,
+          300,
+          438,
+          443,
+          444
+        ]
+      },
+      {
+        "role": "cta",
+        "ids": [
+          422,
+          421
+        ]
+      }
+    ],
+    "ordered_ids": [
+      23,
+      182,
+      184,
+      70,
+      400,
+      407,
+      416,
+      30,
+      24,
+      170,
+      314,
+      315,
+      316,
+      10,
+      368,
+      84,
+      82,
+      126,
+      330,
+      353,
+      354,
+      307,
+      52,
+      20,
+      475,
+      476,
+      379,
+      378,
+      258,
+      281,
+      43,
+      45,
+      279,
+      163,
+      446,
+      153,
+      154,
+      155,
+      385,
+      471,
+      456,
+      389,
+      299,
+      300,
+      438,
+      443,
+      444,
+      422,
+      421
+    ]
+  },
+  "usage": {
+    "input_tokens": 56503,
+    "output_tokens": 17941
+  },
+  "usage_fields": [
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens",
+      "value": 16815
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.total_tokens",
+      "value": 22815
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 16687
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.rawUsage.completion_thinking_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[3].providerData.usage.inputTokens",
+      "value": 16815
+    },
+    {
+      "path": "$[3].providerData.usage.outputTokens",
+      "value": 6000
+    },
+    {
+      "path": "$[3].providerData.usage.totalTokens",
+      "value": 22815
+    },
+    {
+      "path": "$[3].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 128
+    },
+    {
+      "path": "$[3].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens",
+      "value": 16815
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.rawUsage.total_tokens",
+      "value": 22815
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 16640
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 16640
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 175
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.rawUsage.completion_thinking_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[4].providerData.usage.inputTokens",
+      "value": 16815
+    },
+    {
+      "path": "$[4].providerData.usage.outputTokens",
+      "value": 6000
+    },
+    {
+      "path": "$[4].providerData.usage.totalTokens",
+      "value": 22815
+    },
+    {
+      "path": "$[4].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 16640
+    },
+    {
+      "path": "$[4].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 6000
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens",
+      "value": 22873
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens",
+      "value": 5941
+    },
+    {
+      "path": "$[7].providerData.rawUsage.total_tokens",
+      "value": 28814
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.reasoning_tokens",
+      "value": 5420
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_tokens_details.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.accepted_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.audio_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.reasoning_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.rejected_prediction_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_tokens_details.cached_tokens",
+      "value": 22656
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_hit_tokens",
+      "value": 22656
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_miss_tokens",
+      "value": 217
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cache_read_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cache_creation_input_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.prompt_cache_write_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.rawUsage.completion_thinking_tokens",
+      "value": 5420
+    },
+    {
+      "path": "$[7].providerData.rawUsage.cached_tokens",
+      "value": 0
+    },
+    {
+      "path": "$[7].providerData.usage.inputTokens",
+      "value": 22873
+    },
+    {
+      "path": "$[7].providerData.usage.outputTokens",
+      "value": 5941
+    },
+    {
+      "path": "$[7].providerData.usage.totalTokens",
+      "value": 28814
+    },
+    {
+      "path": "$[7].providerData.usage.inputTokensDetails[0].cached_tokens",
+      "value": 22656
+    },
+    {
+      "path": "$[7].providerData.usage.outputTokensDetails[0].reasoning_tokens",
+      "value": 5420
+    },
+    {
+      "path": "$[9].duration_ms",
+      "value": 21615
+    },
+    {
+      "path": "$[9].duration_api_ms",
+      "value": 10
+    },
+    {
+      "path": "$[9].num_turns",
+      "value": 8
+    },
+    {
+      "path": "$[9].usage.input_tokens",
+      "value": 56503
+    },
+    {
+      "path": "$[9].usage.output_tokens",
+      "value": 17941
+    },
+    {
+      "path": "$[9].usage.cache_creation_input_tokens",
+      "value": 17079
+    },
+    {
+      "path": "$[9].usage.cache_read_input_tokens",
+      "value": 39424
+    }
+  ],
+  "envelope_keys": [],
+  "settings": {
+    "effort": "low",
+    "max_output_tokens": 6000,
+    "max_thinking_tokens": 2048,
+    "max_turns": 2
+  },
+  "seconds": 74.06,
+  "final_json_characters": 972,
+  "error_subtype": null,
+  "is_error": null
+}

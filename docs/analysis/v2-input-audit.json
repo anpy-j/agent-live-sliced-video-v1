@@ -1,0 +1,52 @@
+{
+  "v1_pipeline_and_provider_unchanged": true,
+  "model_called": false,
+  "materials": [
+    {
+      "title": "【D家高定】素材1010",
+      "source_rows": 278,
+      "script_selectable": 207,
+      "s3_batches": 4,
+      "s3_estimated_largest_prompt_chars": 6976,
+      "input_unchanged": true,
+      "model_called": false
+    },
+    {
+      "title": "【人鱼】素材1010",
+      "source_rows": 178,
+      "script_selectable": 148,
+      "s3_batches": 3,
+      "s3_estimated_largest_prompt_chars": 5876,
+      "input_unchanged": true,
+      "model_called": false
+    },
+    {
+      "title": "【心机裤】37971010",
+      "source_rows": 289,
+      "script_selectable": 246,
+      "s3_batches": 4,
+      "s3_estimated_largest_prompt_chars": 5898,
+      "input_unchanged": true,
+      "model_called": false
+    },
+    {
+      "title": "【至简美学】素材1010",
+      "source_rows": 519,
+      "script_selectable": 453,
+      "s3_batches": 7,
+      "s3_estimated_largest_prompt_chars": 6214,
+      "input_unchanged": true,
+      "model_called": false
+    },
+    {
+      "title": "【云朵套装】素材1010",
+      "source_rows": 491,
+      "script_selectable": 442,
+      "s3_batches": 7,
+      "s3_estimated_largest_prompt_chars": 5839,
+      "input_unchanged": true,
+      "model_called": false
+    }
+  ],
+  "note": "真实S2输入的只读容量核查，未用模型挑选，不代表内容质量验收"
+}

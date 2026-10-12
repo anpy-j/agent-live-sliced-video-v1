@@ -1,0 +1,144 @@
+{
+  "main_product": "五分裤",
+  "sections": [
+    {
+      "role": "hook",
+      "ids": [
+        9
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        10
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        50,
+        51
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        87,
+        88
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        53,
+        54
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        55,
+        56
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        123,
+        124
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        69
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        34
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        23
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        115
+      ]
+    },
+    {
+      "role": "selling_point",
+      "ids": [
+        40
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        30
+      ]
+    },
+    {
+      "role": "styling",
+      "ids": [
+        46
+      ]
+    },
+    {
+      "role": "proof",
+      "ids": [
+        65,
+        66,
+        67
+      ]
+    }
+  ],
+  "ordered_ids": [
+    9,
+    10,
+    50,
+    51,
+    87,
+    88,
+    53,
+    54,
+    55,
+    56,
+    123,
+    124,
+    69,
+    34,
+    23,
+    115,
+    40,
+    7,
+    8,
+    27,
+    28,
+    30,
+    46,
+    65,
+    66,
+    67
+  ]
+}

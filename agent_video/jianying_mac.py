@@ -8,6 +8,7 @@ import platform
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 from pathlib import Path
@@ -73,6 +74,9 @@ def native_helper() -> Path:
     bundled = resource_dir() / 'tools' / 'bin' / 'jianying-decrypt'
     if bundled.is_file() and os.access(bundled, os.X_OK):
         return bundled
+    electron_helper = Path(sys.executable).parent.parent / 'bin' / 'jianying-decrypt'
+    if getattr(sys, 'frozen', False) and electron_helper.is_file() and os.access(electron_helper, os.X_OK):
+        return electron_helper
     source = Path(__file__).parent / 'native' / 'jianying_decrypt.cpp'
     architecture = platform.machine()
     if architecture not in {'arm64', 'x86_64'}:
