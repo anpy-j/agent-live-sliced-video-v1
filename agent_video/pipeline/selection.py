@@ -76,6 +76,9 @@ def compile_selection(clauses: list[dict[str, Any]],
     if not clips:
         raise AIReturnError("S4 没有选出可渲染的内容")
     for clip in clips:
-        if badvocab.BAD_RE.search(clip["text"]):
-            raise AIReturnError(f"S4 所选句群命中硬禁词：{clip['members']}")
+        match = badvocab.BAD_RE.search(clip["text"])
+        if match:
+            raise AIReturnError(
+                f"S4 所选句群命中硬禁词：{clip['members']}；命中「{match.group()}」；"
+                f"原文：{clip['text']}")
     return clips

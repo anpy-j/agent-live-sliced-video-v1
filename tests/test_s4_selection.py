@@ -65,6 +65,28 @@ class SelectionTest(unittest.TestCase):
         with self.assertRaises(AIReturnError):
             compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
 
+    def test_lantiao_skin_feel_group_does_not_invent_order_chatter(self):
+        rows = [clause(70, "亲服感非常强", 231.57, 232.61),
+                clause(71, "双面贴在身上", 232.61, 233.71),
+                clause(72, "单纯算一点都不会扎嗯", 233.71, 235.59)]
+        sections = [{"role": "selling_point", "ids": [70, 71, 72]}]
+        order = pipeline._selection_record("双面呢", [70, 71, 72], 4.02, sections, rows)
+        clips, total, _ = pipeline._resolve_render_selection(order, rows, (120, 180), 1)
+        self.assertEqual(clips[0]["members"], [70, 71, 72])
+        self.assertEqual(clips[0]["text"], "亲服感非常强双面贴在身上单纯算一点都不会扎嗯")
+        self.assertAlmostEqual(total, 4.02)
+
+    def test_real_order_chatter_across_clauses_is_still_rejected(self):
+        rows = [clause(0, "来给大家上", 0, 2), clause(1, "单", 2, 4)]
+        with self.assertRaisesRegex(AIReturnError, "命中「上单」"):
+            compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
+
+    def test_wearing_description_is_also_allowed_before_s4(self):
+        for text in ("贴在身上单纯不扎", "穿在身上单薄但保暖", "上身上单穿很好看"):
+            self.assertEqual(len(selection_candidates([clause(0, text, 0, 2)])), 1)
+        for text in ("来上单", "上单了姐妹们", "身上这件上单了"):
+            self.assertEqual(selection_candidates([clause(0, text, 0, 2)]), [])
+
     def test_legacy_rerender_keeps_rejected_clause_as_barrier(self):
         self.clauses[1]["usable"] = False
         clips, total, _ = pipeline._resolve_render_selection(

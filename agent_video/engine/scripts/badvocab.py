@@ -166,6 +166,14 @@ BAD_RE: re.Pattern = re.compile(r"(?!x)x")
 REVIEW_RE: re.Pattern = re.compile(r"(?!x)x")
 
 
+def _hard_plain_pattern(term):
+    # 「身上」+「单纯/单薄/单穿」是穿着描述，不是直播催单「上单」。
+    # S4 合并相邻 ASR 子句后仍需检查真正跨子句出现的禁词，不能靠加分隔符规避。
+    if term == "上单":
+        return r"(?<!身)上单"
+    return re.escape(term)
+
+
 def _apply(profile, source=None):
     """用一份已确定的配置重建全局词表与正则。"""
     global PROFILE, PROFILE_SOURCE, HARD, REVIEW, HARD_RES, REVIEW_RES, BAD_RE, REVIEW_RE
@@ -176,7 +184,7 @@ def _apply(profile, source=None):
     SECONDARY_PRODUCTS = str(PROFILE.get("secondary_products") or _DEFAULT_SECONDARY_PRODUCTS)
     SECONDARY_ATTRIBUTES = str(PROFILE.get("secondary_attributes")
                                or _DEFAULT_SECONDARY_ATTRIBUTES)
-    BAD_RE = re.compile("|".join([re.escape(p) for p in HARD]
+    BAD_RE = re.compile("|".join([_hard_plain_pattern(p) for p in HARD]
                                  + [f"(?:{p})" for p in HARD_RES]), re.I)
     REVIEW_RE = re.compile("|".join([re.escape(p) for p in REVIEW]
                                     + [f"(?:{p})" for p in REVIEW_RES]), re.I)
