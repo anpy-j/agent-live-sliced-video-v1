@@ -107,8 +107,10 @@ def render(workspace, units):
             args += ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo"]
         video = f"setpts=(PTS-STARTPTS)/{piece['speed']:.9g},scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30"
         part = workspace / f"draft-part-{index:04}.mp4"
+        # Unbounded apad can deadlock FFmpeg 8 after seek + atempo.
+        # Video timestamps determine the segment length; silence inputs already cover audio-less clips.
         args += ["-map", "0:v:0", "-map", "0:a:0" if has_audio else "1:a:0", "-vf", video,
-                 "-af", atempo(piece["speed"]) + ",asetpts=PTS-STARTPTS,aresample=48000,apad",
+                 "-af", atempo(piece["speed"]) + ",asetpts=PTS-STARTPTS,aresample=48000",
                  "-t", str(length), "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
                  "-c:a", "aac", "-ar", "48000", "-ac", "2", str(part)]
         command(args)

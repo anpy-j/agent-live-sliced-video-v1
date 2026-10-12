@@ -20,8 +20,6 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Any, Callable
 
-from agent_video.engine.scripts import badvocab
-
 from . import asr as asr_mod
 from .ai import (DEFAULT_TIMEOUT, DECISION_SCHEMA, ORDER_SCHEMA,
                  ORDER_SECTION_ROLES, ai_call)
@@ -30,7 +28,6 @@ from .errors import (AIReturnError, AsrError, PipelineError, RuleFilterEmpty,
 from .filter import activate_account_vocab, filter_clauses
 from .render import build_segments, build_virtual_segments, render_video
 from .split import DEFAULT_MAX_DURATION, DEFAULT_MIN_DURATION, split_clauses
-from .selection import SELECTION_VERSION, compile_selection, selection_candidates
 from .units import (DEFAULT_MERGE_MAX, DEFAULT_MERGE_MIN, DEFAULT_SILENCE_GAP,
                     build_units, order_candidates)
 
@@ -231,9 +228,6 @@ def _judge_prompt(units: list[dict[str, Any]], product_name: str | None = None) 
         "内容是在讲商品（款式/面料/版型/颜色/搭配/上身效果/口碑/痛点解决等长效卖点）。\n"
         "usable=false 的典型：直播场控/催拍、报库存/发货/物流、报价/促销福利、"
         "闲聊寒暄、非主商品、ASR 错乱读不通。\n"
-        "不能因为混杂话术中有少量商品信息就放行整句。空泛穿搭指令、预告下一步换装"
-        "（如「再给大家穿一个牛仔裤搭配」）不算有效搭配卖点；必须有具体搭配方式、"
-        "效果或适用条件。原版介绍、材质、细节、比较及其依赖表达淘汰。\n"
         f"{product_rule}"
         "重要：不要因为一句单独看像残句就判 false——只要它和同单元相邻子句拼起来是"
         "一句完整的话，就判 true。\n"
@@ -248,61 +242,47 @@ def _order_prompt(candidates: list[dict[str, Any]],
                   product_name: str | None = None,
                   available: float | None = None) -> str:
     payload = [{"id": clause["id"], "text": clause["text"],
-                "seconds": round(_duration(clause), 2),
-                "context": clause.get("context", index)}
-               for index, clause in enumerate(candidates)]
+                "seconds": round(_duration(clause), 2)} for clause in candidates]
     low, high = target
     roles = "/".join(ORDER_SECTION_ROLES)
     product_line = (
-        f"已知主商品为「{product_name}」，main_product 原样输出。只有文本明确说在主推"
-        "其他商品时才排除；配套搭配不一概排除。\n" if product_name
-        else "未指定主商品，main_product 只根据明确的商品名称填写；不明确就填「未明确」。\n")
+        f"本片主商品固定为「{product_name}」，main_product 必须原样输出它；不要选择以其它"
+        "商品为主推对象的句单元。\n" if product_name
+        else "main_product 给出本片主商品（如「毛衣」）。\n")
     short_note = ""
     if available is not None and available < low:
         short_note = (
-            f"注意：候选总时长仅 {available:.2f} 秒，低于目标下限 {low:g} 秒；"
-            "仍须淘汰无效内容，不要求全选，按实际有效时长输出。\n")
+            f"注意：可用句单元总时长仅 {available:.2f} 秒，已低于目标下限 {low:g} 秒；"
+            "请把可用句单元尽量全部选上，成片时长以实际可用为准。\n")
     return (
         "直接分析并输出结果，不要调用任何工具或执行命令行。\n"
-        "你是直播口播剪辑编辑。输入是S3初筛候选，候选不代表合格。一次通读全部候选，"
-        "重新选择有实际信息的完整表达，再编排成连贯的成片。\n"
-        "内容标准：\n"
-        "- 删除闲聊、助播沟通、场控、空泛指令、动作预告、无信息转场；不能因包含商品词"
-        "或一点卖点就保留整句混杂话术。\n"
-        "- 「小个子选5分还是8分」「没有8分、吓我一跳、就一个长度」这类问答混杂闲聊淘汰。\n"
-        "- 「你们就去穿西装裤吧」「这马甲你们就穿个西装裤吧」「然后再给大家穿一个"
-        "牛仔裤子搭配」淘汰。搭配须有明确搭配方式、效果或适用条件，不能只有穿搭指令"
-        "或预告主播接下来的动作；不能把西装裤、牛仔裤本身当禁词。\n"
-        "- 所有「原版」介绍、材质、细节、版型、评价和比较禁止入片；以原版为参照的"
-        "「一样」「同样材质」等承接句也删除，不是仅删除字面命中的一句。\n"
-        "- 不改写口播，不纠正后再假装原话正确，不拼造新的因果、比较或承诺。明显ASR"
-        "错乱、矛盾、语义无法恢复的句子淘汰；可理解的同音错字不作为唯一淘汰理由。\n"
-        "- 只有文本，没有视觉信息。不能凭「它」「这件」「这个」猜测商品归属。\n"
-        "完整性与编排：\n"
-        "- context 标记原始相邻句的语境范围，不代表这些句子必须全选。依赖前文的子句"
-        "必须连同必要上下文按原顺序组成完整句群；上下文缺失或已淘汰就不选。"
-        "不能跨缺口假装原话连续，不能把不同语境的半句拼成新陈述。\n"
-        "- 每个 section 是一个需要一起保留的完整表达/句群。不要把一整类卖点塞进同一个"
-        "section。可用相同 role 标记多个句群，不限制卖点数量或固定段数。\n"
-        "- 开头选能直接听懂的有用表达，随后自然展开卖点、证据、搭配和使用场景。"
-        "角色只用于标记，不强制固定结构。hook 可省略；如果有则至多一个且放开头；"
-        "cta 只有合规且有效时保留，并放最后。\n"
-        "- 保留充分的有效讲解和必要示范，不要只选几句摘要；同一卖点的不同有效细节可"
-        "保留，删掉重复信息与无效填充。\n"
+        "你在把已判定可用的口播句单元，编成一条可直接发布到抖音的短视频，"
+        "输出它的分段角色（sections）与播放顺序（ordered_ids）。\n"
+        "成片结构（按此顺序输出；某角色没有合适素材就整段省略，不要硬凑）：\n"
+        "1) hook 钩子：全片最前面，可由 1~多个句单元组成；整体要能独立听懂、有吸引力"
+        "（反常识 / 具体数字 / 身份认同 / 痛点 / 最亮卖点），不必压到固定秒数。\n"
+        "2) scene 场景痛点：0~2 段，说使用场景或用户痛点。\n"
+        "3) selling_point 核心卖点：2~4 段，覆盖材质 / 版型 / 工艺 / 上身效果，"
+        "每类最多 1 段，不得重复同一卖点。\n"
+        "4) proof 信任对比：0~2 段，质量、对比、复购口碑等。\n"
+        "5) styling 搭配颜色：0~2 段。\n"
+        "6) cta 行动号召：0~1 段，只有存在合规、可执行的号召句时才选，且必须放在最后。\n"
         f"section 的 role 只能取 {roles}。\n"
         "硬性要求：\n"
-        "- 每个 section 至少 1 个 id；\n"
+        "- hook 必须是第一个 section；每个 section 至少 1 个 id；\n"
         "- ordered_ids = 各 section 的 ids 依次拼接，必须与 sections 完全一致"
         "（不新增、不遗漏、不重复）；\n"
         "- 所有 id 只能取自输入，不得越界；\n"
-        f"- 总时长（所选 id 的 seconds 之和）尽量接近 {low:g}~{high:g} 秒，"
-        "这是软目标，低于下限或超过上限均可正常输出；优先保证内容完整、连贯且不重复，"
-        "不要为凑时长填充或拆散完整表达；\n"
+        f"- 总时长（所选 id 的 seconds 之和）落在 {low:g}~{high:g} 秒；单个超过 "
+        f"{LONG_UNIT_SECONDS:g} 秒的句单元可正常选中，此时总时长允许相应超出上限"
+        "（超出的部分交人工再剪）；\n"
         f"{short_note}"
-        "- 只输出 main_product、sections、ordered_ids；不重复原文，不逐句解释淘汰原因，"
-        "不输出思考过程。\n\n"
+        "- 全片围绕 main_product，面向目标人群；\n"
+        "- 相邻段主题要承接，不得主题跳跃；同一卖点、同一颜色、同一价格类信息不得重复；\n"
+        "- hook 不要选依赖前文的残句（如以「所以 / 然后 / 但是」开头且说不完整）；\n"
+        "- 可以丢弃次要或重复的句单元。\n\n"
         f"{product_line}"
-        f"S3候选（按原始时间序，JSON）：\n{json.dumps(payload, ensure_ascii=False)}"
+        f"可用句单元（按时间序，JSON）：\n{json.dumps(payload, ensure_ascii=False)}"
     )
 
 
@@ -343,9 +323,8 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
                     ) -> tuple[str, list[int], float, list[dict[str, Any]]]:
     """校验 S4 的结构化返回：sections（角色分段）与 ordered_ids 必须自洽。
 
-    hook 可省略，有则必须开头；cta 若存在必须收尾。S4 必须重新精选，
-    程序复核硬禁词，语义和句群完整性由这一轮 S4 判断。
-    时长仅为编排软目标，不因偏离目标范围拒绝有效排序。
+    hook 必须开头，cta 若存在必须收尾；其余角色的先后不做过细限制，避免规则过死
+    导致模型反复失败。合规/去噪不在这里判断（由 S2/S3 负责）。
     """
     main_product = data.get("main_product")
     if not isinstance(main_product, str) or not main_product.strip():
@@ -370,8 +349,6 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
         for cid in ids:
             if not isinstance(cid, int) or isinstance(cid, bool) or cid not in by_id:
                 raise AIReturnError(f"S4 sections 含非法/越界 id：{cid!r}")
-            if badvocab.BAD_RE.search(str(by_id[cid].get("text") or "")):
-                raise AIReturnError(f"S4 所选子句命中硬禁词：{cid}")
             section_ids.append(cid)
         if role == "hook":
             hook_count += 1
@@ -379,8 +356,8 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
         flat.extend(section_ids)
     if len(flat) != len(set(flat)):
         raise AIReturnError("S4 sections 的 id 有重复")
-    if hook_count > 1 or (hook_count and sections[0]["role"] != "hook"):
-        raise AIReturnError("S4 hook 至多一个，且只能位于第一个 section")
+    if hook_count != 1 or sections[0]["role"] != "hook":
+        raise AIReturnError("S4 必须恰好有一个 hook，且位于第一个 section")
     if any(section["role"] == "cta" for section in sections[:-1]):
         raise AIReturnError("S4 cta 只能作为最后一个 section")
     ordered_ids = data.get("ordered_ids")
@@ -396,55 +373,19 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
     if seen != flat:
         raise AIReturnError("S4 ordered_ids 与 sections 的 ids 拼接不一致")
     total = sum(_duration(by_id[cid]) for cid in seen)
+    low, high = target
+    # 超过 6s 的句单元不拆散：它带来的超长允许顶高总时长上限，交由人工再剪。
+    overflow = sum(max(0.0, _duration(by_id[cid]) - LONG_UNIT_SECONDS)
+                   for cid in seen if _duration(by_id[cid]) > LONG_UNIT_SECONDS)
+    # 可用素材本身就不够目标下限时，不允许因"时长不足"中断任务：把下限放宽到实际可用量。
+    floor = low - tolerance
+    if available is not None and available < floor:
+        floor = available
+    if total < floor or total > high + tolerance + overflow:
+        raise AIReturnError(
+            f"S4 排序总时长 {total:.2f}s 不在目标 {low:g}~{high:g}s 内"
+            f"（长单元溢出容忍 {overflow:.2f}s）")
     return main_product.strip(), seen, total, sections
-
-
-def _selection_record(main_product: str, ordered_ids: list[int],
-                      total_seconds: float, sections: list[dict[str, Any]],
-                      clauses: list[dict[str, Any]]) -> dict[str, Any]:
-    return {"stage": "order", "selection_version": SELECTION_VERSION,
-            "main_product": main_product, "sections": sections,
-            "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
-            "selected_clauses": compile_selection(clauses, sections)}
-
-
-def _resolve_render_selection(order: dict[str, Any], clauses: list[dict[str, Any]],
-                              target: tuple[float, float], tolerance: float
-                              ) -> tuple[list[dict[str, Any]], float, int]:
-    """Use the saved S4 selection, rejecting stale plans instead of silently re-merging.
-
-    Legacy plans remain readable with their old candidate IDs, but rejected clauses
-    stay in the source list as barriers. Missing IDs fail rather than disappearing.
-    """
-    if order.get("selection_version") == SELECTION_VERSION:
-        candidates = selection_candidates(clauses)
-        _, _, total, sections = _validate_order(order, candidates, target, tolerance)
-        compiled = compile_selection(clauses, sections)
-        if compiled != order.get("selected_clauses"):
-            raise PipelineError("S4 所选片段与上游数据不一致，请重新执行 S4")
-        return copy.deepcopy(order["selected_clauses"]), total, len(candidates)
-    if order.get("selection_version") is not None:
-        raise PipelineError("不支持的 S4 选择版本，请重新执行 S4")
-    candidates = order_candidates(clauses)
-    ids = order.get("ordered_ids")
-    if (not isinstance(ids, list) or not ids
-            or any(not isinstance(cid, int) or isinstance(cid, bool) for cid in ids)
-            or len(ids) != len(set(ids))):
-        raise PipelineError("旧版 S4 顺序无效，请重新执行 S4")
-    by_id = {c["id"]: c for c in candidates}
-    if any(cid not in by_id for cid in ids):
-        raise PipelineError("旧版 S4 候选与上游数据不一致，请重新执行 S4")
-    selected = [by_id[cid] for cid in ids]
-    if any(badvocab.BAD_RE.search(c["text"]) for c in selected):
-        raise PipelineError("旧版 S4 所选片段命中硬禁词，请重新执行 S4")
-    return selected, sum(_duration(c) for c in selected), len(candidates)
-
-
-def _order_duration_note(total: float, target: tuple[float, float]) -> str:
-    if target[0] <= total <= target[1]:
-        return ""
-    return (f"；时长偏离软目标 {target[0]:g}~{target[1]:g}s，"
-            "按实际时长继续渲染")
 
 
 def run_pipeline_stage(media: str, workdir: str, stage: str, *,
@@ -534,7 +475,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         judged = [clause for clause in clauses if clause.get("usable")]
         if not judged:
             raise AIReturnError("S3 判定后没有任何可用子句")
-        candidates = selection_candidates(clauses)
+        candidates = order_candidates(usable)
         _emit(on_stage, "judge", "done",
               f"AI 判定后剩 {len(judged)} 条可用子句；S4 已清空")
         return {"stage": stage, "usable": len(judged), "candidates": len(candidates)}
@@ -543,6 +484,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         judged_data = _load_required(os.path.join(workdir, "timeline.json"), "S3 AI 判定数据")
         clauses = copy.deepcopy(judged_data["clauses"])
         usable = [clause for clause in clauses if clause.get("usable")]
+        candidates = order_candidates(usable)
         order_path = os.path.join(workdir, "order.json")
         if not os.path.isfile(order_path):
             raise PipelineError("S4 排序结果不存在，请先执行 S4 排序编排")
@@ -551,8 +493,13 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
                 order_data = json.load(handle)
         except (OSError, ValueError) as exc:
             raise PipelineError(f"S4 排序结果无法读取：{exc}") from exc
-        ordered_clauses, total_seconds, candidate_count = _resolve_render_selection(
-            order_data, clauses, target_seconds, target_tolerance)
+        position = {cid: index for index, cid
+                    in enumerate(order_data.get("ordered_ids") or [])}
+        by_id = {candidate["id"]: candidate for candidate in candidates}
+        ordered_clauses = sorted((by_id[cid] for cid in position if cid in by_id),
+                                 key=lambda candidate: position[candidate["id"]])
+        if not ordered_clauses:
+            raise PipelineError("S4 排序结果为空，无法渲染成片")
         _emit(on_stage, "render", "start", "单独重跑渲染成片（复用 S4 排序结果）")
         if virtual_timeline is not None:
             segments = build_virtual_segments(ordered_clauses, virtual_timeline)
@@ -575,11 +522,10 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
             "ai_provider": os.environ.get("PIPELINE_AI_PROVIDER") or "auto",
             "ai_model": model,
             "target_seconds": {"min": target_seconds[0], "max": target_seconds[1]},
-            "total_seconds": round(total_seconds, 3),
-            "selection_version": order_data.get("selection_version"),
+            "total_seconds": round(float(order_data.get("total_seconds") or 0.0), 3),
             "clauses": len(clauses),
             "usable_clauses": len(usable),
-            "order_candidates": candidate_count,
+            "order_candidates": len(candidates),
             "judge_batch": judge_batch,
             "judge_concurrency": judge_concurrency,
             "judge_retries": judge_retries,
@@ -594,17 +540,15 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     judged_data = _load_required(os.path.join(workdir, "timeline.json"), "S3 AI 判定数据")
     clauses = copy.deepcopy(judged_data["clauses"])
     usable = [clause for clause in clauses if clause.get("usable")]
-    candidates = selection_candidates(clauses)
-    if not candidates:
-        raise AIReturnError("S4 没有可用候选，请重新检查 S2/S3")
+    candidates = order_candidates(usable)
     available = sum(_duration(candidate) for candidate in candidates)
     if available < target_seconds[0] - target_tolerance:
         _emit(on_stage, "order", "start",
-              f"单独重跑 AI 精选编排：候选仅 {available:.2f}s，低于目标下限 "
+              f"单独重跑 AI 排序编排：可用仅 {available:.2f}s，低于目标下限 "
               f"{target_seconds[0]:g}s，按实际时长出片")
     else:
         _emit(on_stage, "order", "start",
-              f"单独重跑 AI 精选编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
+              f"单独重跑 AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
     order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
                     ORDER_SCHEMA, ai_timeout)
     main_product, ordered_ids, total_seconds, sections = _validate_order(
@@ -618,11 +562,11 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     timeline = {"source": media, "duration": float(judged_data.get("duration") or 0.0),
                 "clauses": clauses}
     _dump(os.path.join(workdir, "timeline.json"), timeline)
-    result = _selection_record(main_product, ordered_ids, total_seconds, sections, clauses)
+    result = {"stage": stage, "main_product": main_product, "sections": sections,
+              "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3)}
     _dump(os.path.join(workdir, "order.json"), result)
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；上游数据保持不变"
-          + _order_duration_note(total_seconds, target_seconds))
+          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；上游数据保持不变")
     return result
 
 
@@ -790,21 +734,18 @@ def run_pipeline(media: str, workdir: str, *,
     judged = [clause for clause in clauses if clause["usable"]]
     if not judged:
         raise AIReturnError("S3 判定后没有任何可用子句")
-    # S4 receives every eligible clause, retaining context but never forcing a
-    # whole pre-merged unit (including low-value members) into the film.
-    candidates = selection_candidates(clauses)
-    if not candidates:
-        raise AIReturnError("S4 没有可用候选，请重新检查 S2/S3")
+    # S4 候选 = 同一句单元内连续的可用子句并为一段（保证半句话不会单独入片）
+    candidates = order_candidates(usable)
     available = sum(_duration(candidate) for candidate in candidates)
     _emit(on_stage, "judge", "done",
-          f"AI 判定后剩 {len(judged)} 条初筛子句 / {len(candidates)} 条 S4 候选")
+          f"AI 判定后剩 {len(judged)} 条可用子句 / {len(candidates)} 段可用句单元")
     if available < target_seconds[0] - target_tolerance:
         _emit(on_stage, "order", "start",
-              f"候选总时长仅 {available:.2f}s，低于目标下限 "
+              f"可用句单元总时长仅 {available:.2f}s，低于目标下限 "
               f"{target_seconds[0]:g}s，按实际时长出片（不中断）")
     else:
         _emit(on_stage, "order",
-              "start", f"AI 精选编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
+              "start", f"AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
     order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
                     ORDER_SCHEMA, ai_timeout)
     ai_calls += 1
@@ -816,13 +757,16 @@ def run_pipeline(media: str, workdir: str, *,
                         for candidate in candidates for member in candidate["members"]}
     for clause in clauses:
         clause["order"] = position.get(member_candidate.get(clause["id"]))
-    selection = _selection_record(main_product, ordered_ids, total_seconds, sections, clauses)
-    ordered_clauses = selection["selected_clauses"]
+    ordered_clauses = sorted((candidate for candidate in candidates
+                              if candidate["id"] in position),
+                             key=lambda candidate: position[candidate["id"]])
     _dump(os.path.join(workdir, "timeline.json"), timeline)
-    _dump(os.path.join(workdir, "order.json"), selection)
+    _dump(os.path.join(workdir, "order.json"), {
+        "stage": "order", "main_product": main_product, "sections": sections,
+        "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
+    })
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s"
-          + _order_duration_note(total_seconds, target_seconds))
+          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s")
 
     # S6 —— 渲染（确定性）
     _emit(on_stage, "render", "start", "ffmpeg 逐段剪切并拼接")
@@ -853,7 +797,6 @@ def run_pipeline(media: str, workdir: str, *,
         "ai_model": model,
         "target_seconds": {"min": target_seconds[0], "max": target_seconds[1]},
         "total_seconds": round(total_seconds, 3),
-        "selection_version": SELECTION_VERSION,
         "clauses": len(clauses),
         "usable_clauses": len(judged),
         "sentence_units": len(units),
@@ -882,7 +825,7 @@ def _mock_ai(model: str, prompt: str, schema: dict[str, Any],
                               for cid in ids]}
     seconds = {int(cid): float(value) for cid, value in
                re.findall(r'"id":\s*(\d+),\s*"text":\s*"[^"]*",\s*"seconds":\s*([\d.]+)', prompt)}
-    match = re.search(r"尽量接近\s*([\d.]+)~([\d.]+)\s*秒", prompt)
+    match = re.search(r"落在\s*([\d.]+)~([\d.]+)\s*秒", prompt)
     low, high = (float(match.group(1)), float(match.group(2))) if match else (0.0, 1e9)
     chosen: list[int] = []
     total = 0.0

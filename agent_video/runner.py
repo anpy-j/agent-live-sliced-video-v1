@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""任务执行器：唯一处理路径 = ``agent_video.pipeline.run_pipeline``。
+"""任务执行器：按任务固定版本分派 V1、V2、V3 剪辑流程。
 
 ``JobRunner`` 只做三件事：把任务放进串行队列、执行精简管线、把每个阶段的进度、
 错误与产物写回 ``Store``。编排、规则筛、AI 判定/排序、渲染原语全在
-``agent_video/pipeline/`` 内；这里不再有任何 AI 降级链、局部重编或兜底。
+各版本的 pipeline 模块内；这里不添加 AI 降级链、局部重编或兜底。
 """
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ _AI_ENV_KEYS = {
     "ai_engine": "PIPELINE_AI_ENGINE",
     "ai_provider": "PIPELINE_AI_PROVIDER",
     "ai_model": "PIPELINE_AI_MODEL",
+    "api_base_url": "LIVE_CUT_API_BASE_URL",
     "judge_concurrency": "PIPELINE_JUDGE_CONCURRENCY",
     "judge_retries": "PIPELINE_JUDGE_RETRIES",
     "jev_api_key": "TYPESAFE_API_KEY",
@@ -139,8 +140,8 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
             vt = load_virtual_timeline(vt_file)
 
         remix_config_file = Path(workspace) / "remix_config.json"
-        if pipeline_version == "v2" and remix_config_file.is_file():
-            raise PipelineError("V2 剪辑任务不能进入成片重组流程")
+        if pipeline_version != "v1" and remix_config_file.is_file():
+            raise PipelineError("成片重组仅支持 V1 流程")
         if remix_config_file.is_file():
             if vt is None:
                 raise PipelineError("成片重组任务缺少虚拟时间线")
@@ -157,6 +158,13 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
             manifest = run_v2(source, workspace, only_stage=only_stage,
                               target_seconds=target_seconds, product_name=product_name,
                               output_stem=output_stem, on_stage=on_stage, virtual_timeline=vt)
+        elif pipeline_version == "v3":
+            from .pipeline_v3.run import run_pipeline as run_v3, run_pipeline_stage as stage_v3
+            kwargs = dict(target_seconds=target_seconds, product_name=product_name,
+                          output_stem=output_stem, on_stage=on_stage, virtual_timeline=vt)
+            manifest = (stage_v3(source, workspace, only_stage, **kwargs) if only_stage
+                        else run_v3(source, workspace, **kwargs))
+            manifest["pipeline_version"] = "v3"
         elif pipeline_version != "v1":
             raise PipelineError(f"未知剪辑版本：{pipeline_version}")
         elif only_stage:
@@ -184,8 +192,9 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
 class JobRunner:
     """串行执行精简管线的本地工作进程。"""
 
-    def __init__(self, store: Store, project_root: Path):
+    def __init__(self, store: Store, project_root: Path, *, vault=None):
         self.store = store
+        self.vault = vault
         self.project_root = Path(project_root)
         self._queue: list[str] = []
         self._queued: set[str] = set()
@@ -306,6 +315,27 @@ class JobRunner:
         self.store.add_event(job_id, stage_id, "warning", "cancelled", "任务已取消")
         return True
 
+    def _refresh_ai_configuration(self, job_id: str, reason: str) -> dict[str, str]:
+        """Start a new manual attempt with current settings, preserving its audit trail."""
+        job = self.store.get_job(job_id)
+        if not job:
+            raise KeyError("任务不存在")
+        defaults = {"ai_engine": "llm", "ai_provider": "auto", "ai_model": "auto"}
+        configuration = {key: str(self.store.get_setting(key) or default).strip() or default
+                         for key, default in defaults.items()}
+        try:
+            saved = json.loads(job.get("remote_model_json") or "{}")
+            previous = {key: saved.get(key) for key in defaults} if isinstance(saved, dict) else {}
+        except (TypeError, ValueError):
+            previous = {}
+        self.store.update_job(job_id, remote_model_json=json.dumps(configuration))
+        if previous != configuration:
+            self.store.add_event(
+                job_id, None, "info", "ai_configuration_updated",
+                f"{reason}：采用 {configuration['ai_provider']} / {configuration['ai_model']}",
+                {"previous": previous, "current": configuration})
+        return configuration
+
     def restart(self, job_id: str, clean: bool = True) -> None:
         job = self.store.get_job(job_id)
         if not job:
@@ -346,6 +376,7 @@ class JobRunner:
                     "dedupe_visual": False,
                 }, ensure_ascii=False, indent=2), encoding="utf-8")
         self.store.reset_job(job_id)
+        self._refresh_ai_configuration(job_id, "手动重试或重启任务")
         self.enqueue(job_id)
 
     def retry(self, job_id: str) -> None:
@@ -380,6 +411,7 @@ class JobRunner:
             required_path = required_for_stage(workspace, stage_id)
             if not required_path.is_file():
                 raise ValueError("V2 上游数据不存在，不能重跑该节点")
+            self._refresh_ai_configuration(job_id, "手动重新执行节点")
             invalidate_stage(workspace, stage_id)
             self.store.prepare_stage_rerun(job_id, stage_id)
             self._enqueue(job_id, event=False)
@@ -393,6 +425,7 @@ class JobRunner:
         filename, label = required[stage_id]
         if not (workspace / filename).is_file():
             raise ValueError(f"{label}数据不存在，不能单独重跑该节点")
+        self._refresh_ai_configuration(job_id, "手动重新执行节点")
         for name in {
             "filter": ("clauses.filtered.json", "clauses.judged.json", "order.json"),
             "judge": ("clauses.judged.json", "order.json"),
@@ -483,10 +516,8 @@ class JobRunner:
     def _run(self, job: dict[str, Any]) -> None:
         job_id = job["id"]
         if not job.get("remote_model_json"):
-            configuration = {key: self.store.get_setting(key) for key in ('ai_engine', 'ai_provider', 'ai_model')}
-            configuration = {key: value for key, value in configuration.items() if value is not None}
-            job['remote_model_json'] = json.dumps(configuration)
-            self.store.update_job(job_id, remote_model_json=job['remote_model_json'])
+            configuration = self._refresh_ai_configuration(job_id, "首次执行")
+            job["remote_model_json"] = json.dumps(configuration)
         source = Path(job["source_path"])
         workspace = Path(job["workspace"])
         workspace.mkdir(parents=True, exist_ok=True)
@@ -630,13 +661,15 @@ class JobRunner:
         未配置 DB 设置时，用 ``_AI_ENV_DEFAULTS`` 注入生产默认（S3 并发/重试）；DB
         设置或调用方已有的环境变量优先，仍可回退成串行。
         """
-        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS)
+        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY"}
         previous = {key: os.environ.get(key) for key in managed}
         override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
             value = override.get(setting_key, self.store.get_setting(setting_key))
             if value:
                 os.environ[env_key] = str(value)
+        if self.vault and os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
+            os.environ['LIVE_CUT_API_KEY'] = self.vault.get('model-api-key')
         for env_key, default in _AI_ENV_DEFAULTS.items():
             if not os.environ.get(env_key):
                 os.environ[env_key] = default
@@ -680,10 +713,13 @@ class JobRunner:
             sub.mkdir(parents=True, exist_ok=True)
             source = media or str(manifest.get("source") or "")
             exported: list[Path] = []
-            segment_groups = group_segments_for_export(segments)
+            group_fn, render_fn = group_segments_for_export, render_segment
+            if manifest.get("pipeline_version") in {"v2", "v3"}:
+                from .pipeline_v3.render import group_segments_for_export as group_fn, render_segment as render_fn
+            segment_groups = group_fn(segments)
             for index, segment_group in enumerate(segment_groups, start=1):
                 target = Path(next_available_output(str(sub), f"{index:02d}"))
-                render_segment(source, segment_group, str(target), str(workspace), index=index)
+                render_fn(source, segment_group, str(target), str(workspace), index=index)
                 exported.append(target)
             return exported
         rendered = workspace / str(manifest.get("output") or "")

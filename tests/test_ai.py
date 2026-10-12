@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import time
@@ -14,6 +15,10 @@ from agent_video.ai import (AntigravityCli, CodexCli, MulticaCli, OpenCodeCli,
 class WorkBuddyCliTest(unittest.TestCase):
     def setUp(self):
         _workbuddy_catalog_cache.clear()
+        # Catalog fixtures must not inherit the developer's active desktop account.
+        context = patch("agent_video.workbuddy_models.desktop_model_context", return_value=({}, "fixture"))
+        context.start()
+        self.addCleanup(context.stop)
 
     def test_standalone_cli_shared_by_catalog_and_pipeline(self):
         from agent_video.ai import _workbuddy_cli_entries
@@ -25,6 +30,8 @@ class WorkBuddyCliTest(unittest.TestCase):
             entry.parent.mkdir(parents=True)
             entry.write_text("", encoding="utf-8")
             with patch("agent_video.ai.Path.home", return_value=home), \
+                    patch.dict(os.environ, {"APPDATA": str(home / "AppData/Roaming"),
+                                            "LOCALAPPDATA": str(home / "AppData/Local")}), \
                     patch("agent_video.ai.sys.platform", "win32"), \
                     patch("agent_video.ai._workbuddy_live_models", return_value=[
                         ("glm-5.3-flash", "glm-5.3-flash")]) as models:
@@ -77,7 +84,7 @@ class WorkBuddyCliTest(unittest.TestCase):
 
     def test_workbuddy_windows_extensionless_cli_uses_node(self):
         provider = WorkBuddyCli(Path("C:/WorkBuddy/cli/bin/codebuddy"))
-        with patch("agent_video.ai.sys.platform", "win32"):
+        with patch("agent_video.ai.sys.platform", "win32"), patch("agent_video.ai.shutil.which", return_value="node"):
             self.assertEqual(provider._command_prefix(),
                              ["node", "-e", "setInterval(() => {}, 1000); require(process.argv[1]);",
                               "C:\\WorkBuddy\\cli\\bin\\codebuddy"])
@@ -88,6 +95,43 @@ class WorkBuddyCliTest(unittest.TestCase):
             provider._parse_response("", "startup diagnostics")
         self.assertEqual(caught.exception.raw["stderr"], "startup diagnostics")
 
+    def test_empty_cli_result_reports_encrypted_login_failure(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            cwd = home / "lean-pipeline-ai-test"
+            cwd.mkdir()
+            logs = home / ".codebuddy/logs/2026-10-12"
+            logs.mkdir(parents=True)
+            log = logs / (cwd.name + "__fixture.log")
+            script = ("import os; from pathlib import Path; "
+                      f"Path({str(log)!r}).write_text("
+                      "f'[pid={os.getpid()}] [AtRestEncryption] category=missing-key\\n'"
+                      "+ f'[pid={os.getpid()}] AuthenticationRequiredError\\n')")
+            callback = Mock()
+            with patch("agent_video.ai.Path.home", return_value=home):
+                with self.assertRaisesRegex(ProviderResponseError, "加密登录凭据") as caught:
+                    WorkBuddyCli(Path(sys.executable))._complete(
+                        [sys.executable, "-c", script], cwd=cwd, on_process=callback,
+                        timeout=5, started=time.monotonic())
+            callback.assert_called_once()
+            self.assertEqual(caught.exception.raw["reason"], "authentication_required")
+
+    def test_login_diagnostics_ignore_other_process_and_stale_logs(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            cwd = home / "job"
+            logs = home / ".codebuddy/logs/2026-10-12"
+            logs.mkdir(parents=True)
+            log = logs / "job__fixture.log"
+            log.write_text("[pid=123] AuthenticationRequiredError\n", encoding="utf-8")
+            with patch("agent_video.ai.Path.home", return_value=home):
+                self.assertIsNone(WorkBuddyCli._authentication_failure(cwd, 456, 0))
+                self.assertIn("尚未登录", WorkBuddyCli._authentication_failure(cwd, 123, 0))
+                os.utime(log, (1, 1))
+                self.assertIsNone(WorkBuddyCli._authentication_failure(cwd, 123, time.time()))
+
     def test_windows_node_bootstrap_keeps_unref_work_alive(self):
         import shutil
         if not shutil.which("node"):
@@ -96,7 +140,7 @@ class WorkBuddyCliTest(unittest.TestCase):
             entry = Path(tmp) / "codebuddy"
             entry.write_text('setTimeout(() => { console.log(JSON.stringify({ok:true})); process.exit(0); }, 50).unref();', encoding="utf-8")
             provider = WorkBuddyCli(entry)
-            with patch("agent_video.ai.sys.platform", "win32"):
+            with patch("agent_video.ai.sys.platform", "win32"), patch("agent_video.ai.shutil.which", return_value="node"):
                 result = subprocess.run(provider._command_prefix(), capture_output=True,
                                         text=True, timeout=5)
             self.assertEqual(result.returncode, 0)

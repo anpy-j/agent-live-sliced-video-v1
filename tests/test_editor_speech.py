@@ -13,7 +13,7 @@ class EditorSpeechTest(unittest.TestCase):
     def test_cancel_terminates_windows_process_tree(self):
         process = MagicMock(pid=4321)
         process.poll.return_value = None
-        with patch("agent_video.editor.speech.os.name", "nt"), patch("agent_video.editor.speech.subprocess.run") as run:
+        with patch("agent_video.editor.speech.subprocess.CREATE_NO_WINDOW", 0, create=True), patch("agent_video.editor.speech.os.name", "nt"), patch("agent_video.editor.speech.subprocess.run") as run:
             SpeechQueue.terminate(process)
         self.assertEqual(run.call_args.args[0], ["taskkill", "/PID", "4321", "/T", "/F"])
 

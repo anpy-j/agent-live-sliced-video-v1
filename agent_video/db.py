@@ -204,7 +204,7 @@ class Store:
                    export_mode: str = "merge", pipeline_version: str = "v1") -> str:
         pipeline_version = normalize_version(pipeline_version)
         if job_type == "remix" and pipeline_version != "v1":
-            raise ValueError("成片重组不支持 V2 剪辑流程")
+            raise ValueError("成片重组仅支持 V1 流程")
         stage_definitions = stages_for(pipeline_version, STAGE_DEFINITIONS)
         job_id = f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         now = utc_now()

@@ -19,7 +19,8 @@
     "postinstall": "install-electron",
     "test:desktop": "node tests/desktop-ui.test.cjs",
     "test:product-ui": "node tests/product-ui.test.cjs",
-    "test:desktop-native": "node tests/desktop-native.test.cjs"
+    "test:desktop-native": "node tests/desktop-native.test.cjs",
+    "desktop:legacy": ".venv/bin/python -m agent_video.desktop"
   },
   "build": {
     "appId": "app.livecut.desktop",

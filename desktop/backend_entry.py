@@ -17,6 +17,10 @@ if __name__ == "__main__":
         sys.argv.remove("--jianying-decrypt")
         from agent_video.jianying_crypto import _main
         raise SystemExit(_main())
+    elif len(sys.argv) > 1 and Path(sys.argv[1]).name == "render_multi.py":
+        # V1 remains byte-for-byte unchanged and invokes its original script path.
+        sys.argv.pop(1)
+        from agent_video.engine.scripts.render_multi import main
     elif "--render-multi" in sys.argv:
         sys.argv.remove("--render-multi")
         from agent_video.engine.scripts.render_multi import main

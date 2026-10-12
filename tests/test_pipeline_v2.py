@@ -1,4 +1,4 @@
-"""V1 isolation and V2 failure gates. No paid AI calls or real user tasks."""
+"""V2 isolation and failure gates. No paid AI calls or real user tasks."""
 import copy
 import io
 import json
@@ -14,14 +14,14 @@ from unittest.mock import Mock, patch
 from agent_video.db import Store, STAGE_DEFINITIONS
 from agent_video.runner import JobRunner, _run_pipeline_child
 from agent_video.server import Application
-from agent_video.pipeline.errors import PipelineError, AIReturnError
+from agent_video.pipeline_v3.errors import PipelineError, AIReturnError
 from agent_video.pipeline_v2 import contracts as schemas
 from agent_video.pipeline_v2.ai import Calls
 from agent_video.pipeline_v2.common import (block_issues, compile_clips, digest, make_block,
                                             plan_blocks, prepare, read, save, source_fingerprint)
 from agent_video.pipeline_v2.content import extract
 from agent_video.pipeline_v2.run import run_pipeline, invalidate_stage
-from agent_video.pipeline.render import group_segments_for_export, build_segments
+from agent_video.pipeline_v3.render import group_segments_for_export, build_segments
 
 
 def row(cid, text, start=None, usable=True):
@@ -275,8 +275,10 @@ class V2UsageTest(unittest.TestCase):
             calls = Calls(Path(temp), "auto")
             provider = WorkBuddyCli(Path("fake-cli"))
             with patch.object(provider, "_ensure_available"), patch.object(provider, "validate_model"), \
-                 patch("agent_video.pipeline_v2.ai.subprocess.Popen", return_value=Process()):
+                 patch.object(provider, "runtime_environment", return_value={"ACC_PRODUCT_CONFIG_PATH": "fixture-models.json"}), \
+                 patch("agent_video.pipeline_v2.ai.subprocess.Popen", return_value=Process()) as launch:
                 result = calls._workbuddy(provider, "auto", "test", schemas.REVIEW, Path(temp))
+            self.assertEqual(launch.call_args.kwargs["env"]["ACC_PRODUCT_CONFIG_PATH"], "fixture-models.json")
             self.assertEqual(result["usage"]["output_tokens"], 18000)
             self.assertIn("超", result["error"])
 
@@ -352,7 +354,7 @@ class V1IsolationTest(unittest.TestCase):
     def test_v2_child_never_dispatches_to_v1_downstream(self):
         with tempfile.TemporaryDirectory() as temp:
             q = Mock()
-            with patch("agent_video.pipeline_v2.run.run_pipeline", return_value={"pipeline_version": "v2"}) as v2, \
+            with patch("agent_video.runner.os.setsid", create=True), patch("agent_video.pipeline_v2.run.run_pipeline", return_value={"pipeline_version": "v2"}) as v2, \
                  patch("agent_video.runner.run_pipeline") as v1, patch("agent_video.runner.run_pipeline_stage") as v1_stage:
                 _run_pipeline_child(q, "fixture", temp, (110, 125), pipeline_version="v2")
             v2.assert_called_once()
@@ -360,11 +362,11 @@ class V1IsolationTest(unittest.TestCase):
             v1_stage.assert_not_called()
             self.assertEqual(q.put.call_args.args[0][0], "success")
 
-    def test_reuses_actual_v1_s1_s2_without_calling_v1_ai_or_renderer(self):
+    def test_reuses_remote_baseline_s1_s2_without_calling_downstream_ai_or_renderer(self):
         with tempfile.TemporaryDirectory() as temp:
             words = [{"w": "肩线往里收，肩膀显得窄。", "s": 0, "e": 3},
                      {"w": "面料有弹力，抬手不会紧。", "s": 4, "e": 7}]
-            with patch("agent_video.pipeline.run.ai_call") as ai, patch("agent_video.pipeline.run.render_video") as renderer:
+            with patch("agent_video.pipeline_v3.run.ai_call") as ai, patch("agent_video.pipeline_v3.run.render_video") as renderer:
                 result = prepare("fixture.mp4", Path(temp), transcript=([], words))
             self.assertGreater(len(result["clauses"]), 0)
             ai.assert_not_called()

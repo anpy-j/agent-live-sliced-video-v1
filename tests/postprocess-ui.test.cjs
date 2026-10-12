@@ -10,7 +10,7 @@ async function run(){
   const original=fs.readFileSync(source);
   backend=spawn(process.env.LIVECUT_PYTHON||'python',['-m','agent_video','--root',work,'--port','0'],{cwd:root,env:{...process.env,PYTHONIOENCODING:'utf-8',PYTHONUNBUFFERED:'1',LIVECUT_ASSET_ROOT:root,LIVECUT_DESKTOP_TOKEN:token},windowsHide:true});
   await new Promise((resolve,reject)=>{let buffer='';const timeout=setTimeout(()=>reject(new Error('Startup timeout')),20000);backend.stdout.on('data',b=>{buffer+=b.toString();const match=buffer.match(/LIVECUT_READY (\{.*\})/);if(match){clearTimeout(timeout);origin='http://127.0.0.1:'+JSON.parse(match[1]).port;resolve();}});backend.stderr.on('data',b=>fs.appendFileSync(path.join(work,'backend.log'),b));backend.once('error',reject);});
-  browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'msedge'}:{})});
+  browser=await chromium.launch({headless:true,...(process.env.LIVECUT_BROWSER?{executablePath:process.env.LIVECUT_BROWSER}:process.platform==='win32'?{channel:'msedge'}:{})});
   const page=await browser.newPage({viewport:{width:1500,height:1100},extraHTTPHeaders:{'X-LiveCut-Desktop':token}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/#/postprocess');await page.locator('#ppImportSource').waitFor();
   async function importPath(button,file){await page.locator(button).click();await page.locator('#postPaths').fill(file);await page.locator('dialog:has(#postPaths) form button').first().click();}

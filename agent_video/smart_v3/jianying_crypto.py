@@ -80,6 +80,9 @@ def decrypt_jianying_file(
     timeout: float = 90,
 ) -> dict[str, Any]:
     """Decrypt *source* without changing it and return the parsed JSON object."""
+    if sys.platform == "darwin":
+        from ..jianying_crypto import decrypt_jianying_file as native_decrypt
+        return native_decrypt(source, install_dir=install_dir, timeout=timeout)
     if sys.platform != "win32":
         raise JianyingDecryptError("剪映 DLL 解密仅支持 Windows")
     source_path = Path(source).expanduser().resolve()

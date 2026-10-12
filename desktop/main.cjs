@@ -1,20 +1,22 @@
 const {app,BrowserWindow,ipcMain,dialog,session,Menu,shell}=require('electron');
 const {spawn}=require('node:child_process');
-const path=require('node:path'),fs=require('node:fs'),crypto=require('node:crypto');
+const path=require('node:path'),fs=require('node:fs'),crypto=require('node:crypto'),os=require('node:os');
 let backend,window,origin='',workspace='',quitting=false;
 const configPath=()=>path.join(app.getPath('userData'),'desktop.json');
 const token=crypto.randomBytes(32).toString('hex');
-if(process.env.LIVECUT_USER_DATA)app.setPath('userData',path.resolve(process.env.LIVECUT_USER_DATA));
+const legacyData=process.platform==='darwin'?path.join(os.homedir(),'Library','Application Support','LiveCut'):process.platform==='win32'?path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'LiveCut'):path.join(process.env.XDG_DATA_HOME||path.join(os.homedir(),'.local','share'),'LiveCut');
+app.setPath('userData',path.resolve(process.env.LIVECUT_USER_DATA||process.env.LIVE_CUT_DATA_DIR||legacyData));
 if(!app.requestSingleInstanceLock())app.quit();
 app.on('second-instance',()=>{window?.show();window?.focus();});
 
 function startBackend(){
   let config={};try{config=JSON.parse(fs.readFileSync(configPath(),'utf8'));}catch{}
-  workspace=process.env.LIVECUT_WORKSPACE||config.workspace||path.join(app.getPath('userData'),'workspace');fs.mkdirSync(workspace,{recursive:true});
+  workspace=process.env.LIVECUT_WORKSPACE||config.workspace||app.getPath('userData');fs.mkdirSync(workspace,{recursive:true});
   const source=path.resolve(__dirname,'..');
   const runtime=path.join(process.resourcesPath,'runtime');
   const localPython=path.join(source,'.runtime','desktop-build',process.platform==='win32'?'Scripts/python.exe':'bin/python');
-  const executable=app.isPackaged?path.join(runtime,'livecut-backend',process.platform==='win32'?'livecut-backend.exe':'livecut-backend'):(process.env.LIVECUT_PYTHON||(fs.existsSync(localPython)?localPython:process.platform==='win32'?'python':'python3'));
+  const sourcePython=path.join(source,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
+  const executable=app.isPackaged?path.join(runtime,'livecut-backend',process.platform==='win32'?'livecut-backend.exe':'livecut-backend'):(process.env.LIVECUT_PYTHON||(fs.existsSync(localPython)?localPython:fs.existsSync(sourcePython)?sourcePython:process.platform==='win32'?'python':'python3'));
   const args=app.isPackaged?[]:['-m','agent_video'];
   const port=Number(process.env.LIVECUT_DESKTOP_PORT??config.port??0);
   if(!Number.isInteger(port)||port<0||port>65535)throw new Error('本地服务端口需要在 0–65535 之间');
@@ -24,8 +26,8 @@ function startBackend(){
   const skill=path.join(workspace,'integrations','skill','SKILL.md');
   if(!fs.existsSync(skill)){fs.mkdirSync(path.dirname(skill),{recursive:true});fs.copyFileSync(path.join(assets,'integrations','skill','SKILL.md'),skill);}
   const env={...process.env,PYTHONIOENCODING:'utf-8',PYTHONUNBUFFERED:'1',LIVECUT_DESKTOP_TOKEN:token,
-    LIVECUT_ASSET_ROOT:assets,
-    PATH:[bin,process.env.PATH||'',process.platform==='darwin'?'/opt/homebrew/bin:/usr/local/bin':''].filter(Boolean).join(path.delimiter)};
+    LIVECUT_ASSET_ROOT:assets,LIVE_CUT_DATA_DIR:workspace,
+    PATH:[bin,process.platform==='darwin'?'/opt/homebrew/opt/ffmpeg-full/bin:/usr/local/opt/ffmpeg-full/bin':'',process.env.PATH||'',process.platform==='darwin'?'/opt/homebrew/bin:/usr/local/bin':''].filter(Boolean).join(path.delimiter)};
   const log=fs.createWriteStream(path.join(workspace,'desktop-backend.log'),{flags:'a'});
   return new Promise((resolve,reject)=>{
     let buffer='',ready=false;

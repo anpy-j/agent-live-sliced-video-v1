@@ -13,10 +13,15 @@ V2_STAGES = [
 
 def normalize_version(value: object = None) -> str:
     version = "v1" if value is None else str(value).strip().lower()
-    if version not in {"v1", "v2"}:
-        raise ValueError("剪辑版本必须是 V1 或 V2")
+    if version not in {"v1", "v2", "v3"}:
+        raise ValueError("剪辑版本必须是 V1、V2 或 V3")
     return version
 
 
 def stages_for(version: object, legacy: list) -> list:
-    return V2_STAGES if normalize_version(version) == "v2" else legacy
+    version = normalize_version(version)
+    if version == "v2":
+        return V2_STAGES
+    if version == "v3":
+        return [(sid, "V3 AI 精选编排" if sid == "order" else name, pos) for sid, name, pos in legacy]
+    return legacy

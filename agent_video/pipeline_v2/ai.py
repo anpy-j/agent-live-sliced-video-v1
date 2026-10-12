@@ -13,8 +13,8 @@ import threading
 import time
 from pathlib import Path
 
-from agent_video.pipeline.ai import resolve_provider, _CLI_BUILDERS
-from agent_video.pipeline.errors import AIReturnError, PipelineConfigError
+from agent_video.pipeline_v3.ai import resolve_provider, _CLI_BUILDERS
+from agent_video.pipeline_v3.errors import AIReturnError, PipelineConfigError
 from .common import digest, read, save, REVISION
 from .contracts import validate
 
@@ -134,6 +134,8 @@ class Calls:
     def _native(self, prompt, schema, folder):
         if os.environ.get("PIPELINE_AI_ENGINE", "llm") != "llm":
             raise PipelineConfigError("V2 完整表达契约需要 llm 引擎；V1 的 Jev 设置保持原样")
+        if self.provider == "api":
+            raise PipelineConfigError("V2 当前支持 CLI provider；直接 API 调用请选择 V1 或 V3，或在设置中选择 CLI provider")
         provider_id, executable = resolve_provider()
         provider = _CLI_BUILDERS[provider_id](Path(executable))
         model = provider.normalize_model(self.model) if hasattr(provider, "normalize_model") else self.model
@@ -154,7 +156,7 @@ class Calls:
                    "--model", model, "--max-turns", "2", "--system-prompt", SYSTEM,
                    "--setting-sources", "user", "--tools", "StructuredOutput",
                    "--permission-mode", "dontAsk", "--no-session-persistence"]
-        env = {**os.environ, "CODEBUDDY_CODE_MAX_OUTPUT_TOKENS": str(self.limits["per_request_output"]),
+        env = {**os.environ, **provider.runtime_environment(), "CODEBUDDY_CODE_MAX_OUTPUT_TOKENS": str(self.limits["per_request_output"]),
                "CODEBUDDY_MAX_RETRIES": "0", "CODEBUDDY_EMPTY_STREAM_RETRY_MAX_ELAPSED_MS": "1",
                "NO_COLOR": "1"}
         process = subprocess.Popen(command, cwd=folder, env=env, stdin=subprocess.PIPE,

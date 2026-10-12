@@ -73,6 +73,15 @@ async function run(){
   assert.equal(await page.locator('.topbar').isVisible(),false);assert.equal(await page.locator('.hero,.panel-head').count(),0);assert.equal(await page.locator('[data-new-job]').count(),1);
   assert.equal(await page.locator('[role="progressbar"]').count(),1);assert.equal(await page.locator('[role="progressbar"]').getAttribute('aria-valuenow'),'64');
   const queueDensity=await page.locator('.queue-row').evaluateAll(rows=>({visible:rows.filter(r=>r.getBoundingClientRect().bottom<=innerHeight).length,height:rows[0].getBoundingClientRect().height}));assert.ok(queueDensity.visible>=14,JSON.stringify(queueDensity));
+  for(const [filter,count] of [['completed',29],['failed',1],['queued',1],['all',32]]){
+    await page.locator('[data-queue-menu="queueFilterMenu"]').click();
+    await page.locator('#queueFilterMenu [data-queue-filter="'+filter+'"]').click();
+    await page.waitForFunction(expected=>document.querySelectorAll('.queue-row').length===expected,count);
+    if(filter!=='all')assert.equal(await page.locator('.queue-row:not(.'+filter+')').count(),0);
+    await page.locator('[data-queue-menu="queueFilterMenu"]').click();
+    assert.equal(await page.locator('#queueFilterMenu [data-queue-filter="'+filter+'"]').getAttribute('aria-checked'),'true');
+    await page.keyboard.press('Escape');
+  }
   await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));await page.screenshot({path:path.join(output,'queue-desktop.png')});
   await page.locator('[data-queue-menu="queueActions3"]').click();await page.locator('#queueActions3').waitFor({state:'visible'});
   await page.locator('#queueActions3 [data-open-folder]').click();assert.equal(queueActions.at(-1),'/api/jobs/queue-3/open-folder');assert.equal(await page.locator('#queueActions3').isVisible(),false);
@@ -83,8 +92,12 @@ async function run(){
   for(const width of [1280,1024,768,390,320]){
     await page.setViewportSize({width,height:935});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Queue overflow at '+width);
     await page.locator('[data-queue-menu="queueActions3"]').click();const bounds=await page.locator('#queueActions3').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width);await page.keyboard.press('Escape');
+    await page.locator('[data-queue-menu="queueFilterMenu"]').click();const filterBounds=await page.locator('#queueFilterMenu').boundingBox();assert.ok(filterBounds.x>=0&&filterBounds.x+filterBounds.width<=width);await page.keyboard.press('Escape');
     if(width===390)await page.screenshot({path:path.join(output,'queue-mobile.png')});
   }
+  await page.locator('[data-queue-menu="queueFilterMenu"]').click();await page.locator('#queueFilterMenu [data-queue-filter="queued"]').click();await page.locator('.queue-row.queued').waitFor();
+  await page.goto(origin+'/#/dashboard');await page.locator('.stat-card').first().waitFor();await page.goto(origin+'/#/queue');await page.locator('.queue-row.queued').waitFor();assert.equal(await page.locator('.queue-row').count(),1);
+  jobs=jobs.filter(job=>job.status!=='queued');await page.goto(origin+'/#/dashboard');await page.locator('.stat-card').first().waitFor();await page.goto(origin+'/#/queue');await page.getByText('暂无排队中任务',{exact:true}).waitFor();await page.getByRole('button',{name:'查看全部任务',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.queue-row').length===31);
   jobs=[];await page.goto(origin+'/#/dashboard');await page.setViewportSize({width:1484,height:935});await page.goto(origin+'/#/queue');await page.getByText('还没有剪辑任务',{exact:true}).waitFor();assert.equal(await page.locator('[data-new-job]').count(),1);
   drafts=[];await page.goto(origin+'/#/jianying');await page.locator('[data-refresh-jianying]').click();await page.getByText('还没有剪映草稿',{exact:true}).waitFor();
   assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,density,queueDensity,screenshots:output}));

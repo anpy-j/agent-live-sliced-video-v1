@@ -4,6 +4,7 @@ import importlib.metadata
 import shutil
 import subprocess
 import sys
+import platform
 from pathlib import Path
 
 
@@ -43,6 +44,12 @@ for name in ("ffmpeg", "ffprobe"):
                     if line.strip().startswith(("/opt/", "/usr/local/"))]
         if external:
             raise SystemExit("Use a standalone/static macOS FFmpeg build; external dylibs found: " + ", ".join(external))
+if sys.platform == "darwin":
+    helper = bin_dir / "jianying-decrypt"
+    subprocess.run(["xcrun", "clang++", "-std=c++17", "-O2", "-arch", platform.machine(),
+                    "-mmacosx-version-min=11.0", str(ROOT / "agent_video/native/jianying_decrypt.cpp"),
+                    "-Wl,-rpath,@loader_path", "-o", str(helper)], check=True)
+    subprocess.run(["codesign", "--force", "--sign", "-", str(helper)], check=True)
 subprocess.run([
     sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir",
     "--name", "livecut-backend", "--distpath", str(OUTPUT),
@@ -53,6 +60,10 @@ subprocess.run([
     "--add-data", f"{ROOT / 'agent_video' / 'engine' / 'profiles'}{os.pathsep}agent_video/engine/profiles",
     "--hidden-import", "agent_video.editor.render", "--hidden-import", "agent_video.engine.scripts.render_multi",
     "--hidden-import", "agent_video.pipeline.run",
+    "--hidden-import", "agent_video.pipeline_v3.run",
+    "--add-data", f"{ROOT / 'agent_video' / 'pipeline_v3' / 'profiles'}{os.pathsep}agent_video/pipeline_v3/profiles",
+    "--add-data", f"{ROOT / 'agent_video' / 'native'}{os.pathsep}agent_video/native",
+    "--collect-all", "keyring", "--collect-all", "imageio_ffmpeg",
     "--hidden-import", "agent_video.pipeline_v2.run", "--hidden-import", "PIL.Image",
     "--hidden-import", "agent_video.editor.transcribe", "--collect-all", "faster_whisper",
     "--collect-all", "ctranslate2", "--collect-all", "onnxruntime",

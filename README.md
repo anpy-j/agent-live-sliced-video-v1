@@ -20,6 +20,8 @@
 
 ## 启动
 
+桌面开发版使用 `npm ci` 安装依赖后运行 `npm run desktop`（Electron）。macOS 会继续使用已有 LiveCut 数据目录和项目 `.venv`；先关闭旧桌面端。完整环境与原桌面端入口见 [DESKTOP.md](DESKTOP.md)。剪映草稿支持 V1/V2/V3，版本来源与共享范围见 [docs/pipeline-versions.md](docs/pipeline-versions.md)。
+
 首次使用时建议建立独立 Python 3.13 环境安装项目与引擎依赖。
 
 在 Apple Silicon Mac 上：

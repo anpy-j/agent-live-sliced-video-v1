@@ -5,11 +5,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_video.pipeline import run as pipeline
-from agent_video.pipeline.errors import AIReturnError, PipelineError
-from agent_video.pipeline.filter import activate_account_vocab
-from agent_video.pipeline.render import group_segments_for_export
-from agent_video.pipeline.selection import compile_selection, selection_candidates
+from agent_video.pipeline_v3 import run as pipeline
+from agent_video.pipeline_v3.errors import AIReturnError, PipelineError
+from agent_video.pipeline_v3.filter import activate_account_vocab
+from agent_video.pipeline_v3.render import group_segments_for_export
+from agent_video.pipeline_v3.selection import compile_selection, selection_candidates
 
 
 def clause(cid, text, start, end, usable=True):
@@ -43,8 +43,8 @@ class SelectionTest(unittest.TestCase):
     def test_original_version_is_excluded_even_from_stale_s3(self):
         bad = clause(3, "你们可以看一下，这就是原版，看到没。", 6, 8)
         self.assertEqual(selection_candidates([bad]), [])
-        with self.assertRaises(AIReturnError):
-            compile_selection([bad], [{"role": "proof", "ids": [3]}])
+        clips = compile_selection([bad], [{"role": "proof", "ids": [3]}])
+        self.assertEqual(pipeline.selection_warnings(clips)[0]["hits"], ["原版"])
 
     def test_useful_trouser_styling_is_not_a_hard_ban(self):
         useful = clause(0, "里面搭黑色打底，下面配牛仔裤，黑灰撞色适合通勤。", 0, 3)
@@ -62,8 +62,8 @@ class SelectionTest(unittest.TestCase):
 
     def test_joined_fragments_are_checked_for_hard_vocab(self):
         rows = [clause(0, "这是原", 0, 2), clause(1, "版的材质", 2, 4)]
-        with self.assertRaises(AIReturnError):
-            compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
+        clips = compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
+        self.assertEqual(pipeline.selection_warnings(clips)[0]["hits"], ["原版"])
 
     def test_lantiao_skin_feel_group_does_not_invent_order_chatter(self):
         rows = [clause(70, "亲服感非常强", 231.57, 232.61),
@@ -76,10 +76,10 @@ class SelectionTest(unittest.TestCase):
         self.assertEqual(clips[0]["text"], "亲服感非常强双面贴在身上单纯算一点都不会扎嗯")
         self.assertAlmostEqual(total, 4.02)
 
-    def test_real_order_chatter_across_clauses_is_still_rejected(self):
+    def test_real_order_chatter_across_clauses_is_warning_only(self):
         rows = [clause(0, "来给大家上", 0, 2), clause(1, "单", 2, 4)]
-        with self.assertRaisesRegex(AIReturnError, "命中「上单」"):
-            compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
+        clips = compile_selection(rows, [{"role": "proof", "ids": [0, 1]}])
+        self.assertEqual(pipeline.selection_warnings(clips)[0]["hits"], ["上单"])
 
     def test_wearing_description_is_also_allowed_before_s4(self):
         for text in ("贴在身上单纯不扎", "穿在身上单薄但保暖", "上身上单穿很好看"):

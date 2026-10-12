@@ -4,9 +4,35 @@ import json
 import math
 import os
 import subprocess
+import shutil
+from functools import lru_cache
 from pathlib import Path
 
 from .model import SUBTITLE_STYLES, timeline_duration
+
+
+@lru_cache(maxsize=8)
+def _has_subtitle_filter(executable):
+    try:
+        result = subprocess.run([executable, "-hide_banner", "-filters"],
+                                capture_output=True, text=True, timeout=10)
+        return result.returncode == 0 and any(
+            len(parts := line.split()) > 1 and parts[1] == "subtitles"
+            for line in result.stdout.splitlines())
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def subtitle_ffmpeg():
+    executable = shutil.which("ffmpeg")
+    if executable and _has_subtitle_filter(executable):
+        return executable
+    # Some macOS FFmpeg installs omit libass. Use the app's portable binary.
+    import imageio_ffmpeg
+    executable = imageio_ffmpeg.get_ffmpeg_exe()
+    if not _has_subtitle_filter(executable):
+        raise RuntimeError("字幕导出需要包含 subtitles 滤镜的 FFmpeg，请安装完整的桌面依赖")
+    return executable
 
 
 def escape_filter_path(path: Path) -> str:
@@ -175,6 +201,7 @@ def build_command(project, output: Path):
             audio_labels.append(f"[{label}]")
         input_index += 1
     if any(t["kind"] == "subtitle" and t["clips"] and not t.get("hidden") for t in timeline["tracks"]):
+        command[0] = subtitle_ffmpeg()
         subtitles = write_subtitles(project, timeline, work)
         filters.append(f"[{base}]subtitles=filename='{escape_filter_path(subtitles)}'[subtitled]")
         base = "subtitled"

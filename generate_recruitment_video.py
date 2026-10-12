@@ -231,7 +231,7 @@ def render_scene_video(scene, duration, fps=30):
 
 async def main():
     await generate_audios()
-    
+
     scene_videos = []
     for scene in SCENES:
         audio_file = os.path.join(OUTPUT_DIR, f"scene_{scene['id']}.mp3")

@@ -4,10 +4,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from agent_video.pipeline.errors import PipelineError
-from agent_video.pipeline.filter import activate_account_vocab
-from agent_video.pipeline.render import build_segments, build_virtual_segments, render_video
-from agent_video.pipeline.run import _next_render_output, run_pipeline_stage
+from agent_video.pipeline_v3.errors import PipelineError
+from agent_video.pipeline_v3.filter import activate_account_vocab
+from agent_video.pipeline_v3.render import build_segments, build_virtual_segments, render_video
+from agent_video.pipeline_v3.run import _next_render_output, run_pipeline_stage
 from .ai import Calls
 from .common import (compile_clips, digest, emit, plan_blocks, prepare, read, save,
                      source_fingerprint, source_rows)

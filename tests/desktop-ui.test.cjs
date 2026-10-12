@@ -19,7 +19,7 @@ async function main(){
   const second=spawn(frozen||process.env.LIVECUT_PYTHON||'python',[...(frozen?[]:['-m','agent_video']),'--root',work,'--port','0'],{cwd:root,env:{...process.env,PYTHONIOENCODING:'utf-8',LIVECUT_ASSET_ROOT:root},windowsHide:true});
   let secondError='';second.stderr.on('data',b=>secondError+=b.toString());
   const secondCode=await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{second.kill();reject(new Error('Workspace lock did not reject the second service'));},15000);second.once('exit',code=>{clearTimeout(timeout);resolve(code);});second.once('error',reject);});
-  assert.notEqual(secondCode,0);assert.match(secondError,/已有一个 LiveCut 服务/);
+  assert.notEqual(secondCode,0);assert.match(secondError,/已有一个 LiveCut/);
   page.on('pageerror',e=>errors.push(e.message));const answer=async text=>{await page.locator('#editorPromptValue').fill(text);await page.locator('#editorPromptConfirm').click();};
   await page.goto(origin+'/#/editor');await page.locator('#newEdit').click();await answer('UI 测试项目');await page.locator('#addMedia').waitFor();
   const projectId=page.url().split('/').at(-1);

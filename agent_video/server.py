@@ -25,9 +25,11 @@ from .ai import (
     ANTIGRAVITY_FALLBACK_MODELS,
     CODEX_MODELS,
     OPENCODE_FALLBACK_MODELS,
-    workbuddy_model_catalog,
+    workbuddy_model_catalog, workbuddy_catalog_info,
 )
 from .db import Store, utc_now
+from .ai_access import AIAccess
+from .app_runtime import DataLock
 from .labeling import (
     activate as activate_labels, build_patch, merge_patch, prepare as prepare_labels,
     profile_summary,
@@ -41,14 +43,16 @@ from .smart_v3 import SmartService
 class Application:
     """本地服务：唯一处理路径是精简管线，这里只做任务登记、队列与产物展示。"""
 
-    def __init__(self, root: Path):
-        self.root = Path(root).resolve()
+    def __init__(self, root: Path, data_root: Path | None = None, *, vault=None):
+        self.resource_root = Path(root).resolve()
+        self.root = Path(data_root or root).resolve()
         self.data_dir = self.root / "data"
         self.workspace_root = self.root / "workspaces"
-        self.asset_root = Path(os.environ.get("LIVECUT_ASSET_ROOT", str(self.root))).resolve()
+        self.asset_root = Path(os.environ.get("LIVECUT_ASSET_ROOT", str(self.resource_root))).resolve()
         self.web_root = self.asset_root / "web"
         self.store = Store(self.data_dir / "agent.db")
-        self.runner = JobRunner(self.store, self.root)
+        self.ai_access = AIAccess(self.store, self.root, vault=vault)
+        self.runner = JobRunner(self.store, self.root, vault=self.ai_access.vault)
         # V2 is lazy so its database/filesystem can never block legacy startup.
         # It is intentionally not registered with the legacy JobRunner.
         self._viral: ViralPipelineService | None = None
@@ -86,8 +90,16 @@ class Application:
     def smart(self) -> SmartService:
         with self._smart_init_lock:
             if self._smart is None:
-                self._smart = SmartService(self.root)
+                self._smart = SmartService(self.root, ai=self._smart_ai())
         return self._smart
+
+    def _smart_ai(self):
+        from .smart_v3.ai import JsonAI
+        def config():
+            value = self.ai_access.configuration()
+            return {**value, 'api_key': self.ai_access.vault.get('model-api-key')}
+        # Existing V3 environment configuration remains supported.
+        return JsonAI(config=config)
 
     @property
     def viral(self) -> ViralPipelineService:
@@ -99,18 +111,18 @@ class Application:
         is_windows = sys.platform == "win32"
         venv_python = self.root / ".venv" / ("Scripts/python.exe" if is_windows else "bin/python")
         defaults = {
-            "engine_python": sys.executable if getattr(sys, "frozen", False) else str(venv_python),
+            "engine_python": str(Path(sys.executable) if getattr(sys, "frozen", False) or self.resource_root != self.root else venv_python),
             "skill_path": str(self.root / "integrations" / "skill" / "SKILL.md"),
             "mcp_enabled": True,
             "mcp_token": secrets.token_urlsafe(24),
             "ai_engine": "llm",
             "ai_provider": "auto",
             "ai_model": "auto",
-            "jev_api_key": self._detect_jev_api_key(),
+            "jev_api_key": "" if self.root != self.resource_root else self._detect_jev_api_key(),
             "jev_base_url": "https://api.typesafe.ai/v1",
         }
         for key, value in defaults.items():
-            if self.store.get_setting(key) is None:
+            if self.store.get_setting(key) is None or (key == "engine_python" and self.root != self.resource_root):
                 self.store.set_setting(key, value)
 
     @staticmethod
@@ -134,6 +146,8 @@ class Application:
     def create_job(self, payload: dict[str, Any]) -> dict[str, Any]:
         from .pipeline_versions import normalize_version
         version = normalize_version(payload.get("pipeline_version"))
+        if str(payload.get("job_type") or "direct").lower() == "remix" and version != "v1":
+            raise ValueError("成片重组仅支持 V1 流程")
         job_type = str(payload.get("job_type") or "direct").lower()
         if job_type == "remix" and version == "v2":
             raise ValueError("成片重组不支持 V2 剪辑流程")
@@ -209,8 +223,8 @@ class Application:
             raise ValueError("虚拟时间线不包含任何有效片段")
 
         if job_type != "remix" and payload.get("auto_title") and payload.get("draft_name"):
-            from .jianying import DEFAULT_EXPORT_DIR, next_available_title
-            output_dir = payload.get("export_dir") or DEFAULT_EXPORT_DIR
+            from .jianying import default_export_dir, next_available_title
+            output_dir = payload.get("export_dir") or default_export_dir()
             title = next_available_title(
                 str(payload["draft_name"]), self.store.list_job_titles(), output_dir
             )
@@ -335,18 +349,19 @@ class Application:
 
     def list_jianying_drafts(self) -> dict[str, Any]:
         from .jianying import (
-            DEFAULT_EXPORT_DIR, draft_title_base, list_jianying_drafts, next_available_title,
+            default_export_dir, draft_title_base, list_jianying_drafts, next_available_title,
         )
 
         drafts = list_jianying_drafts(
             cache_path=self.root / "data" / "jianying_draft_cache.json"
         )
+        export_dir = default_export_dir()
         titles = self.store.list_job_titles()
         active_titles = self.store.list_active_job_titles()
         covers: dict[str, Path] = {}
         for draft in drafts:
             draft["suggested_title"] = next_available_title(
-                draft["name"], titles, DEFAULT_EXPORT_DIR
+                draft["name"], titles, export_dir
             )
             title_pattern = re.compile(
                 rf"^{re.escape(draft_title_base(draft['name']))}(?:-\d+)?$", re.IGNORECASE
@@ -363,12 +378,12 @@ class Application:
         self._jianying_covers = covers
         return {
             "drafts": drafts,
-            "pipeline_versions": ["v1", "v2"],
+            "pipeline_versions": ["v1", "v2", "v3"],
             "default_pipeline_version": "v1",
             "defaults": {
                 "target_min": 120,
                 "target_max": 180,
-                "export_dir": DEFAULT_EXPORT_DIR,
+                "export_dir": export_dir,
                 "export_mode": "segments",
                 "timeline_strategy": "longest",
             },
@@ -727,7 +742,7 @@ try {{
             return {"job_id": job_id, "stage_id": stage_id, "queued": True}
         raise KeyError(f"未知工具: {name}")
 
-    def settings(self) -> dict[str, Any]:
+    def settings(self, *, refresh_models: bool = False) -> dict[str, Any]:
         keys = ["engine_python", "skill_path", "mcp_enabled", "mcp_token",
                 "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir"]
         result = {key: self.store.get_setting(key) for key in keys}
@@ -740,9 +755,10 @@ try {{
                 result["jev_api_key"] = f"{raw_jev_key[:3]}****{raw_jev_key[-4:]}"
         else:
             result["jev_api_key"] = ""
-        result["engine_path"] = str(self.root / "agent_video" / "engine")
+        result["engine_path"] = str(self.resource_root / "agent_video" / "engine")
         result["engine_bundled"] = True
         result["ai_models"] = {
+            "api": [{"id": self.store.get_setting("api_model", ""), "name": self.store.get_setting("api_model", "请先配置 API")}],
             "auto": [{"id": "auto", "name": "自动选择"}],
             "opencode": [
                 {"id": model_id, "name": name}
@@ -753,13 +769,14 @@ try {{
             ],
             "workbuddy": [
                 {"id": model_id, "name": name}
-                for model_id, name in workbuddy_model_catalog()
+                for model_id, name in workbuddy_model_catalog(refresh=refresh_models)
             ],
             "antigravity": [
                 {"id": model_id, "name": name}
                 for model_id, name in ANTIGRAVITY_FALLBACK_MODELS
             ],
         }
+        result["ai_model_catalogs"] = {"workbuddy": workbuddy_catalog_info()}
         return result
 
     def update_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -768,7 +785,7 @@ try {{
         if "ai_engine" in payload and str(payload["ai_engine"]) not in {"llm", "jev"}:
             raise ValueError("ai_engine 必须是 llm 或 jev")
         if "ai_provider" in payload and str(payload["ai_provider"]) not in {
-                "auto", "opencode", "codex", "workbuddy", "antigravity"}:
+                "auto", "opencode", "codex", "workbuddy", "antigravity", "api"}:
             raise ValueError("ai_provider 无效")
         for key in allowed & payload.keys():
             val = payload[key]
@@ -1065,6 +1082,8 @@ class Handler(BaseHTTPRequestHandler):
             if not self.desktop_authorized():
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path, _, query = self.path.partition("?")
+            if path == "/api/ai/access":
+                return self.json_response(self.app.ai_access.status())
             if path == "/api/cloud/catalog":
                 from .cloud_catalog import catalog
                 return self.json_response(catalog(self.app.root))
@@ -1134,7 +1153,7 @@ class Handler(BaseHTTPRequestHandler):
                     job["deliverables"] = self.app.deliverable_info(job)
                 return self.json_response(job or {"error": "任务不存在"}, 200 if job else 404)
             if path == "/api/settings":
-                return self.json_response(self.app.settings())
+                return self.json_response(self.app.settings(refresh_models=urllib.parse.parse_qs(query).get("refresh_models") == ["1"]))
             if path == "/api/skill":
                 return self.json_response(self.app.skill())
             if path == "/api/mcp":
@@ -1164,6 +1183,21 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path.startswith('/api/ai/'):
+                origin = self.headers.get('Origin')
+                if origin and origin != f'http://{self.headers.get("Host")}':
+                    return self.json_response({'error': '仅允许应用页面发起此操作'}, 403)
+                actions = {
+                    '/api/ai/config': lambda: self.app.ai_access.save(payload),
+                    '/api/ai/test': self.app.ai_access.test,
+                    '/api/ai/key/clear': self.app.ai_access.clear_key,
+                    '/api/ai/codex/login': self.app.ai_access.login,
+                    '/api/ai/codex/cancel': self.app.ai_access.cancel,
+                    '/api/ai/codex/logout': self.app.ai_access.logout,
+                }
+                action = actions.get(path)
+                if action: return self.json_response(action())
+                return self.json_response({'error': 'Not found'}, 404)
             if path == "/api/desktop/shutdown" and os.environ.get("LIVECUT_DESKTOP_TOKEN"):
                 self.json_response({"stopping": True})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
@@ -1398,56 +1432,60 @@ class Server(ThreadingHTTPServer):
         self.app = app
 
 
-def serve(root: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
-    lock_path = Path(root) / "data" / "agent.lock"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    lock_handle = lock_path.open("a+")
-    if fcntl is not None:
+class ServiceSession:
+    """Shared lifecycle for CLI and desktop; owns lock, HTTP server and workers."""
+    def __init__(self, root: Path, host='127.0.0.1', port=8787, data_root=None, vault=None):
+        self.root, self.data_root = Path(root), Path(data_root or root)
+        self.host, self.port, self.vault = host, port, vault
+        self.lock = DataLock(self.data_root)
+        self.server = self.app = self.connector = self.thread = None
+
+    def __enter__(self):
+        self.lock.__enter__()
         try:
-            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            lock_handle.close()
-            raise RuntimeError("已有一个 LiveCut 服务正在使用当前任务数据库") from None
-    elif os.name == "nt":
-        import msvcrt
-        lock_handle.seek(0, 2)
-        if lock_handle.tell() == 0:
-            lock_handle.write("0")
-            lock_handle.flush()
-        lock_handle.seek(0)
+            self.app = Application(self.root, self.data_root, vault=self.vault)
+            self.server = Server((self.host, self.port), self.app)
+            self.app.runner.start()
+            from .remote_control import RemoteConnector
+            self.connector = RemoteConnector.from_environment(self.app)
+            if self.connector: self.connector.start()
+            self.thread = threading.Thread(target=self.server.serve_forever, kwargs={'poll_interval': 0.2}, daemon=True)
+            self.thread.start()
+            return self
+        except BaseException:
+            self.close()
+            raise
+
+    @property
+    def url(self):
+        return f'http://{self.host}:{self.server.server_address[1]}'
+
+    def close(self):
+        if self.connector: self.connector.stop()
+        if self.app:
+            self.app.ai_access.close()
+            self.app.runner.stop()
+            if self.app._editor is not None:
+                self.app._editor.close()
+            if self.app._postprocess is not None:
+                self.app._postprocess.close()
+        if self.server:
+            if self.thread:
+                self.server.shutdown()
+                self.thread.join(timeout=3)
+            self.server.server_close()
+        self.lock.__exit__(None, None, None)
+
+    def __exit__(self, *_):
+        self.close()
+
+
+def serve(root: Path, host: str = "127.0.0.1", port: int = 8787, data_root=None) -> None:
+    with ServiceSession(root, host, port, data_root=data_root) as session:
+        if os.environ.get('LIVECUT_DESKTOP_TOKEN'):
+            print('LIVECUT_READY ' + json.dumps({'port': session.server.server_port}), flush=True)
+        print(f'LiveCut: {session.url}', flush=True)
         try:
-            msvcrt.locking(lock_handle.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError:
-            lock_handle.close()
-            raise RuntimeError("已有一个 LiveCut 服务正在使用当前任务数据库") from None
-    app = Application(root)
-    app.runner.start()
-    from .remote_control import RemoteConnector
-    connector = RemoteConnector.from_environment(app)
-    if connector:
-        connector.start()
-    server = Server((host, port), app)
-    if os.environ.get("LIVECUT_DESKTOP_TOKEN"):
-        print("LIVECUT_READY " + json.dumps({"port": server.server_port}), flush=True)
-    print(f"Agent Live Sliced Video: http://{host}:{port}")
-    print(f"MCP endpoint: http://{host}:{port}/mcp")
-    try:
-        server.serve_forever(poll_interval=0.5)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        if connector:
-            connector.stop()
-        app.runner.stop()
-        if app._editor is not None:
-            app._editor.close()
-        if app._postprocess is not None:
-            app._postprocess.close()
-        server.server_close()
-        if fcntl is not None:
-            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
-        elif os.name == "nt":
-            import msvcrt
-            lock_handle.seek(0)
-            msvcrt.locking(lock_handle.fileno(), msvcrt.LK_UNLCK, 1)
-        lock_handle.close()
+            session.thread.join()
+        except KeyboardInterrupt:
+            pass

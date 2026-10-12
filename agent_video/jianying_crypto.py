@@ -1,6 +1,6 @@
-"""Read encrypted Jianying draft JSON through the user's local videoeditor.dll.
+"""Read encrypted Jianying draft JSON through the user's installed native library.
 
-The DLL call runs in a child process. Jianying's private C++ ABI can change
+Native library calls run in a child process. Jianying's private C++ ABI can change
 between releases; isolation prevents a mismatched DLL from crashing LiveCut.
 The original draft is never modified.
 """
@@ -80,8 +80,11 @@ def decrypt_jianying_file(
     timeout: float = 90,
 ) -> dict[str, Any]:
     """Decrypt *source* without changing it and return the parsed JSON object."""
+    if sys.platform == "darwin":
+        from .jianying_mac import decrypt_mac_file
+        return decrypt_mac_file(Path(source).expanduser().resolve(), install_dir, timeout)
     if sys.platform != "win32":
-        raise JianyingDecryptError("剪映 DLL 解密仅支持 Windows")
+        raise JianyingDecryptError("剪映加密草稿解密仅支持 Windows 和 macOS")
     source_path = Path(source).expanduser().resolve()
     directory = find_jianying_install_dir(install_dir)
     with tempfile.TemporaryDirectory(prefix="livecut-jianying-") as temporary:

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Observable local agent for live-stream video slicing"
 requires-python = ">=3.11"
 dependencies = [
+  "imageio-ffmpeg>=0.6,<1",
   "Pillow>=10,<13",
   "psutil>=6,<8",
   "pypinyin>=0.50,<1",
@@ -11,10 +12,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+desktop = ["pywebview>=6,<7", "keyring>=25,<26"]
+build = ["pyinstaller>=6,<7"]
 apple-silicon = ["mlx-whisper>=0.4,<1"]
-portable-asr = ["faster-whisper>=1.1,<2"]
+# faster-whisper 1.2.1 still passes metadata_errors to av.open; PyAV 19
+# removed that argument. Keep the released ASR stack compatible on all OSes.
+portable-asr = ["faster-whisper>=1.1,<2", "av>=11,<19"]
 
 [project.scripts]
+livecut-desktop = "agent_video.desktop:main"
 slice-agent = "agent_video.__main__:main"
 
 [build-system]
@@ -25,4 +31,7 @@ build-backend = "setuptools.build_meta"
 include = ["agent_video*"]
 
 [tool.setuptools.package-data]
+"agent_video" = ["native/*.cpp"]
 "agent_video.engine" = ["profiles/*.json"]
+
+"agent_video.pipeline_v3" = ["profiles/*.json"]

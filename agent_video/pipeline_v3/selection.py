@@ -4,13 +4,14 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from agent_video.engine.scripts import badvocab
+from . import badvocab
 from .errors import AIReturnError
 
 SELECTION_VERSION = 2
 
 
-def selection_candidates(clauses: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def selection_candidates(clauses: list[dict[str, Any]], *,
+                         include_hard_hits: bool = False) -> list[dict[str, Any]]:
     """Keep original clause IDs; never absorb a rejected neighbour into a candidate.
 
     ``context`` identifies uninterrupted S3 sentence runs, without sending S3
@@ -22,7 +23,8 @@ def selection_candidates(clauses: list[dict[str, Any]]) -> list[dict[str, Any]]:
     context = -1
     seen = set()
     for clause in clauses:
-        if not clause.get("usable") or badvocab.BAD_RE.search(str(clause.get("text") or "")):
+        if (not clause.get("usable") or
+                (not include_hard_hits and badvocab.BAD_RE.search(str(clause.get("text") or "")))):
             previous = None
             continue
         cid = clause.get("id")
@@ -51,7 +53,9 @@ def compile_selection(clauses: list[dict[str, Any]],
     Non-contiguous selections stay separate, even when they share a group. An
     excluded clause, silence gap, different group or reverse order is a cut.
     """
-    by_id = {c["id"]: c for c in selection_candidates(clauses)}
+    # S2/S3 already decide availability. A later vocabulary hit is an advisory,
+    # not a reason to discard the selected source or abort rendering.
+    by_id = {c["id"]: c for c in selection_candidates(clauses, include_hard_hits=True)}
     positions = {c["id"]: i for i, c in enumerate(clauses)}
     clips: list[dict[str, Any]] = []
     seen = set()
@@ -75,10 +79,16 @@ def compile_selection(clauses: list[dict[str, Any]],
                               "group": group, "role": section["role"], "usable": True})
     if not clips:
         raise AIReturnError("S4 没有选出可渲染的内容")
-    for clip in clips:
-        match = badvocab.BAD_RE.search(clip["text"])
-        if match:
-            raise AIReturnError(
-                f"S4 所选句群命中硬禁词：{clip['members']}；命中「{match.group()}」；"
-                f"原文：{clip['text']}")
     return clips
+
+
+def selection_warnings(clips: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Report late hard-vocabulary hits without changing the render selection."""
+    warnings = []
+    for clip in clips:
+        hits = list(dict.fromkeys(m.group() for m in badvocab.BAD_RE.finditer(clip["text"])))
+        if hits:
+            warnings.append({"code": "s4_hard_vocab", "members": list(clip["members"]),
+                             "hits": hits, "text": clip["text"],
+                             "action": "warn_and_render"})
+    return warnings

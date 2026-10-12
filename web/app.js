@@ -45,9 +45,9 @@ function setCrumb(text){$('#pageCrumb').textContent=text;$$('[data-nav]').forEac
 function jobFlags(job){return {active:['queued','running'].includes(job.status)};}
 function jobStageLabel(job,id,stored=''){
   if(job?.pipeline_version==='v2'){
-    const v2Labels={judge:'V2 完整表达整理',order:'V2 成片编排',review:'V2 成片验收'};
-    return v2Labels[id]||stored||stageLabel(id);
+    return ({judge:'V2 完整表达整理',order:'V2 成片编排',review:'V2 成片验收'})[id]||stored||stageLabel(id);
   }
+  if(job?.pipeline_version==='v3'&&id==='order')return 'V3 AI 精选编排';
   if(job?.job_type==='remix'){
     const remixLabels={asr:'片段文字识别',filter:'文字字面去重',judge:'语义去重与分类',order:'动态内容重排',render:'生成新成片'};
     return remixLabels[id]||stored||stageLabel(id);
@@ -57,8 +57,16 @@ function jobStageLabel(job,id,stored=''){
 function jobTypeTag(job){
   if(job.pipeline_version==='v2')return '<span class="pipeline-version-tag">V2 剪辑</span>';
   if(job.job_type==='remix')return '<span class="timeline-tag">成片重组</span>';
-  if(job.job_type==='timeline')return '<span class="timeline-tag">虚拟时间线</span>';
-  return '';
+  const version=['v1','v2','v3'].includes(job.pipeline_version)?job.pipeline_version:'v1';
+  return `<span class="timeline-tag">${job.job_type==='timeline'?'剪映草稿 · ':''}${version.toUpperCase()}</span>`;
+}
+function jobAiConfigurationText(job){
+  try{
+    const config=typeof job.remote_model_json==='string'?JSON.parse(job.remote_model_json):job.remote_model_json;
+    if(!config)return 'AI 配置将在首次执行时确定';
+    const names={auto:'自动选择',workbuddy:'WorkBuddy',opencode:'OpenCode',codex:'Codex',antigravity:'Antigravity',api:'API 直连'};
+    return `本次 AI 配置：${config.ai_engine==='jev'?'JEV':names[config.ai_provider]||config.ai_provider||'自动选择'} · ${config.ai_model||'auto'}`;
+  }catch{return 'AI 配置无法读取，请重试任务更新配置'}
 }
 function jobTargetText(job,prefix='目标'){
   if(job.job_type==='remix')return ' · 全部去重后片段';
@@ -92,10 +100,17 @@ async function renderDashboard(){
 
 async function renderQueue(){
   setCrumb('剪辑队列');loading();const data=await api('/api/jobs');
-  app.innerHTML=`<div class="queue-toolbar"><button class="icon-button queue-mobile-menu" id="queueMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="button primary small" data-new-job><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加任务</button></div>${compactQueueRows(data.jobs)}`;
+  const filters={all:'全部',completed:'已完成',failed:'失败',queued:'排队中'},selected=state.queueFilter||'all';
+  const jobs=selected==='all'?data.jobs:data.jobs.filter(job=>job.status===selected);
+  const rows=jobs.length||!data.jobs.length?compactQueueRows(jobs):`<div class="empty">${icons.empty}<h3>暂无${filters[selected]}任务</h3><p>切换筛选可查看其他任务。</p><button class="button ghost small" data-queue-filter="all">查看全部任务</button></div>`;
+  app.innerHTML=`<div class="queue-toolbar"><button class="icon-button queue-mobile-menu" id="queueMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button type="button" class="button ghost small queue-filter${selected!=='all'?' active':''}" data-queue-menu="queueFilterMenu" aria-expanded="false" aria-controls="queueFilterMenu" aria-haspopup="menu"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>${selected==='all'?'筛选':filters[selected]}</button><div id="queueFilterMenu" class="queue-action-menu queue-filter-menu" popover="auto" role="menu" aria-label="任务状态筛选">${Object.entries(filters).map(([value,label])=>`<button type="button" role="menuitemradio" aria-checked="${selected===value}" data-queue-filter="${value}">${label}</button>`).join('')}</div><button class="button primary small" data-new-job><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加任务</button></div>${rows}`;
   $('#queueBadge').textContent=data.jobs.filter(j=>['queued','running'].includes(j.status)).length;
   $('#queueMenu').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
   bindCommon();
+  $$('[data-queue-filter]').forEach(button=>button.addEventListener('click',()=>{
+    state.queueFilter=button.dataset.queueFilter;
+    route();
+  }));
   $$('[data-queue-menu]').forEach(button=>{
     const menu=document.getElementById(button.dataset.queueMenu);
     button.addEventListener('click',()=>{
@@ -241,9 +256,10 @@ async function renderJianyingDrafts(force=false){
   const data=state.jianying;
   const drafts=data.drafts||[],defaults=data.defaults||{};
   const prefs=state.draftLibrary;
-  const supportsV2=(data.pipeline_versions||[]).includes('v2');
-  if(!supportsV2)prefs.pipelineVersion='v1';
-  app.innerHTML=`<div class="compact-library-toolbar"><button class="icon-button compact-menu" id="draftMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="all-drafts">全部草稿 <span id="draftResultCount" role="status"></span></div><div class="draft-library-actions"><div class="pipeline-version-picker" role="group" aria-label="本次剪辑版本"><button type="button" data-pipeline-version="v1" aria-pressed="${prefs.pipelineVersion==='v1'}">V1</button><button type="button" data-pipeline-version="v2" aria-pressed="${prefs.pipelineVersion==='v2'}">V2</button></div><label class="library-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="draftSearch" aria-label="搜索草稿" placeholder="搜索草稿…" value="${escapeHtml(prefs.query)}" type="search"></label><button type="button" class="button ghost draft-refresh" data-refresh-jianying title="重新加载本机剪映草稿"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg><span>刷新草稿</span></button></div></div><div id="draftResults"></div>`;
+  const supported=data.pipeline_versions||['v1'];
+  if(!supported.includes(prefs.pipelineVersion))prefs.pipelineVersion='v1';
+  const picker=`<div class="pipeline-version-picker" role="group" aria-label="本次剪辑版本">${['v1','v2','v3'].map(version=>`<button type="button" data-pipeline-version="${version}" aria-pressed="${prefs.pipelineVersion===version}" ${supported.includes(version)?'':'disabled'}>${version.toUpperCase()}</button>`).join('')}</div>`;
+  app.innerHTML=`<div class="compact-library-toolbar"><button class="icon-button compact-menu" id="draftMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="all-drafts">全部草稿 <span id="draftResultCount" role="status"></span></div><div class="draft-library-actions">${picker}<label class="library-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="draftSearch" aria-label="搜索草稿" placeholder="搜索草稿…" value="${escapeHtml(prefs.query)}" type="search"></label><button type="button" class="button ghost draft-refresh" data-refresh-jianying title="重新加载本机剪映草稿"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg><span>刷新草稿</span></button></div></div><div id="draftResults"></div>`;
   const draw=()=>{
     const visible=drafts.filter(d=>`${d.name} ${d.suggested_title}`.toLocaleLowerCase().includes(prefs.query.trim().toLocaleLowerCase())).sort((a,b)=>new Date(b.modified_at||0)-new Date(a.modified_at||0));
     const cards=visible.map(draft=>{
@@ -264,9 +280,8 @@ async function renderJianyingDrafts(force=false){
     }));
   };
   $('#draftSearch').addEventListener('input',e=>{prefs.query=e.target.value;draw()});
-  const v2Button=$('[data-pipeline-version="v2"]');
-  v2Button.disabled=!supportsV2;
-  v2Button.title=supportsV2?'使用独立的 V2 完整表达整理、编排和验收':'后台尚未加载 V2，请重启 LiveCut 后台服务';
+  const descriptions={v1:"原有流程，保留句单元和时长约束",v2:"完整表达整理、编排和独立验收",v3:"逐子句精选，时长为软目标"};
+  $$('[data-pipeline-version]').forEach(button=>button.title=supported.includes(button.dataset.pipelineVersion)?descriptions[button.dataset.pipelineVersion]:"后台尚未支持此版本，请重启后台");
   $$('[data-pipeline-version]').forEach(button=>button.addEventListener('click',()=>{
     prefs.pipelineVersion=button.dataset.pipelineVersion;
     $$('[data-pipeline-version]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.pipelineVersion===prefs.pipelineVersion)));
@@ -450,6 +465,7 @@ async function refreshJob(jobId){
   const job=await api(`/api/jobs/${jobId}`);state.job=job;
   const connection=$('#jobConnectionState');if(connection){connection.classList.remove('offline');connection.innerHTML='<i></i>实时连接正常';}
   if(patchJobRegion('#jobControls',jobControlsHtml(job),deliverablesControlsKey(job)))bindJobControls(jobId);
+  const aiConfig=$('#jobAiConfiguration');if(aiConfig)aiConfig.textContent=jobAiConfigurationText(job);
   const meta=$('#jobProgressMeta');if(meta)meta.textContent=`${Math.round(job.progress||0)}% · 当前节点 ${jobStageLabel(job,job.current_stage)||'—'}`;
   if(patchJobRegion('#jobWorkflow',workflowHtml(job),workflowKey(job)))bindStageSelection(jobId);
   if(patchJobRegion('#jobStageDetail',stageDetailHtml(job),stageDetailKey(job))){bindStageRerun(jobId);bindArtifactPreviews($('#jobStageDetail'));updateLiveTimes();}
@@ -466,7 +482,7 @@ async function renderJob(jobId){
   setCrumb('任务详情');loading();const job=await api(`/api/jobs/${jobId}`);
   state.job=job;state.selectedStage=job.current_stage||job.stages[0]?.stage_id;
   app.innerHTML=`<a href="#/queue" class="back-link">${icons.arrow}返回队列</a>
-<div class="detail-head"><div class="detail-title"><span class="eyebrow">${escapeHtml(job.id)}</span><h1>${escapeHtml(job.title)}${jobTypeTag(job)}</h1><p>${escapeHtml(job.source_path)}${jobTargetText(job,'目标时长')}</p></div><div class="detail-actions" id="jobControls" data-render-key="${escapeHtml(deliverablesControlsKey(job))}">${jobControlsHtml(job)}</div></div>
+<div class="detail-head"><div class="detail-title"><span class="eyebrow">${escapeHtml(job.id)}</span><h1>${escapeHtml(job.title)}${jobTypeTag(job)}</h1><p>${escapeHtml(job.source_path)}${jobTargetText(job,'目标时长')}</p><p id="jobAiConfiguration" role="status">${escapeHtml(jobAiConfigurationText(job))}</p></div><div class="detail-actions" id="jobControls" data-render-key="${escapeHtml(deliverablesControlsKey(job))}">${jobControlsHtml(job)}</div></div>
   <div class="panel"><div class="panel-head"><div><h2>整体流程</h2><p id="jobProgressMeta">${Math.round(job.progress||0)}% · 当前节点 ${escapeHtml(jobStageLabel(job,job.current_stage)||'—')}</p></div><div class="workflow-meta"><span class="connection-state" id="jobConnectionState"><i></i>实时连接正常</span><span class="panel-hint">点击节点查看详情</span></div></div><div class="workflow" id="jobWorkflow" data-render-key="${escapeHtml(workflowKey(job))}">${workflowHtml(job)}</div></div>
   <div class="detail-grid"><div><div class="panel stage-detail" id="jobStageDetail" data-render-key="${escapeHtml(stageDetailKey(job))}">${stageDetailHtml(job)}</div>
   <div class="panel"><div class="panel-head"><div><h2>任务产物</h2><p>图片、时间线、日志与视频均可打开</p></div></div><div id="jobArtifacts" data-render-key="${escapeHtml(artifactsKey(job))}">${artifactsHtml(job)}</div></div></div>
@@ -502,20 +518,36 @@ async function renderSettings(){
   setCrumb('系统设置');loading();const data=await api('/api/settings');
   const opts=(map,selected)=>Object.entries(map).map(([value,label])=>`<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('');
   const modelOpts=(provider,selected)=>{
-    const models=data.ai_models?.[provider]||data.ai_models?.auto||[{id:'auto',name:'自动选择'}];
+    let models=data.ai_models?.[provider]||data.ai_models?.auto||[{id:'auto',name:'自动选择'}];
+    if(selected&&selected!=='auto'&&!models.some(model=>model.id===selected))models=[{id:selected,name:'已保存的模型（目录暂未显示）'},...models];
     const selectedExists=models.some(model=>model.id===selected);
     return models.map(model=>`<option value="${escapeHtml(model.id)}" ${model.id===(selectedExists?selected:'auto')?'selected':''}>${escapeHtml(model.name)}${model.id==='auto'?'':`（${escapeHtml(model.id)}）`}</option>`).join('');
   };
   const selectedProvider=data.ai_provider||'auto';
   app.innerHTML=`<div class="hero"><div><span class="eyebrow">SYSTEM CONFIGURATION</span><h1>系统设置</h1><p>配置执行内核、AI 提供方和本地接入策略。</p></div></div>
+  <div class="panel" style="margin-bottom:20px"><div class="panel-head"><div><h2>连接 AI</h2><p>登录账号或填写 API Key，连接后即可开始剪辑。</p></div></div>
+  <div class="settings-form">
+    <div class="settings-section"><b>Codex 账号</b><small id="codexConnection">正在检查登录状态…</small></div>
+    <div class="job-row-actions"><button class="button primary" id="codexLogin" type="button">登录 Codex</button><button class="button" id="codexCancel" type="button">取消登录</button><button class="button" id="codexLogout" type="button">退出登录</button></div>
+    <p id="codexLoginMessage" role="status"></p><a id="codexLoginLink" target="_blank" rel="noopener" hidden>打开官方登录页面</a>
+    <div class="settings-section"><b>API Key 接入</b><small id="apiKeyState">正在检查配置…</small></div>
+    <form id="aiConnectionForm" class="settings-form">
+      <label>服务地址<input name="base_url" value="https://api.openai.com/v1" placeholder="https://服务地址/v1"></label>
+      <label>模型名称<input name="model" placeholder="填写服务商提供的具体模型名称" required></label>
+      <label>API Key<input name="api_key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"><small>密钥保存在本机系统安全存储中，不显示原文。</small></label>
+      <div class="job-row-actions"><button class="button primary" type="submit">保存并使用 API</button><button class="button" id="testAI" type="button">测试连接</button><button class="button" id="clearAIKey" type="button">删除密钥</button></div>
+    </form>
+    <p class="form-error" id="aiConnectionError" role="status"></p>
+  </div></div>
   <div class="panel"><div class="panel-head"><div><h2>运行配置</h2><p>内置引擎随应用版本一起升级</p></div></div>
   <form class="settings-form" id="settingsForm">
     <label>内置切片内核<input value="${escapeHtml(data.engine_path||'')}" readonly><small>${data.engine_bundled?'当前项目自带，不再依赖外部旧引擎目录。':'当前使用外部引擎路径。'}</small></label>
     <label>引擎 Python<input name="engine_python" value="${escapeHtml(data.engine_python||'')}"><small>建议使用项目独立的 Python 3.13 环境。</small></label>
     <div class="settings-section"><b>AI 执行策略</b><small>选择编排的引擎与提供方。</small></div>
-    <label>AI 引擎<select name="ai_engine">${opts({llm:'LLM（本地 CLI）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>LLM 走本地 CLI，JEV 走云端判定服务。</small></label>
-    <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
+    <label>AI 引擎<select name="ai_engine">${opts({llm:'AI 模型（账号或 API Key）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>AI 模型支持账号登录或 API Key；JEV 使用独立云端服务。</small></label>
+    <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
     <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型选项会根据 AI 提供方自动更新。</small></label>
+    <div class="job-row-actions" id="modelRefreshRow"><button class="button ghost" id="refreshModels" type="button">刷新模型列表</button><small id="modelCatalogStatus" role="status"></small></div>
     <div class="settings-section"><b>JEV 云端</b><small>${data.jev_api_key_configured?'已配置密钥。':'尚未配置密钥。'}</small></div>
     <label>JEV API Key<input name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥"><small>仅为安全展示，留空或保持掩码不会覆盖现有密钥。</small></label>
     <label>JEV Base URL<input name="jev_base_url" value="${escapeHtml(data.jev_base_url||'')}"></label>
@@ -525,7 +557,27 @@ async function renderSettings(){
     <p class="form-error" id="settingsError" role="alert"></p>
     <button class="button primary" type="submit">保存设置</button>
   </form></div>`;
-  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto')});
+  setupAIConnection();
+  const showCatalogStatus=()=>{
+    const provider=$('#aiProvider').value;
+    $('#modelRefreshRow').hidden=provider!=='workbuddy';
+    const info=data.ai_model_catalogs?.workbuddy||{};
+    const descriptions={cli_desktop:'已同步 WorkBuddy 客户端目录，并由 CLI 确认',cli:'已读取当前 CLI 模型目录',desktop:'已读取客户端目录，CLI 尚未确认',product:'当前为安装包参考目录',builtin:'当前为内置参考目录，请打开并登录 WorkBuddy 后刷新'};
+    $('#modelCatalogStatus').textContent=(descriptions[info.source]||'可刷新 WorkBuddy 模型目录')+(info.count?` · ${info.count} 个选项`:'');
+  };
+  showCatalogStatus();
+  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto');showCatalogStatus()});
+  $('#refreshModels').addEventListener('click',async()=>{
+    const button=$('#refreshModels');button.disabled=true;button.textContent='刷新中…';
+    try{
+      const fresh=await api('/api/settings?refresh_models=1');
+      data.ai_models=fresh.ai_models;data.ai_model_catalogs=fresh.ai_model_catalogs;
+      const selected=$('#aiModel').value;
+      $('#aiModel').innerHTML=modelOpts($('#aiProvider').value,selected);
+      showCatalogStatus();toast('模型列表已刷新');
+    }catch(err){$('#modelCatalogStatus').textContent=err.message}
+    finally{button.disabled=false;button.textContent='刷新模型列表'}
+  });
   $('#settingsForm').addEventListener('submit',async e=>{
     e.preventDefault();const f=new FormData(e.target),error=$('#settingsError');error.textContent='';
     try{
@@ -705,7 +757,7 @@ function bindCommon(){
   }));
 }
 async function route(){
-  clearTimeout(state.poll);const hash=location.hash||'#/dashboard';
+  clearTimeout(state.poll);clearTimeout(state.aiPoll);const hash=location.hash||'#/dashboard';
   document.body.classList.toggle('draft-library-page',hash==='#/jianying');
   document.body.classList.toggle('queue-page',hash==='#/queue');
   if(!hash.startsWith('#/jianying')&&state.jianyingAbort){state.jianyingAbort.abort();state.jianyingAbort=null;}
@@ -1003,6 +1055,62 @@ setInterval(()=>{$('#clock').textContent=new Intl.DateTimeFormat('zh-CN',{hour:'
 api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · 已连接`).catch(()=>{$('#systemVersion').textContent='请重启本地服务';$('.system-card b').textContent='本地服务未连接';$('.system-card').classList.add('offline')});
 route();
 
+
+async function setupAIConnection() {
+  const error = $('#aiConnectionError');
+  const show = message => { if (error?.isConnected) error.textContent = message; };
+  const refresh = async (fill=false) => {
+    const connection = await api('/api/ai/access');
+    if (!$('#codexConnection')) return;
+    $('#codexConnection').textContent = connection.codex.logged_in ? '已登录' : connection.codex.available ? '尚未登录' : '未找到内置 Codex 工具';
+    $('#codexLogin').disabled = !connection.codex.available || connection.codex.login.status === 'waiting';
+    $('#codexCancel').disabled = connection.codex.login.status !== 'waiting';
+    $('#codexLogout').disabled = !connection.codex.logged_in;
+    $('#codexLoginMessage').textContent = connection.codex.login.message || '';
+    const link = $('#codexLoginLink'); link.hidden = !connection.codex.login.url;
+    if (connection.codex.login.url) link.href = connection.codex.login.url;
+    $('#apiKeyState').textContent = connection.api.api_key_configured ? '已有密钥；测试连接会发起一次小请求。' : '尚未配置密钥';
+    if (fill) {
+      $('#aiConnectionForm [name="base_url"]').value = connection.api.base_url || '';
+      $('#aiConnectionForm [name="model"]').value = connection.api.model || '';
+    }
+    if (connection.codex.login.status === 'success' && connection.provider === 'codex') {
+      $('#aiProvider').value = 'codex'; $('#aiModel').innerHTML = modelOpts('codex', 'auto');
+    }
+    clearTimeout(state.aiPoll);
+    if (connection.codex.login.status === 'waiting') state.aiPoll = setTimeout(() => refresh().catch(e=>show(e.message)), 2000);
+  };
+  const action = async (path, button) => {
+    button.disabled = true; show('');
+    try { await api(path, {method:'POST', body:'{}'}); await refresh(); }
+    catch(e) { show(e.message); if (button.isConnected) button.disabled = false; }
+    finally { if (button.isConnected && button.id !== 'codexLogin') button.disabled = false; }
+  };
+  $('#codexLogin').onclick = e => action('/api/ai/codex/login', e.currentTarget);
+  $('#codexCancel').onclick = e => action('/api/ai/codex/cancel', e.currentTarget);
+  $('#codexLogout').onclick = e => action('/api/ai/codex/logout', e.currentTarget);
+  $('#testAI').onclick = async e => {
+    const button = e.currentTarget; button.disabled = true; show('正在测试连接…');
+    try { const result = await api('/api/ai/test', {method:'POST',body:'{}'}); show(result.message); }
+    catch(e) { show(e.message); } finally { button.disabled = false; }
+  };
+  $('#clearAIKey').onclick = async e => {
+    if (!confirm('删除本机保存的 API Key？')) return;
+    await action('/api/ai/key/clear', e.currentTarget);
+  };
+  $('#aiConnectionForm').onsubmit = async e => {
+    e.preventDefault(); const form = e.currentTarget; const button = form.querySelector('[type="submit"]');
+    button.disabled = true; show('');
+    try {
+      await api('/api/ai/config', {method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(form)))});
+      form.querySelector('[name="api_key"]').value = '';
+      toast('已保存，当前剪辑使用 API 模型');
+      await renderSettings();
+    } catch(e) { show(e.message); } finally { button.disabled = false; }
+  };
+  try { await refresh(true); } catch(e) { show(e.message); }
+}
+
 async function renderSettingsPage(tab='runtime') {
   const tabs={runtime:'运行环境',ai:'AI 配置',skill:'Skill 管理',mcp:'MCP 接入',editor:'剪辑与导出',desktop:'桌面应用'};
   if(!tabs[tab])tab='runtime';
@@ -1016,12 +1124,14 @@ async function renderSettingsPage(tab='runtime') {
     if(info){const button=document.createElement('button');button.className='button ghost';button.textContent='切换工作目录并重启';button.onclick=()=>window.livecutDesktop.changeWorkspace();$('#desktopInfo').append(document.createElement('br'),button);}
   } else {
     await renderSettings();
+    $('#aiConnectionForm').closest('.panel').hidden=tab!=='ai';
     const form=$('#settingsForm');
     const groups=[...form.children];
     for(const el of groups){
       if(el.matches('button,.form-error'))continue;
       const names=[...el.querySelectorAll('[name]')].map(x=>x.name);
-      const ai=names.some(x=>x.startsWith('ai_')||x.startsWith('jev_'));
+      const ai=el.id==='modelRefreshRow'||names.some(x=>x.startsWith('ai_')||x.startsWith('jev_'));
+      if(el.id==='modelRefreshRow'){el.hidden=tab!=='ai'||$('#aiProvider').value!=='workbuddy';continue;}
       const section=el.classList.contains('settings-section');
       el.hidden=section||((tab==='ai')?!ai:ai);
     }

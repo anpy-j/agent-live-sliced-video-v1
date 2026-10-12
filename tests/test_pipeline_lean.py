@@ -336,18 +336,10 @@ class OrderContractTest(unittest.TestCase):
         self.assertEqual(ids, [0])
         self.assertAlmostEqual(total, 3.0)
 
-    def test_below_target_is_accepted_even_when_material_is_sufficient(self):
-        result = _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
-                                 self.candidates(), (5.0, 7.0), 1.0, available=6.0)
-        self.assertEqual(result[1], [0])
-        self.assertEqual(result[2], 3.0)
-
-    def test_reported_76_second_order_is_accepted(self):
-        candidates = [{"id": 0, "start": 0.0, "end": 76.38},
-                      {"id": 1, "start": 80.0, "end": 180.0}]
-        result = _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
-                                 candidates, (120.0, 180.0), 1.0, available=176.38)
-        self.assertEqual(result[2], 76.38)
+    def test_out_of_range_total_is_rejected(self):
+        with self.assertRaises(AIReturnError):
+            _validate_order(self.order([{"role": "hook", "ids": [0]}], [0]),
+                            self.candidates(), (5.0, 7.0), 1.0)
 
     def test_out_of_range_id_is_rejected(self):
         with self.assertRaises(AIReturnError):
@@ -361,24 +353,17 @@ class OrderContractTest(unittest.TestCase):
         self.assertEqual(ids, [0])
         self.assertAlmostEqual(total, 12.0)
 
-    def test_overshoot_beyond_long_unit_overflow_is_accepted(self):
+    def test_overshoot_beyond_long_unit_overflow_is_rejected(self):
         candidates = [{"id": 0, "text": "a", "start": 0.0, "end": 12.0},
                       {"id": 1, "text": "b", "start": 12.0, "end": 15.0}]
-        result = _validate_order(self.order([{"role": "hook", "ids": [0, 1]}], [0, 1]),
-                                 candidates, (5.0, 7.0), 1.0)
-        self.assertEqual(result[2], 15.0)
+        with self.assertRaises(AIReturnError):
+            _validate_order(self.order([{"role": "hook", "ids": [0, 1]}], [0, 1]),
+                            candidates, (5.0, 7.0), 1.0)
 
-    def test_hook_can_be_omitted(self):
-        result = _validate_order(
-            self.order([{"role": "selling_point", "ids": [0, 1]}], [0, 1]),
-            self.candidates(), (5.0, 7.0), 1.0)
-        self.assertEqual(result[1], [0, 1])
-
-    def test_hook_if_present_must_open_the_order(self):
+    def test_hook_must_open_the_order(self):
         with self.assertRaises(AIReturnError):
             _validate_order(
-                self.order([{"role": "selling_point", "ids": [0]},
-                            {"role": "hook", "ids": [1]}], [0, 1]),
+                self.order([{"role": "selling_point", "ids": [0, 1]}], [0, 1]),
                 self.candidates(), (5.0, 7.0), 1.0)
 
     def test_cta_must_close_the_order(self):
@@ -480,15 +465,12 @@ class ProductPromptTest(unittest.TestCase):
 
     def test_order_prompt_carries_target_product(self):
         cands = [{"id": 0, "text": "a", "start": 0.0, "end": 3.0}]
-        self.assertIn("已知主商品为「毛衣」", _order_prompt(cands, (5.0, 7.0), "毛衣"))
-        self.assertIn("不明确就填「未明确」", _order_prompt(cands, (5.0, 7.0), None))
+        self.assertIn("固定为「毛衣」", _order_prompt(cands, (5.0, 7.0), "毛衣"))
+        self.assertIn("main_product 给出本片主商品", _order_prompt(cands, (5.0, 7.0), None))
 
     def test_order_prompt_warns_when_material_below_target(self):
         cands = [{"id": 0, "text": "a", "start": 0.0, "end": 3.0}]
-        prompt = _order_prompt(cands, (5.0, 7.0), None, 3.0)
-        self.assertIn("低于目标下限", prompt)
-        self.assertIn("不要求全选", prompt)
-        self.assertNotIn("尽量全部选上", prompt)
+        self.assertIn("已低于目标下限", _order_prompt(cands, (5.0, 7.0), None, 3.0))
         self.assertNotIn("已低于目标下限", _order_prompt(cands, (5.0, 7.0), None, 30.0))
 
 

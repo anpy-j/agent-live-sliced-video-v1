@@ -126,6 +126,9 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{border-color:var
 .queue-page .content{padding:0 24px 24px;max-width:none}
 .queue-toolbar{height:70px;display:flex;align-items:center;justify-content:flex-end;gap:12px;position:sticky;top:0;background:var(--bg);z-index:12}
 .queue-mobile-menu{display:none;margin-right:auto}
+.queue-filter.active{color:var(--text);border-color:var(--accent)}
+.queue-filter-menu button[aria-checked="true"]{background:#37313f;color:var(--text)}
+.queue-filter-menu button[aria-checked="true"]::after{content:'✓';margin-left:auto}
 .queue-table-wrap{border:1px solid var(--line-soft);border-radius:9px;overflow:clip}
 .queue-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;text-align:left}
 .queue-name-col{width:auto}.queue-status-col{width:125px}.queue-progress-col{width:210px}.queue-time-col{width:130px}.queue-actions-col{width:106px}
@@ -205,3 +208,6 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{border-color:var
 @media(max-width:1100px){.shell{grid-template-columns:76px minmax(0,1fr)}.sidebar{padding:26px 10px 16px}.brand{padding:0 0 28px;justify-content:center}.nav-caption,.sidebar-note,.brand>span:last-child,.nav-list span,.nav-list em,.system-card div{display:none}.nav-list a{padding:0;justify-content:center}.system-card{justify-content:center}.content{padding:28px}.topbar{padding:0 28px}}
 @media(max-width:760px){.stat-grid{gap:10px}.stat-card{padding:16px}.panel{overflow-x:auto}}
 @media(max-width:680px){.shell{display:block}.sidebar{width:232px;left:-250px;padding:24px 18px}.sidebar.open{left:0}.brand{justify-content:flex-start}.brand>span:last-child,.nav-list span,.nav-list em,.system-card div,.nav-caption,.sidebar-note{display:block}.nav-list a{justify-content:flex-start;padding:0 13px}.system-card{justify-content:flex-start}.content{padding:24px 18px}.topbar{height:64px;padding:0 18px}.hero{flex-direction:row;align-items:center;gap:10px}.hero h1{font-size:25px}.hero p{font-size:12px}.hero>.button{padding:0 10px;white-space:nowrap}.hero>.button svg{display:none}.heading-count{margin-left:8px;font-size:11px}.top-actions{gap:8px}.modal-body{padding:18px}.form-section{padding-left:0}.section-head{margin-left:0}.form-section:after{display:none}.detail-grid{grid-template-columns:1fr}}
+
+/* Three-version controls retain accessible touch targets after the desktop merge. */
+.pipeline-version-picker button{min-width:44px;min-height:44px}

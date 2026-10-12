@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from difflib import SequenceMatcher
 
-from agent_video.pipeline.errors import PipelineError
+from agent_video.pipeline_v3.errors import PipelineError
 from . import contracts as schema
 from .common import (block_issues, digest, make_block, normalize_text, origins,
                      plan_blocks, save, selectable)

@@ -490,7 +490,7 @@ def load_virtual_timeline(target: str | Path | dict[str, Any]) -> VirtualTimelin
                 data = decrypt_jianying_file(path)
             except Exception as decrypt_exc:
                 raise ValueError(
-                    f"剪映加密草稿 DLL 解密失败 ({path.name}): {decrypt_exc}"
+                    f"剪映加密草稿原生解密失败 ({path.name}): {decrypt_exc}"
                 ) from decrypt_exc
         else:
             raise ValueError(f"时间线文件解析失败 ({path.name}): {exc}") from exc
@@ -505,6 +505,8 @@ def load_virtual_timeline(target: str | Path | dict[str, Any]) -> VirtualTimelin
             if not vt.title or vt.title == "虚拟时间线":
                 vt.title = path.stem
             return _apply_jianying_timeline_identity(vt, path)
+        if "materials" in data and "tracks" not in data:
+            raise ValueError("剪映草稿时间线为空，没有可剪辑的视频片段")
         if "tracks" in data:
             vt = _parse_jianying_draft_dict(data, draft_dir=path.parent)
             return _apply_jianying_timeline_identity(vt, path)

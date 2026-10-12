@@ -8,8 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from agent_video.engine.scripts import badvocab
-from agent_video.pipeline.errors import PipelineError
+from agent_video.pipeline_v3 import badvocab
+from agent_video.pipeline_v3.errors import PipelineError
 
 REVISION = "v2-content-1"
 
@@ -51,7 +51,7 @@ def prepare(media, workspace, *, on_stage=None, **kwargs):
     No edits/monkey patches to V1. Artifacts are local to this V2 job. A test
     verifies the filter completion boundary remains before V1 S3 or rendering.
     """
-    from agent_video.pipeline.run import run_pipeline
+    from agent_video.pipeline_v3.run import run_pipeline
 
     def boundary(stage, status, message):
         emit(on_stage, stage, status, message)

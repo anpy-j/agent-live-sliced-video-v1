@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -18,10 +19,30 @@ def default_draft_root() -> Path:
     override = os.environ.get("JIANYING_DRAFT_ROOT", "").strip()
     if override:
         return Path(override).expanduser()
+    if sys.platform == "darwin":
+        home = Path.home()
+        relative = Path("User Data") / "Projects" / "com.lveditor.draft"
+        candidates = [
+            home / "Movies" / "JianyingPro" / relative,
+            home / "Library" / "Application Support" / "JianyingPro" / relative,
+            home / "Library" / "Containers" / "com.lemon.lvpro" / "Data" / "Movies" / "JianyingPro" / relative,
+        ]
+        # Prefer a real registry over an empty directory left by an old install.
+        for candidate in candidates:
+            if (candidate / "root_meta_info.json").is_file():
+                return candidate
+        return next((candidate for candidate in candidates if candidate.is_dir()), candidates[0])
     local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
     if not local_app_data:
         raise ValueError("未找到 LOCALAPPDATA，无法定位剪映草稿目录")
     return Path(local_app_data) / "JianyingPro" / "User Data" / "Projects" / "com.lveditor.draft"
+
+
+def default_export_dir() -> str:
+    """Use a native output path without changing the Windows default."""
+    if sys.platform == "darwin":
+        return str(Path.home() / "Movies" / "LiveCut" / "exports")
+    return DEFAULT_EXPORT_DIR
 
 
 def _load_registry(root: Path) -> list[dict[str, Any]]:
@@ -132,8 +153,9 @@ def _save_discovery_cache() -> None:
 
 def _draft_content_signature(draft_path: Path, item: dict[str, Any]) -> str:
     """草稿内容指纹：任一 draft_content.json / 时间线布局变化都会让缓存失效。"""
-    # Invalidate failures recorded before the frozen decrypt worker was supported.
     parts = ["discovery-v2", str(item.get("tm_draft_modified") or "")]
+    if sys.platform == "darwin":
+        parts.insert(0, "mac-native-reader-v1")
     for relative in ("timeline_layout.json", "draft_content.json"):
         try:
             stat = (draft_path / relative).stat()
@@ -204,7 +226,8 @@ def list_jianying_drafts(
         if cached is None or cached.get("sig") != signature:
             misses.append((draft_id, draft_path, signature))
     if misses:
-        with ThreadPoolExecutor(max_workers=min(_DISCOVERY_WORKERS, len(misses))) as pool:
+        workers = 2 if sys.platform == "darwin" else _DISCOVERY_WORKERS
+        with ThreadPoolExecutor(max_workers=min(workers, len(misses))) as pool:
             list(pool.map(lambda args: _compute_timeline_summaries(*args), misses))
 
     result: list[dict[str, Any]] = []
