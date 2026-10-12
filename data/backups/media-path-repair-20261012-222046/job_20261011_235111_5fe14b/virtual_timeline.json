@@ -1,0 +1,19 @@
+{
+  "timeline_id": "ED01B93F-80A0-4be3-A048-2789D7AD2535",
+  "title": "【MAX精选】素材 / 时间线01",
+  "total_duration": 1541.067,
+  "timeline_duration": 1541.067,
+  "source_duration": 1541.067,
+  "segment_count": 1,
+  "segments": [
+    {
+      "segment_id": "片段1",
+      "timeline_start": 0.0,
+      "timeline_end": 1541.067,
+      "source_path": "G:\\切片\\袁艺灵\\直播素材\\2026年\\2026-10\\2026-10-11\\第1场\\袁艺灵20261011105740第1场7695221817962810150.mp4",
+      "source_start": 2147.233,
+      "source_end": 3688.3,
+      "speed": 1.0
+    }
+  ]
+}

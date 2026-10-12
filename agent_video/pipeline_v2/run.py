@@ -27,7 +27,7 @@ def invalidate_stage(workspace, stage):
         "filter": ("judge", "order", "review"), "judge": ("judge", "order", "review"),
         "order": ("order", "review"), "review": ("review",), "render": (),
     }[stage]
-    artifacts = {"judge": ("candidates.json", "clauses.judged.json"),
+    artifacts = {"judge": ("candidates.json", "clauses.judged.json", "judge.progress.json"),
                  "order": ("order.json",), "review": ("review.json", "成片文本.txt")}
     for sid in downstream:
         for name in artifacts[sid]:

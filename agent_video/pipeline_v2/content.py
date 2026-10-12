@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from difflib import SequenceMatcher
+from agent_video.pipeline.judge_progress import progress_writer
 
 from agent_video.pipeline_v3.errors import PipelineError
 from . import contracts as schema
@@ -48,6 +49,7 @@ def batches(rows, max_chars=5500, max_rows=65):
 
 
 def extract(calls, rows, product, directory, source_fp):
+    publish = progress_writer(directory)
     positions = {r["id"]: n for n, r in enumerate(rows)}
     all_blocks, fragments, rejected = [], [], set()
     constraints = origins(rows)
@@ -95,6 +97,10 @@ def extract(calls, rows, product, directory, source_fp):
         if not primary_ids <= covered:
             raise PipelineError("V2 S3 遗漏输入ID，停止而不是默认淘汰")
         rejected.update(reply["rejected"])
+        kept = {cid for block in all_blocks for cid in block["ids"]}
+        publish({cid: {"id": cid, "usable": cid in kept,
+                       "reason": "V2完整表达候选" if cid in kept else "V2判定剔除"}
+                 for cid in kept | rejected})
 
     # One bounded rescue call. All unresolved fragments remain in the artifact.
     fragments = list({digest(f["ids"]): f for f in fragments}.values())

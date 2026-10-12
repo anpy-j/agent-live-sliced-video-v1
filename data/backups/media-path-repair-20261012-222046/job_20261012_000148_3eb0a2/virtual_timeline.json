@@ -1,0 +1,55 @@
+{
+  "timeline_id": "ACBF1CD9-6E3E-4acd-8820-44FA20D0511B",
+  "title": "【职场经典】素材 / 时间线01",
+  "total_duration": 1391.667,
+  "timeline_duration": 1391.667,
+  "source_duration": 1809.166,
+  "segment_count": 5,
+  "segments": [
+    {
+      "segment_id": "片段1",
+      "timeline_start": 0.0,
+      "timeline_end": 709.767,
+      "source_path": "H:\\切片\\袁艺灵\\直播素材\\2026年\\2026-08\\2026-08-16\\第1场\\袁艺灵秋款大上新20260816095233第1场7674441300921355014.mp4",
+      "source_start": 2831.267,
+      "source_end": 3753.963,
+      "speed": 1.3
+    },
+    {
+      "segment_id": "片段2",
+      "timeline_start": 709.767,
+      "timeline_end": 1050.1,
+      "source_path": "H:\\切片\\袁艺灵\\直播素材\\2026年\\2026-08\\2026-08-16\\第1场\\袁艺灵秋款大上新20260816095233第1场7674441300921355014.mp4",
+      "source_start": 7608.767,
+      "source_end": 8051.2,
+      "speed": 1.3
+    },
+    {
+      "segment_id": "片段3",
+      "timeline_start": 1050.1,
+      "timeline_end": 1118.6,
+      "source_path": "H:\\切片\\袁艺灵\\直播素材\\2026年\\2026-08\\2026-08-16\\第1场\\袁艺灵秋款大上新20260816095233第1场7674441300921355014.mp4",
+      "source_start": 14910.633,
+      "source_end": 14999.683,
+      "speed": 1.3
+    },
+    {
+      "segment_id": "片段4",
+      "timeline_start": 1118.6,
+      "timeline_end": 1217.067,
+      "source_path": "H:\\切片\\袁艺灵\\直播素材\\2026年\\2026-08\\2026-08-16\\第1场\\袁艺灵秋款大上新20260816095233第1场7674441300921355014.mp4",
+      "source_start": 15786.833,
+      "source_end": 15914.84,
+      "speed": 1.3
+    },
+    {
+      "segment_id": "片段5",
+      "timeline_start": 1217.067,
+      "timeline_end": 1391.667,
+      "source_path": "H:\\切片\\袁艺灵\\直播素材\\2026年\\2026-08\\2026-08-16\\第1场\\袁艺灵秋款大上新20260816095233第1场7674441300921355014.mp4",
+      "source_start": 16831.267,
+      "source_end": 17058.247,
+      "speed": 1.3
+    }
+  ]
+}

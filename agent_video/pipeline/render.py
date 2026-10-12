@@ -114,6 +114,8 @@ def _run_render_multi(rows: list[dict[str, Any]], output: str, workdir: str,
         src_args = ["--src", f"1={os.path.abspath(media)}"]
     command = [sys.executable, RENDER_MULTI, timeline_path, os.path.abspath(output),
                *src_args, "--force"]
+    if timeline_name == "render_timeline.json":
+        command += ["--progress-file", os.path.abspath(os.path.join(workdir, "render.progress.json"))]
     if no_loudnorm:
         command.append("--no-loudnorm")
     if width and height:

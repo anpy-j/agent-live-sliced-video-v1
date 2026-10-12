@@ -242,13 +242,46 @@ class JobApiTest(unittest.TestCase):
         data = self.app.job_clauses(job_id)
         self.assertTrue(data["ready"])
         self.assertEqual(data["counts"], {"total": 3, "s2_passed": 2, "s2_rejected": 1,
-                                          "usable": 1, "rejected_by_s3": 1})
+                                          "usable": 1, "rejected_by_s3": 1, "s3_pending": 0,
+                                          "s4_selected": 1, "s4_rejected": 0})
         by_id = {c["id"]: c for c in data["clauses"]}
         self.assertTrue(by_id[0]["s2_usable"])
         self.assertFalse(by_id[0]["usable"])
         self.assertEqual(by_id[0]["reason"], "场控引导语")
         self.assertEqual(by_id[2]["s2_reason"], "hard_vocab")
         self.assertEqual(by_id[1]["order"], 0)
+
+    def test_job_clauses_pending_partial_and_s4_results(self):
+        from agent_video.pipeline.judge_progress import progress_writer
+        job_id = self.app.create_job({"title": "实时核验", "source_path": str(self.video)})["id"]
+        workspace = Path(self.app.store.get_job(job_id)["workspace"])
+        rows = [{"id": i, "start": i, "end": i + 1, "text": f"句子{i}",
+                 "usable": True, "reason": ""} for i in range(3)]
+        (workspace / "clauses.filtered.json").write_text(json.dumps({"clauses": rows}), encoding="utf-8")
+        (workspace / "timeline.json").write_text(json.dumps({"clauses": rows}), encoding="utf-8")
+        data = self.app.job_clauses(job_id)
+        self.assertEqual(data["counts"]["s3_pending"], 3)
+        self.assertEqual(data["counts"]["rejected_by_s3"], 0)
+        self.assertTrue(all(c["usable"] is None for c in data["clauses"]))
+        publish = progress_writer(workspace)
+        publish({1: {"id": 1, "usable": False, "reason": "场控"}})
+        data = self.app.job_clauses(job_id)
+        self.assertEqual(data["counts"]["s3_pending"], 2)
+        self.assertEqual(data["counts"]["rejected_by_s3"], 1)
+        publish({0: {"id": 0, "usable": True}, 2: {"id": 2, "usable": True}})
+        rows[1].update(usable=False, reason="场控")
+        rows[0]["order"] = 0
+        (workspace / "timeline.json").write_text(json.dumps({"clauses": rows}), encoding="utf-8")
+        (workspace / "order.json").write_text(json.dumps({"ordered_ids": [0]}), encoding="utf-8")
+        data = self.app.job_clauses(job_id)
+        self.assertEqual(data["counts"]["s4_selected"], 1)
+        self.assertEqual(data["counts"]["s4_rejected"], 1)
+        # Rerunning S3 must hide historical verdicts and S4 results.
+        publish = progress_writer(workspace)
+        data = self.app.job_clauses(job_id)
+        self.assertEqual(data["counts"]["s3_pending"], 3)
+        self.assertEqual(data["counts"]["rejected_by_s3"], 0)
+        self.assertEqual(data["counts"]["s4_selected"], 0)
 
     def test_job_clauses_handles_missing_job_or_artifacts(self):
         with self.assertRaises(KeyError):

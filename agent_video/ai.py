@@ -810,6 +810,45 @@ class WorkBuddyCli(CliProvider):
     display_name = "WorkBuddy CLI"
     model_choices = WORKBUDDY_MODELS
 
+    @classmethod
+    def _find_object(cls, value: Any, required_keys: tuple[str, ...]) -> dict[str, Any] | None:
+        # Headless JSON includes conversation history. Requests and reasoning
+        # are not submitted answers, even when they contain schema-shaped JSON.
+        if isinstance(value, dict) and (value.get("role") == "user" or value.get("type") == "reasoning"):
+            return None
+        if isinstance(value, str):
+            # Some DeepSeek responses expose the serialized tool call as text
+            # instead of a native function_call / structured_output envelope.
+            # Decode only complete StructuredOutput calls; never execute tools
+            # or wrap arbitrary arrays into a guessed response schema.
+            marker = r"[｜|]+DSML[｜|]+\s+"
+            calls = re.finditer(
+                rf'<{marker}invoke\s+name="StructuredOutput">(.*?)</{marker}invoke>',
+                value, re.DOTALL)
+            for call in calls:
+                body = call.group(1)
+                params = list(re.finditer(
+                    rf'<{marker}parameter\s+name="([^"]+)"\s+string="(true|false)">(.*?)</{marker}parameter>',
+                    body, re.DOTALL))
+                # Reject duplicate fields, broken tags, and non-JSON values.
+                remainder = body
+                data = {}
+                valid = bool(params)
+                for param in params:
+                    name, is_string, raw = param.groups()
+                    if name in data:
+                        valid = False
+                        break
+                    try:
+                        data[name] = raw if is_string == "true" else json.loads(raw)
+                    except json.JSONDecodeError:
+                        valid = False
+                        break
+                    remainder = remainder.replace(param.group(0), "", 1)
+                if valid and not remainder.strip() and required_keys and all(k in data for k in required_keys):
+                    return data
+        return super()._find_object(value, required_keys)
+
     def models(self) -> list[tuple[str, str]]:
         return workbuddy_model_catalog(self.executable)
 

@@ -18,6 +18,7 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
+from agent_video.pipeline.judge_progress import progress_writer
 from typing import Any, Callable
 
 from . import badvocab
@@ -168,7 +169,8 @@ def _judge_batch_once(model: str, batch: list[dict[str, Any]],
 def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
                        product_name: str | None, timeout: int,
                        concurrency: int = DEFAULT_JUDGE_CONCURRENCY,
-                       retries: int = DEFAULT_JUDGE_RETRIES
+                       retries: int = DEFAULT_JUDGE_RETRIES,
+                       on_batch: Callable | None = None
                        ) -> tuple[dict[int, dict[str, Any]], int]:
     """执行 S3 各批次判定，返回 ``(按 id 合并的 decisions, AI 调用次数)``。
 
@@ -189,6 +191,8 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
                 result = _judge_batch_once(model, batch, product_name, timeout)
                 with lock:
                     attempts += 1
+                    if on_batch is not None:
+                        on_batch(result)
                 return result
             except AIReturnError as exc:
                 last = exc
@@ -223,7 +227,8 @@ def _judge_prompt(units: list[dict[str, Any]], product_name: str | None = None) 
         headline = "你在对一条女装直播口播的候选子句做可用性判定，主商品未知。\n"
         product_rule = ""
     return (
-        "直接分析并输出结果，不要调用任何工具或执行命令行。\n"
+        "直接分析，不调用外部工具或执行命令行。若平台要求通过 StructuredOutput "
+        "提交结构化结果，必须调用该提交工具；它不属于上述禁止的外部工具。\n"
         f"{headline}"
         "输入按「句单元」分组：同一单元的 parts 是直播里连续说下去、语义承接的一段话"
         "的逐子句切分，按顺序拼起来就是整句。请把每条子句放回它所在的整句单元里理解，"
@@ -264,7 +269,8 @@ def _order_prompt(candidates: list[dict[str, Any]],
             f"注意：候选总时长仅 {available:.2f} 秒，低于目标下限 {low:g} 秒；"
             "仍须淘汰无效内容，不要求全选，按实际有效时长输出。\n")
     return (
-        "直接分析并输出结果，不要调用任何工具或执行命令行。\n"
+        "直接分析，不调用外部工具或执行命令行。若平台要求通过 StructuredOutput "
+        "提交结构化结果，必须调用该提交工具；它不属于上述禁止的外部工具。\n"
         "你是直播口播剪辑编辑。输入是S3初筛候选，候选不代表合格。一次通读全部候选，"
         "重新选择有实际信息的完整表达，再编排成连贯的成片。\n"
         "内容标准：\n"
@@ -524,7 +530,8 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         _emit(on_stage, "judge", "start",
               f"单独重跑 AI 可用性判定（{len(usable)} 条 / {len(batches)} 批{concurrency_note}）")
         decisions, _ = _run_judge_batches(model, batches, product_name, ai_timeout,
-                                          judge_concurrency, judge_retries)
+                                          judge_concurrency, judge_retries,
+                                          on_batch=progress_writer(workdir))
         for clause in usable:
             decision = decisions[clause["id"]]
             clause["usable"] = bool(decision["usable"])
@@ -786,7 +793,8 @@ def run_pipeline(media: str, workdir: str, *,
           f"AI 可用性判定（{len(usable)} 条子句 / {len(units)} 个句单元 / "
           f"{len(batches)} 批{concurrency_note}）")
     decisions, judge_calls = _run_judge_batches(model, batches, product_name, ai_timeout,
-                                                judge_concurrency, judge_retries)
+                                                judge_concurrency, judge_retries,
+                                                on_batch=progress_writer(workdir))
     ai_calls += judge_calls
     by_id = decisions
     for clause in usable:

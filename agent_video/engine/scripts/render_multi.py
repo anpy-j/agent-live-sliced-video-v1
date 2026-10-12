@@ -167,6 +167,7 @@ def main():
     parser.add_argument("--audio-edge-ms", type=float, default=12.0)
     parser.add_argument("--allow-upscale", action="store_true")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--progress-file")
     args = parser.parse_args()
     if os.path.exists(args.output) and not args.force:
         raise SystemExit(f"Output exists; use --force to replace: {args.output}")
@@ -203,6 +204,20 @@ def main():
                     "-i", sources[int(row.get("src", 1))]]
 
     frame_counts = segment_frame_counts(timeline, fps)
+    if args.progress_file:
+        progress_file = os.path.abspath(args.progress_file)
+        frame_log = progress_file + ".ffmpeg"
+        with open(frame_log, "w", encoding="utf-8"):
+            pass
+        frame_ends, cumulative = [], 0
+        for count in frame_counts:
+            cumulative += count
+            frame_ends.append(cumulative)
+        temporary = progress_file + ".tmp"
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump({"total": len(frame_counts), "frame_ends": frame_ends}, handle)
+        os.replace(temporary, progress_file)
+        command += ["-progress", frame_log, "-stats_period", "0.5", "-nostats"]
     filters = []
     for index in range(len(timeline)):
         speed = float(timeline[index].get("speed", 1.0))

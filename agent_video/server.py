@@ -268,6 +268,9 @@ class Application:
             raise ValueError("去重强度必须是 宽松、标准 或 严格")
 
         timeline_meta = vt.to_dict()
+        if isinstance(target, (str, Path)):
+            selected = Path(target).expanduser().resolve()
+            timeline_meta["draft_path"] = str(selected / "draft_content.json" if selected.is_dir() else selected)
         if job_type == "remix":
             timeline_meta["remix"] = {"dedupe_strength": dedupe_strength}
         digest = hashlib.sha256(json.dumps(
@@ -293,7 +296,7 @@ class Application:
         workspace.mkdir(parents=True, exist_ok=True)
         # 将解析好的 virtual_timeline.json 写入任务 workspace
         vt_file = workspace / "virtual_timeline.json"
-        vt_file.write_text(json.dumps(vt.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        vt_file.write_text(json.dumps(timeline_meta, ensure_ascii=False, indent=2), encoding="utf-8")
         if job_type == "remix":
             (workspace / "remix_config.json").write_text(json.dumps({
                 "version": 1,
@@ -495,41 +498,69 @@ class Application:
         if job.get("pipeline_version") == "v2":
             timeline = self._read_workspace_json(workspace / "v2" / "clauses.judged.json") or timeline
         filtered = self._read_workspace_json(workspace / "clauses.filtered.json")
-        timeline_clauses = timeline.get("clauses") if isinstance(timeline, dict) else None
-        filtered_clauses = filtered.get("clauses") if isinstance(filtered, dict) else None
-        base = timeline_clauses or filtered_clauses or []
-        s2_map = {c.get("id"): c for c in (filtered_clauses or []) if isinstance(c, dict)}
-        final_map = {c.get("id"): c for c in (timeline_clauses or []) if isinstance(c, dict)}
-        clauses: list[dict[str, Any]] = []
-        for source in base:
+        timeline_clauses = timeline.get("clauses") or []
+        filtered_clauses = filtered.get("clauses") or []
+        judged_path = workspace / ("v2/clauses.judged.json" if job.get("pipeline_version") == "v2" else "clauses.judged.json")
+        judged = self._read_workspace_json(judged_path)
+        partial_path = workspace / ("v2/judge.progress.json" if job.get("pipeline_version") == "v2" else "judge.progress.json")
+        partial = self._read_workspace_json(partial_path)
+        decisions = {c.get("id"): c for c in judged.get("clauses", []) if isinstance(c, dict)}
+        # A new running snapshot supersedes historical results during a rerun.
+        partial_current = partial_path.is_file() and (not judged_path.is_file() or
+                           partial_path.stat().st_mtime_ns > judged_path.stat().st_mtime_ns)
+        if partial_current:
+            decisions = {c.get("id"): c for c in partial.get("decisions", []) if isinstance(c, dict)}
+        stages = {stage["stage_id"]: stage for stage in job.get("stages", [])}
+        judge_done = stages.get("judge", {}).get("status") == "succeeded"
+        order_data = self._read_workspace_json(workspace / ("v2/order.json" if job.get("pipeline_version") == "v2" else "order.json"))
+        positions = {}
+        if job.get("pipeline_version") == "v2" and order_data:
+            candidates = self._read_workspace_json(workspace / "v2/candidates.json")
+            blocks = {block["id"]: block for block in candidates.get("blocks", [])}
+            for index, bid in enumerate(order_data.get("plan", {}).get("selected", [])):
+                for cid in blocks.get(bid, {}).get("ids", []):
+                    positions[cid] = index
+        s2_map = {c.get("id"): c for c in filtered_clauses if isinstance(c, dict)}
+        final_map = {c.get("id"): c for c in timeline_clauses if isinstance(c, dict)}
+        legacy_ordered = any(c.get("order") is not None for c in final_map.values())
+        clauses = []
+        for source in filtered_clauses or timeline_clauses:
             if not isinstance(source, dict):
                 continue
             cid = source.get("id")
             s2 = s2_map.get(cid, source)
             final = final_map.get(cid, source)
+            passed = bool(s2.get("usable", False))
+            decision = decisions.get(cid)
+            # Legacy workspaces may only have timeline.json. Never infer rejection
+            # from missing usable fields or an unchanged S2 result.
+            if decision is None and not partial_current and passed and (judge_done or
+                    legacy_ordered):
+                decision = final
+            verdict = bool(decision.get("usable")) if passed and decision is not None else None
+            order = positions.get(cid) if job.get("pipeline_version") == "v2" else final.get("order")
+            s4_ready = (bool(order_data) and (job.get("pipeline_version") == "v2" or bool(timeline_clauses))) or legacy_ordered
             clauses.append({
-                "id": cid,
-                "start": round(float(final.get("start") or 0.0), 3),
-                "end": round(float(final.get("end") or 0.0), 3),
-                "text": str(final.get("text") or ""),
-                "s2_usable": bool(s2.get("usable", False)),
-                "s2_reason": str(s2.get("reason") or "") if not s2.get("usable") else "",
-                "usable": bool(final.get("usable", False)),
-                "reason": str(final.get("reason") or ""),
-                "order": final.get("order"),
-                "category": str(final.get("category") or ""),
+                "id": cid, "start": round(float(source.get("start") or 0), 3),
+                "end": round(float(source.get("end") or 0), 3), "text": str(source.get("text") or ""),
+                "s2_usable": passed, "s2_reason": str(s2.get("reason") or "") if not passed else "",
+                "s3_judged": verdict is not None, "usable": verdict,
+                "reason": str(decision.get("reason") or "") if decision else "",
+                "s4_selected": (order is not None) if s4_ready and verdict is True else None,
+                "order": order, "category": str(final.get("category") or ""),
                 "duplicate_of": final.get("duplicate_of"),
             })
         clauses.sort(key=lambda c: (c["start"], c["id"] if isinstance(c["id"], int) else 0))
-        s2_passed = sum(1 for c in clauses if c["s2_usable"])
-        usable = sum(1 for c in clauses if c["usable"])
         return {
-            "job_id": job_id,
-            "job_type": str(job.get("job_type") or "direct"),
-            "ready": bool(clauses),
-            "counts": {"total": len(clauses), "s2_passed": s2_passed,
-                       "s2_rejected": len(clauses) - s2_passed, "usable": usable,
-                       "rejected_by_s3": max(0, s2_passed - usable)},
+            "job_id": job_id, "job_type": str(job.get("job_type") or "direct"), "ready": bool(clauses),
+            "counts": {"total": len(clauses),
+                       "s2_passed": sum(c["s2_usable"] for c in clauses),
+                       "s2_rejected": sum(not c["s2_usable"] for c in clauses),
+                       "usable": sum(c["usable"] is True for c in clauses),
+                       "rejected_by_s3": sum(c["usable"] is False for c in clauses),
+                       "s3_pending": sum(c["s2_usable"] and not c["s3_judged"] for c in clauses),
+                       "s4_selected": sum(c["s4_selected"] is True for c in clauses),
+                       "s4_rejected": sum(c["s4_selected"] is False for c in clauses)},
             "clauses": clauses,
         }
 

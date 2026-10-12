@@ -21,7 +21,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
-from .db import Store, utc_now
+from .db import Store, utc_now, STAGE_DEFINITIONS
+from .pipeline_versions import stages_for
 from .pipeline import (PipelineError, next_available_dir, next_available_output,
                        group_segments_for_export, render_segment, run_pipeline,
                        run_pipeline_stage)
@@ -57,6 +58,42 @@ class JobPaused(RuntimeError):
 
 class JobCancelled(RuntimeError):
     """用户显式取消，不应被记成失败。"""
+
+
+def refresh_timeline_media_paths(meta: dict[str, Any], cache_path: Path) -> dict[str, Any]:
+    """Refresh relocated media without changing a job's frozen edit decisions."""
+    segments = meta.get("segments") or []
+    if not segments or all(Path(s["source_path"]).is_file() for s in segments):
+        return meta
+    selected = meta.get("draft_path")
+    if not selected:
+        # Older jobs did not retain their selected draft file. The discovery
+        # cache can locate that exact timeline; never use the active timeline.
+        try:
+            cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return meta
+        paths = {t["path"] for entry in cache.values() for t in entry.get("timelines", [])
+                 if t.get("timeline_id") == meta.get("timeline_id") and t.get("path")}
+        if len(paths) != 1:
+            return meta
+        selected = paths.pop()
+    from .timeline import load_virtual_timeline
+    current = load_virtual_timeline(selected)
+    if current.timeline_id != meta.get("timeline_id"):
+        raise ValueError("所选草稿时间线已变化，请重新创建任务")
+    fields = ("segment_id", "timeline_start", "timeline_end", "source_start", "source_end", "speed")
+    fresh = current.to_dict()["segments"]
+    if len(fresh) != len(segments) or any(
+            any(old.get(key, 1.0 if key == "speed" else None) != new[key] for key in fields)
+            for old, new in zip(segments, fresh)):
+        raise ValueError("草稿剪辑范围或倍速已变化，不能仅更新素材路径，请重新创建任务")
+    updated = json.loads(json.dumps(meta))
+    for old, new in zip(updated["segments"], fresh):
+        if not Path(old["source_path"]).is_file() and Path(new["source_path"]).is_file():
+            old["source_path"] = new["source_path"]
+    updated["draft_path"] = str(selected)
+    return updated
 
 
 def _windows_kill_on_close_job() -> Any:
@@ -127,9 +164,14 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
     if os.name != "nt":
         os.setsid()
 
+    s1_key = None
+
     def on_stage(stage: str, status: str, message: str) -> None:
         if status == "start" and pause_event is not None and pause_event.is_set():
             raise JobPaused(stage)
+        if stage == "asr" and status == "done" and s1_key is not None:
+            from .s1_cache import save
+            save(Path(workspace), s1_key)
         result_queue.put(("stage", stage, status, message))
 
     try:
@@ -140,6 +182,10 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
             vt = load_virtual_timeline(vt_file)
 
         remix_config_file = Path(workspace) / "remix_config.json"
+        if vt is not None and only_stage is None and not remix_config_file.is_file():
+            from .s1_cache import prepare
+            on_stage("asr", "start", "检查时间线和素材文件，查找可复用的 S1")
+            s1_key, _ = prepare(Path(workspace), vt, pipeline_version)
         if pipeline_version != "v1" and remix_config_file.is_file():
             raise PipelineError("成片重组仅支持 V1 流程")
         if remix_config_file.is_file():
@@ -340,6 +386,15 @@ class JobRunner:
         job = self.store.get_job(job_id)
         if not job:
             raise KeyError("任务不存在")
+        timeline_meta = job.get("timeline_meta")
+        if isinstance(timeline_meta, dict):
+            refreshed = refresh_timeline_media_paths(timeline_meta, self.store.path.parent / "jianying_draft_cache.json")
+            if refreshed != timeline_meta:
+                if refreshed.get("segments") != timeline_meta.get("segments"):
+                    clean = True  # ASR clauses and render mappings still contain the old paths.
+                self.store.update_job(job_id, timeline_meta_json=json.dumps(refreshed, ensure_ascii=False))
+                job["timeline_meta"] = refreshed
+                self.store.add_event(job_id, None, "info", "media_paths_refreshed", "已根据所选剪映时间线更新素材路径")
         if job["status"] in {"queued", "running"}:
             self.cancel(job_id)
         self._cancelled.discard(job_id)
@@ -349,7 +404,7 @@ class JobRunner:
                 shutil.rmtree(workspace, ignore_errors=True)
                 workspace.mkdir(parents=True, exist_ok=True)
             else:
-                preserved = {"clauses.json", "timeline.json", "audio16k.wav",
+                preserved = {"clauses.json", "timeline.json", "s1-cache.json", "audio16k.wav",
                              "audio16k.wav.manifest.json", "deliverables"}
                 if job.get("pipeline_version") == "v2":
                     preserved |= {"v2", "clauses.filtered.json"}
@@ -427,8 +482,8 @@ class JobRunner:
             raise ValueError(f"{label}数据不存在，不能单独重跑该节点")
         self._refresh_ai_configuration(job_id, "手动重新执行节点")
         for name in {
-            "filter": ("clauses.filtered.json", "clauses.judged.json", "order.json"),
-            "judge": ("clauses.judged.json", "order.json"),
+            "filter": ("clauses.filtered.json", "clauses.judged.json", "judge.progress.json", "order.json"),
+            "judge": ("clauses.judged.json", "judge.progress.json", "order.json"),
             "order": ("order.json",),
             "render": (),
         }[stage_id]:
@@ -533,8 +588,16 @@ class JobRunner:
             self._active_stage[job_id] = stage
             if status == "start":
                 self.store.stage_start(job_id, stage, message)
+                if stage == "render":
+                    self.store.update_stage(job_id, stage, progress=0, result=None)
                 if job_id in self._pause_requested:
                     self.store.update_job(job_id, status="pausing")
+            elif stage == "render":
+                # Rendering the preview is followed by split exports and delivery.
+                # Keep the node running until those outputs have also finished.
+                self._sync_render_progress(job_id, workspace)
+                self.store.update_stage(job_id, stage, status="running", progress=0.99,
+                                        message="编码结束，正在封装和交付成片", finished_at=None)
             else:
                 self.store.stage_done(job_id, stage, message)
 
@@ -588,6 +651,8 @@ class JobRunner:
                   (self.store.get_job(job_id) or {}).get("pipeline_version", "v1")),
             name=f"pipeline-{job_id}",
         )
+        for filename in ("render.progress.json", "render.progress.json.ffmpeg"):
+            (Path(workspace) / filename).unlink(missing_ok=True)
         process.start()
         self._process = process
         terminal: tuple[Any, ...] | None = None
@@ -599,6 +664,8 @@ class JobRunner:
                 try:
                     message = result_queue.get(timeout=0.2)
                 except queue.Empty:
+                    if self._active_stage.get(job_id) == "render":
+                        self._sync_render_progress(job_id, Path(workspace))
                     if not process.is_alive():
                         # 给 Queue 的后台发送线程一个短暂的收尾机会。
                         try:
@@ -700,9 +767,44 @@ class JobRunner:
         shutil.copy2(source, target)
         return target
 
+    def _set_render_progress(self, job_id: str, completed: int, total: int,
+                             phase: str = "编码片段") -> None:
+        if total <= 0:
+            return
+        completed = max(0, min(completed, total))
+        percent = min(99, completed * 100 // total)
+        message = f"{phase} {completed}/{total} · {percent}%"
+        job = self.store.get_job(job_id)
+        if not job:
+            return
+        stage = next((s for s in job["stages"] if s["stage_id"] == "render"), {})
+        result = {"completed": completed, "total": total, "phase": phase}
+        if stage.get("result") == result and stage.get("status") == "running":
+            return
+        self.store.update_stage(job_id, "render", status="running", progress=percent / 100,
+                                message=message, result=result, finished_at=None)
+        definitions = stages_for(job.get("pipeline_version", "v1"), STAGE_DEFINITIONS)
+        before_render = max(position for sid, _, position in definitions if sid != "render")
+        self.store.update_job(job_id, current_stage="render",
+                              progress=before_render + (100 - before_render) * percent / 100)
+
+    def _sync_render_progress(self, job_id: str, workspace: Path) -> None:
+        try:
+            snapshot = json.loads((workspace / "render.progress.json").read_text(encoding="utf-8"))
+            with (workspace / "render.progress.json.ffmpeg").open("rb") as handle:
+                handle.seek(0, 2)
+                handle.seek(max(0, handle.tell() - 16384))
+                values = re.findall(r"(?:^|\n)frame=(\d+)\r?\n", handle.read().decode("utf-8", errors="replace"))
+            frames = int(values[-1]) if values else 0
+            completed = sum(frames >= boundary for boundary in snapshot["frame_ends"])
+            self._set_render_progress(job_id, completed, snapshot["total"])
+        except (OSError, ValueError, KeyError, TypeError):
+            # A missing/incomplete progress write is not a completed render.
+            return
+
     def _export_outputs(self, workspace: Path, manifest: dict[str, Any], export_dir: str,
                         export_mode: str, output_stem: str | None,
-                        media: str | None) -> list[Path]:
+                        media: str | None, *, job_id: str | None = None) -> list[Path]:
         folder = Path(export_dir).expanduser()
         folder.mkdir(parents=True, exist_ok=True)
         if export_mode == "segments":
@@ -717,10 +819,14 @@ class JobRunner:
             if manifest.get("pipeline_version") in {"v2", "v3"}:
                 from .pipeline_v3.render import group_segments_for_export as group_fn, render_segment as render_fn
             segment_groups = group_fn(segments)
+            if job_id:
+                self._set_render_progress(job_id, 0, len(segment_groups), "导出片段")
             for index, segment_group in enumerate(segment_groups, start=1):
                 target = Path(next_available_output(str(sub), f"{index:02d}"))
                 render_fn(source, segment_group, str(target), str(workspace), index=index)
                 exported.append(target)
+                if job_id:
+                    self._set_render_progress(job_id, index, len(segment_groups), "导出片段")
             return exported
         rendered = workspace / str(manifest.get("output") or "")
         if not rendered.is_file():
@@ -768,16 +874,24 @@ class JobRunner:
         if export_dir:
             try:
                 exported = self._export_outputs(workspace, manifest, export_dir,
-                                                export_mode, output_stem, media)
-            except Exception as exc:  # noqa: BLE001 - 导出失败不影响任务成功
-                self.store.add_event(job_id, "render", "warning", "export_failed",
-                                     f"导出到自定义位置失败：{exc}")
+                                                export_mode, output_stem, media, job_id=job_id)
+            except Exception as exc:  # noqa: BLE001 - 未完成交付不能标为完成
+                self._fail(job_id, "render", f"导出到自定义位置失败：{exc}")
+                return
             else:
                 for path in exported:
                     self.store.add_artifact(job_id, "render", "video",
                                             f"成片（导出）· {path.name}", path, "video/mp4")
                 self.store.add_event(job_id, "render", "success", "exported",
                                      f"已导出 {len(exported)} 个文件到 {export_dir}")
+        render_stage = next((s for s in (self.store.get_job(job_id) or {}).get("stages", [])
+                             if s["stage_id"] == "render"), {})
+        render_result = render_stage.get("result") or {}
+        total = render_result.get("total")
+        if total:
+            render_result = {"completed": total, "total": total, "phase": "完成"}
+        self.store.stage_done(job_id, "render", f"成片生成完成{f' · {total}/{total} · 100%' if total else ''}",
+                              result=render_result or None)
         self._pause_requested.discard(job_id)
         self.store.bump_edit_count(job_id)
         self.store.update_job(job_id, status="completed", progress=100, run_stage=None,
@@ -848,7 +962,10 @@ class JobRunner:
                     self.store.add_artifact(job_id, stage, "text" if filename.endswith("txt") else "json",
                                             f"V2 {filename}", path,
                                             "text/plain" if filename.endswith("txt") else "application/json")
-        self.store.update_stage(job_id, stage, status="failed", progress=0, message=message,
+        failed_progress = 0
+        if stage == "render" and job:
+            failed_progress = next((s["progress"] for s in job["stages"] if s["stage_id"] == stage), 0)
+        self.store.update_stage(job_id, stage, status="failed", progress=failed_progress, message=message,
                                error=message, finished_at=utc_now())
         self.store.update_job(job_id, status="failed", current_stage=stage, run_stage=None,
                               error=f"[{stage}] {message}", finished_at=utc_now())

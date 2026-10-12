@@ -83,6 +83,12 @@ class LeanPipelineEndToEndTest(unittest.TestCase):
 
         output = os.path.join(self.workdir, manifest["output"])
         self.assertTrue(os.path.isfile(output), output)
+        progress = json.loads(Path(self.workdir, "render.progress.json").read_text(encoding="utf-8"))
+        self.assertEqual(progress["total"], len(manifest["segments"]))
+        frame_log = Path(self.workdir, "render.progress.json.ffmpeg").read_text(encoding="utf-8")
+        self.assertIn("progress=end", frame_log)
+        frames = int(re.findall(r"frame=(\d+)", frame_log)[-1])
+        self.assertGreaterEqual(frames, progress["frame_ends"][-1])
         probe = subprocess.run(
             ["ffprobe", "-v", "error", "-show_entries", "format=duration",
              "-of", "default=nw=1:nk=1", output],
