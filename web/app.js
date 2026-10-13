@@ -4,7 +4,7 @@ const app = $('#app');
 const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, draftLibrary:{query:'',pipelineVersion:'v1'}, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
 const labels = {queued:'排队中',running:'执行中',waiting_input:'待继续',completed:'已完成',failed:'执行失败',cancelled:'已取消',pending:'等待',succeeded:'完成'};
 const stageLabels = {asr:'语音转写与切分',filter:'规则粗筛',judge:'AI 可用性判定',order:'AI 精选编排',render:'渲染成片'};
-const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
+const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',pinyin_rule:'拼音规则',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
 const icons = {
   video:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2v8l-4-2z"/></svg>',
   file:'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
@@ -788,6 +788,7 @@ async function route(){
       return;
     }
     if(hash.startsWith('#/jobs/'))return await renderJob(hash.split('/')[2]);
+    if(hash==='#/rules')return await window.renderRules();
     if(hash==='#/queue')return await renderQueue();
     if(hash==='#/jianying')return await renderJianyingDrafts();
     if(hash==='#/viral-v2')return await renderViralV2();

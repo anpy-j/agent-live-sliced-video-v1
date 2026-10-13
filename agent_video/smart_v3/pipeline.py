@@ -70,7 +70,9 @@ def understand(source, workspace, transcript=None):
     return units
 
 
-def coarse_filter(units, product=""):
+def coarse_filter(units, product="", pinyin_rules=None):
+    from agent_video.pinyin_rules import load_rules, match_text
+    snapshot = pinyin_rules if pinyin_rules is not None else load_rules()
     kept, removed, seen = [], [], set()
     for unit in units:
         normalized = re.sub(r"[\W_]+", "", unit["text"])
@@ -85,9 +87,12 @@ def coarse_filter(units, product=""):
         other = re.search(r"(?:接下来介绍|现在介绍的是|下一款是)(?:这件|这条|这款)?(毛衣|衬衫|连衣裙|裤子|外套|半身裙)", unit["text"])
         if other and product and product not in unit["text"] and other.group(1) not in product:
             reason = "explicit_other_product"
+        pinyin_hits = match_text(unit["text"], snapshot)["hits"]
+        if pinyin_hits:
+            reason = "pinyin_rule"
         seen.add(normalized)
-        (removed if reason else kept).append({**unit, "filter_reason": reason})
-    return {"kept": kept, "removed": removed}
+        (removed if reason else kept).append({**unit, "filter_reason": reason, "pinyin_hits": pinyin_hits})
+    return {"kept": kept, "removed": removed, "pinyin_rules": snapshot}
 
 
 def profile(ai, units, product):

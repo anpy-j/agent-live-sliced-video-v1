@@ -14,11 +14,15 @@ import math
 import os
 import subprocess
 import sys
+import tempfile
 from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ffmpeg_graph import filter_complex_args  # noqa: E402
-from render_resources import admit_render, run_render  # noqa: E402
+try:
+    from .render_resources import admit_render, run_render, render_batch_size, snapshot
+except ImportError:  # Direct script execution by the render subprocess.
+    from render_resources import admit_render, run_render, render_batch_size, snapshot  # noqa: E402
 
 SEEK_PREROLL_SECONDS = 5.0
 
@@ -151,6 +155,111 @@ def segment_frame_counts(timeline, fps):
     return counts
 
 
+def loudness_filter(args):
+    return "anull" if args.no_loudnorm else \
+        f"loudnorm=I={args.loudness}:TP=-1.0:LRA=8,alimiter=limit=0.95:level=disabled"
+
+
+def render_chunk(timeline, sources, frame_counts, fps, args, destination,
+                 budget, initial_state, journal_output, *, intermediate=False,
+                 frame_log=None):
+    command = ["ffmpeg", "-y", "-v", "error",
+               "-filter_threads", str(budget.filter_threads),
+               "-filter_complex_threads", str(budget.filter_threads)]
+    input_windows = []
+    for row in timeline:
+        start, end = float(row["start"]), float(row["end"])
+        if start < 0 or end <= start:
+            raise SystemExit(f"Invalid segment bounds: {start}-{end}")
+        seek_start, input_duration, trim_start, raw_duration = input_window(start, end)
+        input_windows.append((trim_start, raw_duration))
+        command += ["-threads", str(budget.decoder_threads),
+                    "-ss", f"{seek_start:.6f}", "-t", f"{input_duration:.6f}",
+                    "-i", sources[int(row.get("src", 1))]]
+
+    if frame_log:
+        command += ["-progress", frame_log, "-stats_period", "0.5", "-nostats"]
+    filters = []
+    for index in range(len(timeline)):
+        speed = float(timeline[index].get("speed", 1.0))
+        frame_count = frame_counts[index]
+        duration = frame_count / fps
+        trim_start, raw_duration = input_windows[index]
+        filters.append(f"[{index}:v]{video_filter(args.width, args.height, fps, args.allow_upscale, frame_count, speed=speed, trim_start=trim_start, raw_duration=raw_duration)}"
+                       f"[v{index}]")
+        edge = max(0.0, min(args.audio_edge_ms / 1000.0, duration / 4.0))
+        filters.append(
+            f"[{index}:a]{audio_filter(duration, speed=speed, edge=edge, trim_start=trim_start, raw_duration=raw_duration)}[a{index}]"
+        )
+    labels = "".join(f"[v{i}][a{i}]" for i in range(len(timeline)))
+    filters.append(f"{labels}concat=n={len(timeline)}:v=1:a=1[vcat][acat]")
+    final_audio_filter = "anull" if intermediate else loudness_filter(args)
+    filters.append(f"[acat]{final_audio_filter}[aout]")
+
+    filter_args, filter_script = filter_complex_args(filters)
+    command += [*filter_args, "-map", "[vcat]", "-map", "[aout]",
+                "-c:v", "libx264", "-threads:v", str(budget.encoder_threads),
+                "-threads:a", "1", "-crf", str(args.crf), "-preset", args.preset,
+                "-pix_fmt", "yuv420p", "-r", f"{fps:.6f}",
+                "-ar", "48000", "-ac", "2"]
+    if intermediate:
+        command += ["-c:a", "pcm_f32le", "-f", "nut", destination]
+    else:
+        command += ["-c:a", "aac", "-b:a", args.audio_bitrate,
+                    "-movflags", "+faststart", destination]
+    try:
+        run_render(command, budget, initial_state, journal_output)
+    finally:
+        if os.path.exists(filter_script):
+            os.unlink(filter_script)
+
+
+def render_batched(timeline, sources, frame_counts, decoder_costs, fps, args,
+                   destination, journal_output, frame_log):
+    # Keep intermediates next to the output, avoiding limited system temp disks.
+    # NUT preserves the video time base; PCM avoids AAC padding at every join.
+    with tempfile.TemporaryDirectory(prefix=".render-batches-",
+                                     dir=os.path.dirname(destination)) as folder:
+        manifest = os.path.join(folder, "concat.txt")
+        completed = 0
+        batch_index = 0
+        with open(manifest, "w", encoding="utf-8") as handle:
+            handle.write("ffconcat version 1.0\n")
+            while completed < len(timeline):
+                count = render_batch_size(decoder_costs[completed:], snapshot(), max_segments=4)
+                stop = completed + count
+                budget, state = admit_render(sum(decoder_costs[completed:stop]))
+                part_name = f"batch-{batch_index:04d}.nut"
+                part = os.path.join(folder, part_name)
+                print(f"[render-resources] 低内存分批渲染：片段 {completed + 1}~{stop}"
+                      f" / {len(timeline)}", file=sys.stderr, flush=True)
+                render_chunk(timeline[completed:stop], sources, frame_counts[completed:stop],
+                             fps, args, part, budget, state, part, intermediate=True)
+                duration = sum(frame_counts[completed:stop]) / fps
+                handle.write(f"file '{part_name}'\nduration {duration:.12f}\n")
+                completed = stop
+                batch_index += 1
+                if frame_log:
+                    with open(frame_log, "a", encoding="utf-8") as progress:
+                        progress.write(f"frame={sum(frame_counts[:completed])}\nprogress=continue\n")
+        # Video is copied directly, retaining CRF/preset quality with no second
+        # video encoding. Apply loudness and AAC encoding once across the whole film.
+        budget, state = admit_render()
+        duration = sum(frame_counts) / fps
+        audio = f"asetpts=N/SR/TB,apad,atrim=duration={duration:.9f},{loudness_filter(args)}"
+        command = ["ffmpeg", "-y", "-v", "error", "-threads", "1",
+                   "-filter_threads", "1", "-f", "concat", "-safe", "0", "-i", manifest,
+                   "-map", "0:v:0", "-map", "0:a:0", "-c:v", "copy", "-af", audio,
+                   "-c:a", "aac", "-threads:a", "1", "-b:a", args.audio_bitrate,
+                   "-ar", "48000", "-ac", "2", "-t", f"{duration:.9f}",
+                   "-movflags", "+faststart", destination]
+        print("[render-resources] 正在拼接成片并处理音频", file=sys.stderr, flush=True)
+        run_render(command, budget, state, journal_output)
+        if frame_log:
+            with open(frame_log, "a", encoding="utf-8") as progress:
+                progress.write(f"frame={sum(frame_counts)}\nprogress=end\n")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("timeline")
@@ -183,27 +292,17 @@ def main():
     args.width, args.height = output_size(
         sources[int(timeline[0].get("src", 1))], args.width, args.height)
 
-    sizes = {key: source_size(path) for key, path in sources.items()}
-    decoder_bytes = sum(max(64 * 1024 ** 2,
-                            sizes[int(row.get("src", 1))][0] *
-                            sizes[int(row.get("src", 1))][1] * 4 * 8)
-                        for row in timeline)
-    budget, initial_state = admit_render(decoder_bytes)
-    command = ["ffmpeg", "-y", "-v", "error",
-               "-filter_threads", str(budget.filter_threads),
-               "-filter_complex_threads", str(budget.filter_threads)]
-    input_windows = []
     for row in timeline:
         start, end = float(row["start"]), float(row["end"])
-        if start < 0 or end <= start:
+        if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end <= start:
             raise SystemExit(f"Invalid segment bounds: {start}-{end}")
-        seek_start, input_duration, trim_start, raw_duration = input_window(start, end)
-        input_windows.append((trim_start, raw_duration))
-        command += ["-threads", str(budget.decoder_threads),
-                    "-ss", f"{seek_start:.6f}", "-t", f"{input_duration:.6f}",
-                    "-i", sources[int(row.get("src", 1))]]
-
+    sizes = {key: source_size(path) for key, path in sources.items()}
+    decoder_costs = [max(64 * 1024 ** 2,
+                         sizes[int(row.get("src", 1))][0] *
+                         sizes[int(row.get("src", 1))][1] * 4 * 8)
+                     for row in timeline]
     frame_counts = segment_frame_counts(timeline, fps)
+    frame_log = None
     if args.progress_file:
         progress_file = os.path.abspath(args.progress_file)
         frame_log = progress_file + ".ffmpeg"
@@ -217,42 +316,26 @@ def main():
         with open(temporary, "w", encoding="utf-8") as handle:
             json.dump({"total": len(frame_counts), "frame_ends": frame_ends}, handle)
         os.replace(temporary, progress_file)
-        command += ["-progress", frame_log, "-stats_period", "0.5", "-nostats"]
-    filters = []
-    for index in range(len(timeline)):
-        speed = float(timeline[index].get("speed", 1.0))
-        frame_count = frame_counts[index]
-        duration = frame_count / fps
-        trim_start, raw_duration = input_windows[index]
-        filters.append(f"[{index}:v]{video_filter(args.width, args.height, fps, args.allow_upscale, frame_count, speed=speed, trim_start=trim_start, raw_duration=raw_duration)}"
-                       f"[v{index}]")
-        edge = max(0.0, min(args.audio_edge_ms / 1000.0, duration / 4.0))
-        filters.append(
-            f"[{index}:a]{audio_filter(duration, speed=speed, edge=edge, trim_start=trim_start, raw_duration=raw_duration)}[a{index}]"
-        )
-    labels = "".join(f"[v{i}][a{i}]" for i in range(len(timeline)))
-    filters.append(f"{labels}concat=n={len(timeline)}:v=1:a=1[vcat][acat]")
-    final_audio_filter = "anull" if args.no_loudnorm else \
-        f"loudnorm=I={args.loudness}:TP=-1.0:LRA=8,alimiter=limit=0.95:level=disabled"
-    filters.append(f"[acat]{final_audio_filter}[aout]")
-
     final_output = os.path.abspath(args.output)
     partial_output = final_output + ".partial.mp4"
-    filter_args, filter_script = filter_complex_args(filters)
-    command += [*filter_args, "-map", "[vcat]", "-map", "[aout]",
-                "-c:v", "libx264", "-threads:v", str(budget.encoder_threads),
-                "-threads:a", "1", "-crf", str(args.crf), "-preset", args.preset,
-                "-pix_fmt", "yuv420p", "-r", f"{fps:.6f}",
-                "-c:a", "aac", "-b:a", args.audio_bitrate, "-ar", "48000", "-ac", "2",
-                "-movflags", "+faststart", partial_output]
     try:
-        run_render(command, budget, initial_state, final_output)
+        if render_batch_size(decoder_costs, snapshot()) < len(timeline):
+            render_batched(timeline, sources, frame_counts, decoder_costs, fps, args,
+                           partial_output, final_output, frame_log)
+        else:
+            budget, state = admit_render(sum(decoder_costs))
+            render_chunk(timeline, sources, frame_counts, fps, args, partial_output,
+                         budget, state, final_output, frame_log=frame_log)
+        os.replace(partial_output, final_output)
     finally:
-        if os.path.exists(filter_script):
-            os.unlink(filter_script)
-    os.replace(partial_output, final_output)
+        if os.path.exists(partial_output):
+            os.unlink(partial_output)
     print(f"rendered {len(timeline)} segments -> {args.output}")
 
 
 if __name__ == "__main__":
+    # Parent processes decode these pipes as UTF-8, including Chinese diagnostics.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     main()

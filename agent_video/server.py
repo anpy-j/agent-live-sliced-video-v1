@@ -70,6 +70,51 @@ class Application:
         if (self.data_dir / "postprocess" / "editor.db").exists():
             self.postprocess
 
+    def pinyin_test_jobs(self):
+        jobs = [{"id": j["id"], "title": j["title"], "version": j.get("pipeline_version", "v1"),
+                 "kind": "legacy"} for j in self.store.list_jobs(limit=10000)
+                if j["status"] == "completed" and j.get("job_type") != "remix"
+                and (Path(j["workspace"]) / "clauses.filtered.json").is_file()]
+        if (self.data_dir / "smart_v3" / "smart_v3.db").exists():
+            jobs.extend({"id": j["id"], "title": j.get("title") or j.get("input", {}).get("product_name", j["id"]),
+                         "version": "整片优化 V3", "kind": "smart"}
+                        for j in self.smart.list_jobs()["jobs"] if j["status"] == "completed"
+                        and (self.smart.workspace(j["id"]) / "S2.json").is_file())
+        return {"jobs": jobs}
+
+    def test_pinyin_rules(self, payload):
+        from .pinyin_rules import load_rules, match_text
+        job_id = str(payload.get("job_id") or "")
+        kind = payload.get("kind", "legacy")
+        if kind == "smart":
+            job = self.smart.get_job(job_id)
+            file = self.smart.workspace(job_id) / "S2.json"
+        elif kind == "legacy":
+            job = self.store.get_job(job_id)
+            if not job:
+                raise ValueError("任务不存在")
+            if job.get("job_type") == "remix":
+                raise ValueError("成片重组任务没有 S2 粗筛数据")
+            file = Path(job["workspace"]) / "clauses.filtered.json"
+        else:
+            raise ValueError("任务类型无效")
+        if job["status"] != "completed":
+            raise ValueError("请选择已完成任务")
+        if not file.is_file():
+            raise ValueError("任务 S2 数据不存在")
+        data = json.loads(file.read_text(encoding="utf-8"))
+        rows = data.get("clauses", []) if kind == "legacy" else [
+            *[{**r, "usable": True} for r in data.get("kept", [])],
+            *[{**r, "usable": False, "reason": r.get("filter_reason")} for r in data.get("removed", [])]]
+        snapshot = load_rules(self.data_dir / "pinyin_rules.json")
+        results = [{"id": r.get("id"), "text": r.get("text", ""), "start": r.get("start"),
+                    "end": r.get("end"), "s2_usable": bool(r.get("usable")), "s2_reason": r.get("reason", ""),
+                    **match_text(r.get("text", ""), snapshot)} for r in rows]
+        results.sort(key=lambda r: float(r.get("start") or 0))
+        return {"revision": snapshot["revision"], "total": len(results),
+                "matched": sum(bool(r["hits"]) for r in results),
+                "newly_rejected": sum(bool(r["hits"]) and r["s2_usable"] for r in results), "rows": results}
+
     @property
     def editor(self):
         from .editor import EditorService
@@ -1142,6 +1187,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"ok": True, "version": "0.1.0"})
             if path == "/api/dashboard":
                 return self.json_response(self.app.store.dashboard())
+            if path == "/api/rules/pinyin":
+                from .pinyin_rules import load_rules
+                return self.json_response(load_rules(self.app.data_dir / "pinyin_rules.json"))
+            if path == "/api/rules/pinyin/jobs":
+                return self.json_response(self.app.pinyin_test_jobs())
             if path == "/api/jobs":
                 return self.json_response({"jobs": self.app.store.list_jobs()})
             if path == "/api/viral-v2/references":
@@ -1214,6 +1264,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path == "/api/rules/pinyin/test":
+                return self.json_response(self.app.test_pinyin_rules(payload))
+            if path == "/api/rules/pinyin":
+                from .pinyin_rules import save_rule
+                return self.json_response(save_rule(self.app.data_dir / "pinyin_rules.json", payload))
             if path.startswith('/api/ai/'):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://{self.headers.get("Host")}':
@@ -1316,6 +1371,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path.startswith("/api/rules/pinyin/"):
+                from .pinyin_rules import save_rule
+                return self.json_response(save_rule(self.app.data_dir / "pinyin_rules.json", payload, path.rsplit("/", 1)[1]))
             if self.postprocess_route("PUT", path, payload) or self.editor_route("PUT", path, payload):
                 return
             if path == "/api/settings":
@@ -1336,6 +1394,9 @@ class Handler(BaseHTTPRequestHandler):
             if not self.desktop_authorized():
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
+            if path.startswith("/api/rules/pinyin/"):
+                from .pinyin_rules import delete_rule
+                return self.json_response(delete_rule(self.app.data_dir / "pinyin_rules.json", path.rsplit("/", 1)[1]))
             if path.startswith("/api/smart-v3/jobs/"):
                 parts = path.strip("/").split("/")
                 if len(parts) == 4:

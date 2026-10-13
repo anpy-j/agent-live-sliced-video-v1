@@ -132,6 +132,55 @@ class WorkBuddyCliTest(unittest.TestCase):
                 os.utime(log, (1, 1))
                 self.assertIsNone(WorkBuddyCli._authentication_failure(cwd, 123, time.time()))
 
+    def test_empty_cli_result_reports_model_network_failure(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            cwd = home / "job"
+            cwd.mkdir()
+            logs = home / ".codebuddy/logs/2026-10-13"
+            logs.mkdir(parents=True)
+            log = logs / "job__fixture.log"
+            script = ("import os; from pathlib import Path; "
+                      f"Path({str(log)!r}).write_text("
+                      "f'[pid={os.getpid()}] [ModelProvider] Error response: "
+                      "status=undefined, code=ECONNRESET, message=TLS failed\\n')")
+            with patch("agent_video.ai.Path.home", return_value=home):
+                with self.assertRaisesRegex(ProviderResponseError, "ECONNRESET") as caught:
+                    WorkBuddyCli(Path(sys.executable))._complete(
+                        [sys.executable, "-c", script], cwd=cwd, on_process=None,
+                        timeout=5, started=time.monotonic())
+            self.assertEqual(caught.exception.raw["reason"], "network_error")
+            self.assertEqual(caught.exception.raw["returncode"], 0)
+
+    def test_network_diagnostics_ignore_optional_services_other_processes_and_stale_logs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            logs = home / ".codebuddy/logs/2026-10-13"
+            logs.mkdir(parents=True)
+            log = logs / "job__fixture.log"
+            log.write_text(
+                "[pid=123] [MCP] Request failed: ECONNRESET\n"
+                "[pid=123] [Report Service] Request failed: ECONNRESET\n"
+                "[pid=456] [ModelProvider] Request failed: ECONNRESET\n",
+                encoding="utf-8")
+            with patch("agent_video.ai.Path.home", return_value=home):
+                self.assertIsNone(WorkBuddyCli._network_failure(home / "job", 123, 0))
+                self.assertIn("ECONNRESET", WorkBuddyCli._network_failure(home / "job", 456, 0))
+                self.assertIsNone(WorkBuddyCli._network_failure(home / "other", 456, 0))
+                os.utime(log, (1, 1))
+                self.assertIsNone(WorkBuddyCli._network_failure(home / "job", 456, time.time()))
+
+    def test_network_diagnostics_classify_model_connection_errors(self):
+        for code, message in (("ETIMEDOUT", "超时"), ("ENOTFOUND", "DNS"),
+                              ("EAI_AGAIN", "DNS"), ("ECONNREFUSED", "被拒绝"),
+                              ("Client network socket disconnected before secure TLS connection was established",
+                               "TLS")):
+            with self.subTest(code=code), patch.object(
+                    WorkBuddyCli, "_invocation_log_lines",
+                    return_value=[f"[ModelProvider] Request failed: {code}"]):
+                self.assertIn(message, WorkBuddyCli._network_failure(Path("job"), 123, 0))
+
     def test_windows_node_bootstrap_keeps_unref_work_alive(self):
         import shutil
         if not shutil.which("node"):

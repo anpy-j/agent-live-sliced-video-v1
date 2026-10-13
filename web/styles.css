@@ -122,3 +122,7 @@ button.status:hover{transform:none;background:rgba(168,255,53,.08)}
 
 #refreshModels{min-height:44px}
 .settings-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}.settings-tabs a{text-decoration:none}.settings-form [hidden]{display:none!important}
+
+/* Shared rule management */
+.rules-panel{padding:24px;margin-bottom:20px;min-width:0}.rules-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;align-items:end}.rules-test-controls{display:flex;gap:16px;align-items:end;flex-wrap:wrap}.rules-test-controls .field{flex:1;min-width:180px}.rules-table-wrap{overflow:auto;margin-top:16px}.rules-table{width:100%;border-collapse:collapse;text-align:left}.rules-table th,.rules-table td{padding:12px;border-bottom:1px solid var(--border,#ddd);vertical-align:top;overflow-wrap:anywhere}.rules-table td:nth-child(2){min-width:180px}.rules-table small{color:var(--muted,#667085)}
+.rules-check{display:flex;align-items:center;gap:8px;padding:10px 0}.rules-panel input[type="checkbox"]{width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px}.rules-panel [hidden]{display:none!important}

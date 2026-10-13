@@ -728,8 +728,9 @@ class JobRunner:
         未配置 DB 设置时，用 ``_AI_ENV_DEFAULTS`` 注入生产默认（S3 并发/重试）；DB
         设置或调用方已有的环境变量优先，仍可回退成串行。
         """
-        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY"}
+        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY", "LIVECUT_PINYIN_RULES"}
         previous = {key: os.environ.get(key) for key in managed}
+        os.environ["LIVECUT_PINYIN_RULES"] = str(self.project_root / "data" / "pinyin_rules.json")
         override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
             value = override.get(setting_key, self.store.get_setting(setting_key))

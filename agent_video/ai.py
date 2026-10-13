@@ -856,9 +856,10 @@ class WorkBuddyCli(CliProvider):
         return workbuddy_model_environment()
 
     @staticmethod
-    def _authentication_failure(cwd: Path, pid: int, launched_at: float) -> str | None:
+    def _invocation_log_lines(cwd: Path, pid: int, launched_at: float) -> list[str]:
         """Read only this invocation's diagnostic markers; never expose log contents."""
         root = Path.home() / ".codebuddy" / "logs"
+        own: list[str] = []
         try:
             folders = sorted((p for p in root.iterdir() if p.is_dir()
                               and re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.name)),
@@ -872,16 +873,39 @@ class WorkBuddyCli(CliProvider):
                     with path.open("rb") as stream:
                         stream.seek(max(0, path.stat().st_size - 200000))
                         lines = stream.read().decode("utf-8", errors="replace").splitlines()
-                    own = [line for line in lines if f"[pid={pid}]" in line]
-                    if not any("AuthenticationRequiredError" in line or
-                               "Authentication required. Please use /login" in line for line in own):
-                        continue
-                    if any("[AtRestEncryption]" in line and "category=missing-key" in line for line in own):
-                        return ("WorkBuddy CLI 无法读取桌面端的加密登录凭据。"
-                                "请先在 WorkBuddy 中重新登录；若仍失败，请启动 CLI 执行 /login 后重试")
-                    return "WorkBuddy CLI 尚未登录或登录已失效，请启动 CLI 并执行 /login 后重试"
+                    own.extend(line for line in lines if f"[pid={pid}]" in line)
         except OSError:
             pass
+        return own
+
+    @classmethod
+    def _authentication_failure(cls, cwd: Path, pid: int, launched_at: float) -> str | None:
+        own = cls._invocation_log_lines(cwd, pid, launched_at)
+        if any("AuthenticationRequiredError" in line or
+               "Authentication required. Please use /login" in line for line in own):
+            if any("[AtRestEncryption]" in line and "category=missing-key" in line for line in own):
+                return ("WorkBuddy CLI 无法读取桌面端的加密登录凭据。"
+                        "请先在 WorkBuddy 中重新登录；若仍失败，请启动 CLI 执行 /login 后重试")
+            return "WorkBuddy CLI 尚未登录或登录已失效，请启动 CLI 并执行 /login 后重试"
+        return None
+
+    @classmethod
+    def _network_failure(cls, cwd: Path, pid: int, launched_at: float) -> str | None:
+        # CLI can report model failures only in its log, then exit 0 with empty
+        # stdout. Ignore optional MCP/plugin/telemetry failures during startup.
+        for line in reversed(cls._invocation_log_lines(cwd, pid, launched_at)):
+            if "[ModelProvider]" not in line or not any(
+                    marker in line for marker in ("Request failed:", "Error response:")):
+                continue
+            if "ECONNRESET" in line or "before secure TLS connection was established" in line:
+                return ("WorkBuddy CLI 连接模型服务失败：TLS/网络连接被重置（ECONNRESET）。"
+                        "请检查网络、代理或防火墙后重试")
+            if "ETIMEDOUT" in line or "ERR_CONNECTION_TIMEOUT" in line:
+                return "WorkBuddy CLI 连接模型服务超时，请检查网络或代理后重试"
+            if "ENOTFOUND" in line or "EAI_AGAIN" in line:
+                return "WorkBuddy CLI 无法解析模型服务地址，请检查 DNS 或代理后重试"
+            if "ECONNREFUSED" in line:
+                return "WorkBuddy CLI 连接模型服务被拒绝，请检查服务地址或代理后重试"
         return None
 
     def _complete(self, command: list[str], *, cwd: Path,
@@ -906,6 +930,12 @@ class WorkBuddyCli(CliProvider):
             if detail:
                 raise ProviderResponseError(detail, {"reason": "authentication_required",
                                                     "returncode": 0})
+            detail = self._network_failure(cwd, pid, launched_at)
+            if detail:
+                raise ProviderResponseError(detail, {"reason": "network_error",
+                                                    "returncode": 0,
+                                                    "stdout": result[0][-100000:],
+                                                    "stderr": result[1][-20000:]})
         return result
 
     def _command_prefix(self) -> list[str]:

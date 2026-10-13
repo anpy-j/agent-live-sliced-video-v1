@@ -100,6 +100,25 @@ def admit_render(decoder_bytes=0):
             state = snapshot(0.3)
 
 
+def render_batch_size(decoder_costs, state, max_segments=None):
+    """Choose a consecutive batch that fits; a single input still needs admission."""
+    if not decoder_costs:
+        return 0
+    limit = min(len(decoder_costs), max_segments or len(decoder_costs))
+    if state is None:
+        return min(limit, 4)
+    total = 0
+    count = 0
+    for cost in decoder_costs[:limit]:
+        try:
+            choose_budget(state, 1, total + cost)
+        except RuntimeError:
+            break
+        total += cost
+        count += 1
+    return max(1, count)
+
+
 class Governor:
     """Decrease quickly; increase only after three healthy samples (hysteresis)."""
 

@@ -32,6 +32,46 @@ class RenderResourceTest(unittest.TestCase):
         self.assertEqual(budget.filter_threads, 1)
         self.assertFalse(budget.monitored)
 
+    def test_batch_selection_fits_reported_memory_and_reduces_to_one_input(self):
+        state = resources.Snapshot(10, int(7.5 * resources.GIB), 32 * resources.GIB)
+        costs = [int(0.12 * resources.GIB)] * 30
+        count = resources.render_batch_size(costs, state)
+        self.assertLess(count, len(costs))
+        resources.choose_budget(state, 1, sum(costs[:count]))
+        with self.assertRaises(RuntimeError):
+            resources.choose_budget(state, 1, sum(costs[:count + 1]))
+        self.assertEqual(resources.render_batch_size(costs, state, max_segments=4), 4)
+        low = resources.Snapshot(10, int(5.7 * resources.GIB), 32 * resources.GIB)
+        self.assertEqual(resources.render_batch_size(costs, low), 1)
+        self.assertEqual(resources.render_batch_size(costs, None), 4)
+        self.assertEqual(resources.render_batch_size([], state), 0)
+
+    def test_failed_batch_cleans_temporary_files_and_preserves_existing_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, timeline, output = root / "source.mp4", root / "timeline.json", root / "out.mp4"
+            source.write_bytes(b"source")
+            output.write_bytes(b"previous film")
+            timeline.write_text(json.dumps([{"start": 1, "end": 2}] * 3), encoding="utf-8")
+
+            def fail_render(command, *_):
+                Path(command[-1]).write_bytes(b"unfinished")
+                raise RuntimeError("codec failed")
+
+            low = resources.Snapshot(10, int(5.65 * resources.GIB), 32 * resources.GIB)
+            with patch("sys.argv", ["render_multi.py", str(timeline), str(output),
+                                    "--src", f"1={source}", "--force"]), \
+                    patch.object(render_multi, "source_fps", return_value=25), \
+                    patch.object(render_multi, "source_size", return_value=(320, 240)), \
+                    patch.object(render_multi, "snapshot", return_value=low), \
+                    patch.object(render_multi, "admit_render", return_value=(resources.Budget(1, 1), low)), \
+                    patch.object(render_multi, "run_render", side_effect=fail_render):
+                with self.assertRaisesRegex(RuntimeError, "codec failed"):
+                    render_multi.main()
+            self.assertEqual(output.read_bytes(), b"previous film")
+            self.assertEqual(list(root.glob(".render-batches-*")), [])
+            self.assertFalse(Path(str(output) + ".partial.mp4").exists())
+
     def test_single_core_and_inherited_affinity_are_respected(self):
         state = resources.Snapshot(0, 24 * resources.GIB, 32 * resources.GIB)
         self.assertEqual(resources.choose_budget(state, 1).encoder_threads, 1)
@@ -162,6 +202,7 @@ class RenderResourceTest(unittest.TestCase):
                     patch.object(render_multi, "source_fps", return_value=25), \
                     patch.object(render_multi, "source_size", return_value=(320, 240)), \
                     patch.object(render_multi, "admit_render", return_value=(budget, None)), \
+                    patch.object(render_multi, "snapshot", return_value=None), \
                     patch.object(render_multi, "filter_complex_args", return_value=([], str(root / "graph"))), \
                     patch.object(render_multi, "run_render", side_effect=fake_render):
                 (root / "graph").write_text("graph", encoding="utf-8")

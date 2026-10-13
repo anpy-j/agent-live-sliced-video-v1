@@ -15,6 +15,8 @@ context_dependent_start / incomplete_sentence 就淘汰（子句已经保证不�
 """
 from __future__ import annotations
 
+from agent_video.pinyin_rules import apply_rules, load_rules
+
 import difflib
 import re
 from typing import Any
@@ -87,7 +89,8 @@ def _rule_reason(clause: dict[str, Any], min_duration: float) -> str | None:
 
 def filter_clauses(clauses: list[dict[str, Any]],
                    min_duration: float = DEFAULT_MIN_DURATION,
-                   max_similarity: float = DEFAULT_MAX_SIMILARITY) -> list[dict[str, Any]]:
+                   max_similarity: float = DEFAULT_MAX_SIMILARITY,
+                   pinyin_rules: dict | None = None) -> list[dict[str, Any]]:
     """就地写 ``usable``/``reason`` 并返回同一列表。"""
     for clause in clauses:
         clause["usable"] = True
@@ -97,6 +100,8 @@ def filter_clauses(clauses: list[dict[str, Any]],
         if reason:
             clause["usable"] = False
             clause["reason"] = reason
+
+    apply_rules(clauses, pinyin_rules if pinyin_rules is not None else load_rules())
 
     kept: list[str] = []
     for clause in clauses:

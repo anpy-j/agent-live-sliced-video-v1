@@ -10,6 +10,8 @@
 """
 from __future__ import annotations
 
+from agent_video.pinyin_rules import load_rules
+
 import argparse
 import copy
 import json
@@ -437,7 +439,9 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         base = _load_required(os.path.join(workdir, "clauses.json"), "S1 子句数据")
         clauses = copy.deepcopy(base["clauses"])
         _emit(on_stage, "filter", "start", "单独重跑规则粗筛（复用 S1 数据）")
-        filter_clauses(clauses, min_duration=min_duration)
+        pinyin_snapshot = load_rules()
+        _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
+        filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
         usable = [clause for clause in clauses if clause["usable"]]
         if not usable:
             raise RuleFilterEmpty(f"S2 规则筛后无可用子句（共 {len(clauses)} 条全部被剔除）")
@@ -706,7 +710,9 @@ def run_pipeline(media: str, workdir: str, *,
 
     # S2 —— 规则粗筛（确定性）
     _emit(on_stage, "filter", "start", "规则粗筛（违禁/价格/场控/去重）")
-    filter_clauses(clauses, min_duration=min_duration)
+    pinyin_snapshot = load_rules()
+    _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
+    filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
     _dump(os.path.join(workdir, "clauses.filtered.json"),
           {"source": source_name, "duration": timeline["duration"], "clauses": clauses})
     usable = [clause for clause in clauses if clause["usable"]]

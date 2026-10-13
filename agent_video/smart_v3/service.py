@@ -126,7 +126,9 @@ class SmartService:
                     job["artifacts"].append({"name": name, "url": f"/api/smart-v3/jobs/{job_id}/artifacts/{name}"})
                 units = stage("S1", lambda: draft.understand(self.understand, inp["draft_timeline"], workspace, inp["transcript_path"])
                               if is_draft else self.understand(inp["source_path"], workspace, inp["transcript_path"]))
-                coarse = stage("S2", lambda: pipeline.coarse_filter(units, inp["product_name"]))
+                from agent_video.pinyin_rules import load_rules
+                snapshot = load_rules(self.data_root.parent / "pinyin_rules.json")
+                coarse = stage("S2", lambda: pipeline.coarse_filter(units, inp["product_name"], snapshot))
                 profiles = stage("S3", lambda: pipeline.profile(self.ai, coarse["kept"], inp["product_name"]))
                 compilation = stage("S4", lambda: pipeline.arrange(profiles, inp["target_min"], inp["target_max"]))
                 reviewed = stage("S5", lambda: pipeline.review(self.ai, profiles, compilation, inp["target_min"], inp["target_max"], inp["product_name"]))
