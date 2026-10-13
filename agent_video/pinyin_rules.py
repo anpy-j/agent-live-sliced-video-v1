@@ -96,6 +96,56 @@ def _write(path, data):
     return data
 
 
+def export_bundled_rules(source, destination):
+    """Export only the explicitly distributable rule fields, never other app data."""
+    data = load_rules(source)
+    rules, seen = [], set()
+    for item in data["rules"]:
+        phrase = normalize(item.get("pinyin"))
+        if phrase in seen:
+            raise ValueError("打包规则包含重复拼音：" + phrase)
+        seen.add(phrase)
+        if not isinstance(item.get("enabled"), bool):
+            raise ValueError("打包规则启用状态无效：" + phrase)
+        rules.append({"id": str(item.get("id") or uuid.uuid4().hex), "pinyin": phrase,
+                      "name": phrase, "note": str(item.get("note") or "")[:1000],
+                      "enabled": item["enabled"]})
+    with _LOCK:
+        return _write(destination, {"rules": rules})
+
+
+def install_bundled_rules(source, destination):
+    """Import new shipped phrases once, preserving local edits and deletions."""
+    source, destination = Path(source), Path(destination)
+    if not source.is_file() or source.resolve() == destination.resolve():
+        return
+    with _LOCK:
+        bundled, current = load_rules(source), load_rules(destination)
+        marker = destination.with_name("pinyin_rules.seed-state.json")
+        previous = load_rules(marker)
+        known = {r["pinyin"] for r in previous["rules"]}
+        local = {r["pinyin"] for r in current["rules"]}
+        local_ids = {r["id"] for r in current["rules"]}
+        changed = False
+        for rule in bundled["rules"]:
+            if rule["pinyin"] in known:
+                continue
+            if rule["pinyin"] not in local:
+                imported = dict(rule)
+                if imported["id"] in local_ids:
+                    imported["id"] = uuid.uuid4().hex
+                current["rules"].append(imported)
+                local.add(imported["pinyin"])
+                local_ids.add(imported["id"])
+                changed = True
+            previous["rules"].append(dict(rule))
+            known.add(rule["pinyin"])
+        if changed or not destination.exists():
+            _write(destination, current)
+        if previous != load_rules(marker):
+            _write(marker, previous)
+
+
 def match_text(text, snapshot):
     # Phrase-aware pronunciation, aligned one syllable per Han character.
     # Punctuation/whitespace can separate speech; Latin text/numbers break a match.

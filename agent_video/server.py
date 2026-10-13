@@ -50,6 +50,11 @@ class Application:
         self.workspace_root = self.root / "workspaces"
         self.asset_root = Path(os.environ.get("LIVECUT_ASSET_ROOT", str(self.resource_root))).resolve()
         self.web_root = self.asset_root / "web"
+        from .pinyin_rules import install_bundled_rules
+        bundled_rules = self.asset_root / "defaults" / "pinyin_rules.json"
+        if not bundled_rules.is_file():
+            bundled_rules = self.asset_root / "data" / "pinyin_rules.json"
+        install_bundled_rules(bundled_rules, self.data_dir / "pinyin_rules.json")
         self.store = Store(self.data_dir / "agent.db")
         self.ai_access = AIAccess(self.store, self.root, vault=vault)
         self.runner = JobRunner(self.store, self.root, vault=self.ai_access.vault)

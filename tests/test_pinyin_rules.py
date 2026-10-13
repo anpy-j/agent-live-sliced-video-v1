@@ -7,7 +7,8 @@ import urllib.request
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_video.pinyin_rules import load_rules, save_rule, delete_rule, match_text, normalize
+from agent_video.pinyin_rules import (load_rules, save_rule, delete_rule, match_text, normalize,
+                                      export_bundled_rules, install_bundled_rules)
 from agent_video.server import Application, Server
 
 
@@ -44,6 +45,57 @@ class PinyinRulesTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 normalize(invalid)
 
+    def test_bundle_export_preserves_all_rules_notes_and_status(self):
+        first = save_rule(self.path, {'pinyin': 'xian huo', 'note': '现货话术'})
+        save_rule(self.path, {'pinyin': 'xiang nai er', 'note': '品牌', 'enabled': False})
+        data = load_rules(self.path)
+        data['private_other_data'] = 'must not ship'
+        self.path.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+        bundled = self.root / 'assets/defaults/pinyin_rules.json'
+        exported = export_bundled_rules(self.path, bundled)
+        self.assertEqual(len(exported['rules']), 2)
+        self.assertEqual(exported['rules'][0]['id'], first['rules'][0]['id'])
+        self.assertEqual(exported['rules'][0]['note'], '现货话术')
+        self.assertFalse(exported['rules'][1]['enabled'])
+        self.assertNotIn('private_other_data', exported)
+        with patch.dict(os.environ, {'LIVECUT_ASSET_ROOT': str(bundled.parent.parent)}):
+            app = Application(self.root / 'other-computer')
+        installed = load_rules(app.data_dir / 'pinyin_rules.json')
+        self.assertEqual(installed, exported)
+        self.assertTrue(match_text('线货', installed)['hits'])
+
+    def test_bundle_upgrade_preserves_local_edits_and_deleted_rules(self):
+        save_rule(self.path, {'pinyin': 'xian huo', 'note': '随包备注'})
+        bundled = self.root / 'bundle.json'
+        export_bundled_rules(self.path, bundled)
+        local = self.root / 'other/data/pinyin_rules.json'
+        install_bundled_rules(bundled, local)
+        rule = load_rules(local)['rules'][0]
+        save_rule(local, {**rule, 'note': '当地备注', 'enabled': False}, rule['id'])
+        install_bundled_rules(bundled, local)
+        self.assertEqual(load_rules(local)['rules'][0]['note'], '当地备注')
+        self.assertFalse(load_rules(local)['rules'][0]['enabled'])
+        delete_rule(local, rule['id'])
+        install_bundled_rules(bundled, local)
+        self.assertEqual(load_rules(local)['rules'], [])
+        save_rule(self.path, {'pinyin': 'zai cang', 'note': '新增规则'})
+        export_bundled_rules(self.path, bundled)
+        install_bundled_rules(bundled, local)
+        self.assertEqual([r['pinyin'] for r in load_rules(local)['rules']], ['zai cang'])
+        unchanged = local.read_bytes()
+        install_bundled_rules(bundled, local)
+        self.assertEqual(local.read_bytes(), unchanged)
+
+    def test_build_export_reads_configured_workspace(self):
+        from desktop.export_rules import current_rules_source
+        workspace = self.root / 'selected-workspace'
+        file = workspace / 'data/pinyin_rules.json'
+        save_rule(file, {'pinyin': 'xian huo', 'note': '桌面端新增'})
+        with patch.dict(os.environ, {'LIVE_CUT_DATA_DIR': str(workspace)}, clear=True):
+            self.assertEqual(current_rules_source(self.root), file)
+        with patch.dict(os.environ, {'LIVECUT_PINYIN_RULES': str(file)}, clear=True):
+            self.assertEqual(current_rules_source(self.root), file.resolve())
+
     def test_shared_filters_and_snapshot_in_smart_pipeline(self):
         from agent_video.pipeline.filter import filter_clauses as v1
         from agent_video.pipeline_v3.filter import filter_clauses as v3
@@ -61,7 +113,7 @@ class PinyinRulesTest(unittest.TestCase):
             self.assertEqual(result['pinyin_rules'], snapshot)
 
     def test_completed_task_preview_reads_all_s2_without_changing_artifacts(self):
-        app = Application(Path.cwd(), self.root)
+        app = Application(self.root)
         source = self.root / 'source.mp4'; source.write_bytes(b'fixture')
         job = app.create_job({'source_path': str(source), 'title': '试匹配'})
         workspace = Path(job['workspace'])
@@ -82,7 +134,7 @@ class PinyinRulesTest(unittest.TestCase):
         self.assertEqual(app.store.get_job(job['id'])['status'], 'completed')
 
     def test_http_crud_and_smart_completed_task(self):
-        app = Application(Path.cwd(), self.root)
+        app = Application(self.root)
         smart_job = app.smart.store.create({'product_name': '马甲'})
         app.smart.workspace(smart_job['id']).mkdir()
         smart_job['status'] = 'completed'; app.smart.store.save(smart_job)

@@ -8,6 +8,7 @@ window.renderRules = async function () {
     <p>按无声调音节连续匹配。保存后在下一次 S2 执行时生效。</p>
     <form id="pinyinForm" class="rules-form">
       <label class="field">拼音音节<input name="pinyin" required placeholder="例如：xian huo" autocomplete="off"></label>
+      <label class="field">备注<input name="note" maxlength="1000" placeholder="可选，例如：现货话术"></label>
       <div><button class="button primary" type="submit">保存</button> <button class="button ghost" type="button" id="pinyinCancel" hidden>取消编辑</button></div>
     </form>
     <p id="pinyinMessage" role="status"></p>
@@ -26,9 +27,9 @@ window.renderRules = async function () {
   const clearResult = () => { result = null; $('#pinyinResults').innerHTML = '<p>规则已变化，请重新测试。</p>'; };
   const list = () => {
     const selected = $('#pinyinTestRule').value;
-    $('#pinyinTestRule').innerHTML = '<option value="">选择规则拼音</option>' + rules.map(r => `<option value="${r.id}">${escapeHtml(r.pinyin)}${r.enabled ? '' : '（已停用，可试匹配）'}</option>`).join('');
+    $('#pinyinTestRule').innerHTML = '<option value="">选择规则拼音</option>' + rules.map(r => `<option value="${r.id}">${escapeHtml(r.pinyin)}${r.note ? ' · ' + escapeHtml(r.note) : ''}${r.enabled ? '' : '（已停用，可试匹配）'}</option>`).join('');
     $('#pinyinTestRule').value = rules.some(r => r.id === selected) ? selected : '';
-    $('#pinyinList').innerHTML = `<p>共 ${rules.length} 条</p>${rules.length ? `<ul class="pinyin-rule-list">${rules.map(r => `<li><span class="pinyin-rule-value">${escapeHtml(r.pinyin)}${r.enabled ? '' : ' <small>已停用</small>'}</span><div><button class="button ghost small" data-edit-rule="${r.id}">编辑</button> <button class="button ghost small" data-toggle-rule="${r.id}">${r.enabled ? '停用' : '启用'}</button> <button class="button ghost small" data-delete-rule="${r.id}">删除</button></div></li>`).join('')}</ul>` : '<p>暂无拼音规则。</p>'}`;
+    $('#pinyinList').innerHTML = `<p>共 ${rules.length} 条</p>${rules.length ? `<ul class="pinyin-rule-list">${rules.map(r => `<li><span class="pinyin-rule-value">${escapeHtml(r.pinyin)}${r.enabled ? '' : ' <small>已停用</small>'}${r.note ? '<br><small>' + escapeHtml(r.note) + '</small>' : ''}</span><div><button class="button ghost small" data-edit-rule="${r.id}">编辑</button> <button class="button ghost small" data-toggle-rule="${r.id}">${r.enabled ? '停用' : '启用'}</button> <button class="button ghost small" data-delete-rule="${r.id}">删除</button></div></li>`).join('')}</ul>` : '<p>暂无拼音规则。</p>'}`;
   };
   $('#pinyinCancel').onclick = reset;
   form.onsubmit = async event => {
@@ -36,7 +37,7 @@ window.renderRules = async function () {
     const button = $('button[type="submit"]', form); button.disabled = true;
     try {
       const fields = new FormData(form);
-      const saved = await api(`/api/rules/pinyin${editing ? '/' + editing : ''}`, {method: editing ? 'PUT' : 'POST', body: JSON.stringify({pinyin: fields.get('pinyin'), enabled: editing ? rules.find(r => r.id === editing).enabled : true})});
+      const saved = await api(`/api/rules/pinyin${editing ? '/' + editing : ''}`, {method: editing ? 'PUT' : 'POST', body: JSON.stringify({pinyin: fields.get('pinyin'), note: fields.get('note'), enabled: editing ? rules.find(r => r.id === editing).enabled : true})});
       rules = saved.rules; reset(); list(); clearResult(); message('规则已保存。');
     } catch (error) { message(error.message); } finally { button.disabled = false; }
   };
@@ -47,6 +48,7 @@ window.renderRules = async function () {
     if (button.dataset.editRule) {
       editing = id;
       form.elements.pinyin.value = rule.pinyin;
+      form.elements.note.value = rule.note || '';
       $('button[type="submit"]', form).textContent = '保存修改'; $('#pinyinCancel').hidden = false;
       form.elements.pinyin.focus(); return;
     }
