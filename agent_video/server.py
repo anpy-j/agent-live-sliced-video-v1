@@ -107,6 +107,13 @@ class Application:
             *[{**r, "usable": True} for r in data.get("kept", [])],
             *[{**r, "usable": False, "reason": r.get("filter_reason")} for r in data.get("removed", [])]]
         snapshot = load_rules(self.data_dir / "pinyin_rules.json")
+        rule_id = payload.get("rule_id")
+        if rule_id is not None:
+            selected = next((r for r in snapshot["rules"] if r["id"] == rule_id), None)
+            if selected is None:
+                raise ValueError("请选择存在的拼音规则")
+            # Explicit trial selection can test a disabled rule without activating it.
+            snapshot = {**snapshot, "rules": [{**selected, "enabled": True}]}
         results = [{"id": r.get("id"), "text": r.get("text", ""), "start": r.get("start"),
                     "end": r.get("end"), "s2_usable": bool(r.get("usable")), "s2_reason": r.get("reason", ""),
                     **match_text(r.get("text", ""), snapshot)} for r in rows]

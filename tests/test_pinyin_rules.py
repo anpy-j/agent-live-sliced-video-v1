@@ -108,6 +108,10 @@ class PinyinRulesTest(unittest.TestCase):
             self.assertEqual((result['total'], result['matched'], result['newly_rejected']), (2, 1, 1))
             request('PUT', '/' + rule['id'], {**rule, 'enabled': False})
             self.assertEqual(request('POST', '/test', {'kind': 'smart', 'job_id': smart_job['id']})['matched'], 0)
+            other = request('POST', '', {'pinyin': 'xiang nai er'})['rules'][-1]
+            self.assertEqual(request('POST', '/test', {'kind': 'smart', 'job_id': smart_job['id'], 'rule_id': other['id']})['matched'], 0)
+            self.assertEqual(request('POST', '/test', {'kind': 'smart', 'job_id': smart_job['id'], 'rule_id': rule['id']})['matched'], 1)
+            request('DELETE', '/' + other['id'])
             self.assertEqual(request('DELETE', '/' + rule['id'])['rules'], [])
         finally:
             server.shutdown(); thread.join(); server.server_close()

@@ -1,0 +1,26 @@
+{
+  "revision": "b27483a59f02c6a6",
+  "rules": [
+    {
+      "id": "d506da9c304c4016a79f2449bae2bd21",
+      "pinyin": "xian huo",
+      "name": "xian huo",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "36e645ae3b1947deb3feded04a9b1814",
+      "pinyin": "xiang nai er",
+      "name": "xiang nai er",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "41ce680e9bf242128e556e90f1a4f534",
+      "pinyin": "shui diao",
+      "name": "shui diao",
+      "note": "",
+      "enabled": true
+    }
+  ]
+}
