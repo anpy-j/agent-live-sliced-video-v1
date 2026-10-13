@@ -3,5 +3,5 @@
   "appName": "LiveCut",
   "webDir": "mobile/www",
   "server": { "androidScheme": "https" },
-  "android": { "allowMixedContent": false }
+  "android": { "allowMixedContent": true }
 }

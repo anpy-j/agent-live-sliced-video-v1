@@ -170,7 +170,7 @@
   $('#loginForm').onsubmit=e=>{e.preventDefault();act(async()=>{
     if(running)throw new Error('请等待当前上传完成后再切换账号');
     const form=e.target;const url=new URL(form.server.value.trim());
-    if(url.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(url.hostname))throw new Error('服务器地址须使用 HTTPS；本机测试可用 HTTP');
+    if(!['http:','https:'].includes(url.protocol))throw new Error('服务器地址须使用 HTTP 或 HTTPS');
     if(url.username||url.password||url.search||url.hash)throw new Error('请输入不包含账号、查询参数的服务器地址');
     server=url.href.replace(/\/$/,'');username=form.username.value;
     const data=await api('/auth/login',{username,password:form.password.value});token=data.token;form.password.value='';sessionStorage.livecutToken=token;

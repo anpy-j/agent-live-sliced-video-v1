@@ -23,7 +23,7 @@ const { chromium } = require('playwright');
       if(fail){fail=false;await route.abort('failed');return;}
       uploaded=true;await route.fulfill({status:200,body:'{}',headers:{'access-control-allow-origin':'*'}});
     });
-    await page.route('http://localhost:9901/api/livecut/v1/**',async route=>{
+    await page.route('http://192.168.1.240:8088/api/livecut/v1/**',async route=>{
       const request=route.request(),url=new URL(request.url()),p=url.pathname.replace('/api/livecut/v1','');
       let data={},status=200;
       if(request.method()==='OPTIONS'){await route.fulfill({status:200,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'*'}});return;}
@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
     });
     const url=`http://127.0.0.1:${server.address().port}`;
     await page.goto(url);
-    await page.locator('[name=server]').fill('http://localhost:9901');
+    await page.locator('[name=server]').fill('http://192.168.1.240:8088');
     await page.locator('[name=username]').fill('test');await page.locator('[name=password]').fill('test');
     await page.getByRole('button',{name:'连接并登录'}).click();
     await page.locator('#workspace').waitFor({state:'visible'});
