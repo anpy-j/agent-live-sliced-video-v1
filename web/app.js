@@ -636,7 +636,7 @@ async function renderMcp(){
   $('#rotateToken').addEventListener('click',async()=>{if(!confirm('旧密钥会立即失效，继续吗？'))return;await api('/api/mcp/token',{method:'POST',body:'{}'});toast('密钥已轮换');renderSettingsPage('mcp')});
 }
 
-async function renderSettings(){
+async function renderSettings(tab='ai'){
   setCrumb('系统设置');loading();const data=await api('/api/settings');
   const opts=(map,selected)=>Object.entries(map).map(([value,label])=>`<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('');
   const modelOpts=(provider,selected)=>{
@@ -646,41 +646,127 @@ async function renderSettings(){
     return models.map(model=>`<option value="${escapeHtml(model.id)}" ${model.id===(selectedExists?selected:'auto')?'selected':''}>${escapeHtml(model.name)}${model.id==='auto'?'':`（${escapeHtml(model.id)}）`}</option>`).join('');
   };
   const selectedProvider=data.ai_provider||'auto';
-  app.innerHTML=`<div class="hero"><div><span class="eyebrow">SYSTEM CONFIGURATION</span><h1>系统设置</h1><p>配置执行内核、AI 提供方和本地接入策略。</p></div></div>
-  <div class="panel" style="margin-bottom:20px"><div class="panel-head"><div><h2>连接 AI</h2><p>登录账号或填写 API Key，连接后即可开始剪辑。</p></div></div>
-  <div class="settings-form">
-    <div class="settings-section"><b>Codex 账号</b><small id="codexConnection">正在检查登录状态…</small></div>
-    <div class="job-row-actions"><button class="button primary" id="codexLogin" type="button">登录 Codex</button><button class="button" id="codexCancel" type="button">取消登录</button><button class="button" id="codexLogout" type="button">退出登录</button></div>
-    <p id="codexLoginMessage" role="status"></p><a id="codexLoginLink" target="_blank" rel="noopener" hidden>打开官方登录页面</a>
-    <div class="settings-section"><b>API Key 接入</b><small id="apiKeyState">正在检查配置…</small></div>
-    <form id="aiConnectionForm" class="settings-form">
-      <label>服务地址<input name="base_url" value="https://api.openai.com/v1" placeholder="https://服务地址/v1"></label>
-      <label>模型名称<input name="model" placeholder="填写服务商提供的具体模型名称" required></label>
-      <label>API Key<input name="api_key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"><small>密钥保存在本机系统安全存储中，不显示原文。</small></label>
-      <div class="job-row-actions"><button class="button primary" type="submit">保存并使用 API</button><button class="button" id="testAI" type="button">测试连接</button><button class="button" id="clearAIKey" type="button">删除密钥</button></div>
-    </form>
-    <p class="form-error" id="aiConnectionError" role="status"></p>
-  </div></div>
-  <div class="panel"><div class="panel-head"><div><h2>运行配置</h2><p>内置引擎随应用版本一起升级</p></div></div>
-  <form class="settings-form" id="settingsForm">
-    <label>内置切片内核<input value="${escapeHtml(data.engine_path||'')}" readonly><small>${data.engine_bundled?'当前项目自带，不再依赖外部旧引擎目录。':'当前使用外部引擎路径。'}</small></label>
-    <label>引擎 Python<input name="engine_python" value="${escapeHtml(data.engine_python||'')}"><small>建议使用项目独立的 Python 3.13 环境。</small></label>
-    <div class="settings-section"><b>AI 执行策略</b><small>选择编排的引擎与提供方。</small></div>
-    <label>AI 引擎<select name="ai_engine">${opts({llm:'AI 模型（账号或 API Key）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>AI 模型支持账号登录或 API Key；JEV 使用独立云端服务。</small></label>
-    <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
-    <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型选项会根据 AI 提供方自动更新。</small></label>
-    <div class="job-row-actions" id="modelRefreshRow"><button class="button ghost" id="refreshModels" type="button">刷新模型列表</button><small id="modelCatalogStatus" role="status"></small></div>
-    <div class="job-row-actions" id="modelTestRow"><button class="button ghost" id="testModel" type="button">测试模型</button><small id="modelTestStatus" role="status"></small></div>
-    <div class="settings-section"><b>JEV 云端</b><small>${data.jev_api_key_configured?'已配置密钥。':'尚未配置密钥。'}</small></div>
-    <label>JEV API Key<input name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥"><small>仅为安全展示，留空或保持掩码不会覆盖现有密钥。</small></label>
-    <label>JEV Base URL<input name="jev_base_url" value="${escapeHtml(data.jev_base_url||'')}"></label>
-    <div class="settings-section"><b>接入与 Skill</b><small>MCP 服务与 Skill 文件位置。</small></div>
-    <label>Skill 路径<input name="skill_path" value="${escapeHtml(data.skill_path||'')}"></label>
-    <label><input type="checkbox" name="mcp_enabled" ${data.mcp_enabled?'checked':''}> 启用 MCP 服务<small>关闭后外部 Agent 无法提交任务。</small></label>
+  const providerNames={api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'};
+  const fallbacks=(data.ai_fallbacks||[]).map(item=>({...item}));
+  const settingIcons={
+    '◇':'<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+    '⌘':'<rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="9" r="2.5"/><path d="M7.5 17c.5-4 8.5-4 9 0"/>',
+    '↗':'<path d="m10 13 4-4M9 16l-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M15 8l2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(1 0) scale(.9)"/>',
+    '☁':'<path d="M6 18h12a4 4 0 0 0 1-8 7 7 0 0 0-13-1 4.5 4.5 0 0 0 0 9z"/>'
+  };
+  const cardHead=(icon,title,description,tag='header')=>`<${tag} class="settings-card-head"><span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${settingIcons[icon]}</svg></span><div><h2>${title}</h2><p>${description}</p></div></${tag}>`;
+  const saveBar=`<footer class="settings-save-bar"><span>保存后用于新执行或手动重试的任务</span><button class="button primary" type="submit" form="settingsForm">保存设置</button></footer>`;
+  const ai=tab==='ai';
+  app.innerHTML=`<div class="settings-page">
+  <div class="hero settings-hero"><div><span class="eyebrow">WORKSPACE SETTINGS</span><h1>系统设置</h1><p>管理 AI 连接、运行环境与工作空间偏好。</p></div><span class="settings-local-note">配置保存在本机</span></div>
+  <div id="settingsNavSlot"></div>
+  ${ai?`<div class="settings-page-heading"><div><h2>AI 配置</h2><p>选择执行模型，并管理它使用的账号或服务凭据。</p></div><span class="settings-label">模型与连接</span></div>
+  <form id="settingsForm" class="settings-workspace">
+    <section class="settings-card settings-strategy">
+      ${cardHead('◇','执行模型','决定剪辑任务使用的引擎、提供方和模型。')}
+      <div class="settings-form settings-model-grid">
+        <label>AI 引擎<select name="ai_engine">${opts({llm:'AI 模型（账号或 API Key）',jev:'JEV（Typesafe 云）'},data.ai_engine||'llm')}</select><small>使用 AI 模型或独立的 JEV 云端服务。</small></label>
+        <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动选择',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>自动选择会根据本机可用连接决定。</small></label>
+        <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型列表随提供方切换。</small></label>
+      </div>
+      <div class="settings-model-tools"><div class="job-row-actions" id="modelTestRow"><button class="button ghost" id="testModel" type="button">测试模型</button><small id="modelTestStatus" role="status"></small></div>
+      <div class="job-row-actions" id="modelRefreshRow"><button class="button ghost" id="refreshModels" type="button">刷新模型列表</button><small id="modelCatalogStatus" role="status"></small></div></div>
+      <section class="settings-fallbacks" aria-labelledby="fallbackHeading">
+        <div class="settings-fallback-heading"><div><h3 id="fallbackHeading">备用模型列表</h3><p>S3 / S4 模型报错、额度不足或超时后，按列表顺序尝试。全部失败才停止任务。</p></div><span id="fallbackCount" class="settings-label"></span></div>
+        <ol id="fallbackList" class="settings-fallback-list"></ol>
+        <div class="settings-fallback-picker">
+          <label>提供方<select id="fallbackProvider">${opts(providerNames,'codex')}</select></label>
+          <label>模型<input id="fallbackModel" list="fallbackModelOptions" placeholder="选择或填写模型 ID" maxlength="200" autocomplete="off"><datalist id="fallbackModelOptions"></datalist></label>
+          <button type="button" class="button ghost" id="addFallback">添加备用</button>
+        </div>
+        <small class="settings-fallback-note">可混用不同提供方；请先完成对应客户端登录。API 模型共用下方配置的服务地址和密钥。添加后点击「保存设置」生效。</small>
+        <p id="fallbackError" class="form-error" role="status"></p>
+      </section>
+    </section>
+    <details class="settings-card settings-jev" ${data.ai_engine==='jev'?'open':''}>
+      ${cardHead('☁','JEV 云端','使用 JEV 引擎时展开配置服务地址与密钥。','summary')}
+      <div class="settings-form settings-two-fields"><label>JEV Base URL<input name="jev_base_url" value="${escapeHtml(data.jev_base_url||'')}" placeholder="填写 JEV 服务地址"></label>
+      <label>JEV API Key<input type="password" name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥" autocomplete="new-password"><small>${data.jev_api_key_configured?'已配置密钥；留空或保留掩码即可继续使用。':'尚未配置密钥。'}</small></label></div>
+    </details>
     <p class="form-error" id="settingsError" role="alert"></p>
-    <button class="button primary" type="submit">保存设置</button>
-  </form></div>`;
-  setupAIConnection();
+    ${saveBar}
+  </form>
+  <div class="settings-section-heading"><h3>连接与凭据</h3><p>按所选提供方配置对应连接，各模块独立保存。</p></div>
+  <div class="settings-connections">
+    <section class="settings-card settings-codex">
+      ${cardHead('⌘','Codex 账号','通过账号登录，授权本机使用 Codex。')}
+      <div class="settings-card-body"><div class="settings-connection-state"><span class="settings-state-dot"></span><span id="codexConnection" role="status">正在检查登录状态…</span></div>
+      <div class="job-row-actions"><button class="button primary" id="codexLogin" type="button">登录 Codex</button><button class="button" id="codexCancel" type="button">取消登录</button><button class="button ghost" id="codexLogout" type="button">退出登录</button></div>
+      <p id="codexLoginMessage" role="status"></p><a id="codexLoginLink" target="_blank" rel="noopener" hidden>打开官方登录页面 ↗</a>
+      <div class="settings-card-note">使用 WorkBuddy、OpenCode 或 Antigravity 时，请先在对应客户端完成登录。</div></div>
+    </section>
+    <section class="settings-card settings-api">
+      ${cardHead('↗','API Key 接入','连接兼容 OpenAI API 的模型服务。')}
+      <form id="aiConnectionForm" class="settings-form">
+        <div class="settings-connection-state"><span class="settings-state-dot"></span><span id="apiKeyState" role="status">正在检查配置…</span></div>
+        <label>服务地址<input name="base_url" value="https://api.openai.com/v1" placeholder="https://服务地址/v1"></label>
+        <label>模型名称<input name="model" placeholder="填写服务商提供的具体模型名称" required></label>
+        <label>API Key<input name="api_key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"><small>密钥保存在本机系统安全存储中，不显示原文。</small></label>
+        <div class="job-row-actions"><button class="button primary" type="submit">保存并使用 API</button><button class="button" id="testAI" type="button">测试连接</button><button class="button ghost" id="clearAIKey" type="button">删除密钥</button></div>
+      </form>
+    </section>
+  </div><p class="form-error" id="aiConnectionError" role="status"></p>`:`
+  <div class="settings-page-heading"><div><h2>运行环境</h2><p>管理本地切片内核与外部 Agent 接入。</p></div></div>
+  <form id="settingsForm" class="settings-workspace">
+    <section class="settings-card">${cardHead('◇','本地运行环境','内置切片内核随应用版本一起升级。')}
+    <div class="settings-form settings-two-fields"><label>内置切片内核<input value="${escapeHtml(data.engine_path||'')}" readonly><small>${data.engine_bundled?'使用项目自带内核。':'当前使用外部引擎路径。'}</small></label>
+    <label>引擎 Python<input name="engine_python" value="${escapeHtml(data.engine_python||'')}"><small>建议使用项目独立的 Python 3.13 环境。</small></label></div></section>
+    <section class="settings-card">${cardHead('↗','Agent 接入','配置 Skill 文件与 MCP 服务。')}<div class="settings-form"><label>Skill 路径<input name="skill_path" value="${escapeHtml(data.skill_path||'')}"></label>
+    <label class="settings-checkbox"><input type="checkbox" name="mcp_enabled" ${data.mcp_enabled?'checked':''}><span>启用 MCP 服务<small>允许外部 Agent 提交剪辑任务。</small></span></label></div></section>
+    <p class="form-error" id="settingsError" role="alert"></p>${saveBar}
+  </form>`}</div>`;
+  $('#settingsForm').addEventListener('submit',async e=>{
+    e.preventDefault();const f=new FormData(e.target),error=$('#settingsError');error.textContent='';
+    const payload=Object.fromEntries(f);
+    if(ai)payload.ai_fallbacks=fallbacks;
+    if(!ai)payload.mcp_enabled=f.get('mcp_enabled')==='on';
+    const button=e.submitter;button.disabled=true;
+    try{await api('/api/settings',{method:'PUT',body:JSON.stringify(payload)});toast('设置已保存')}
+    catch(err){error.textContent=err.message}
+    finally{button.disabled=false}
+  });
+  if(!ai)return;
+  const paintFallbacks=()=>{
+    $('#fallbackCount').textContent=`${fallbacks.length} / 20`;
+    $('#fallbackList').innerHTML=fallbacks.length?fallbacks.map((item,index)=>`<li><span class="settings-fallback-index">${index+1}</span><div class="settings-fallback-model"><b>${escapeHtml(item.model)}</b><small>${escapeHtml(providerNames[item.provider]||item.provider)}</small></div><div class="settings-fallback-actions"><button class="button ghost small" type="button" data-fallback-up="${index}" aria-label="上移备用模型 ${index+1}" ${index===0?'disabled':''}>↑</button><button class="button ghost small" type="button" data-fallback-down="${index}" aria-label="下移备用模型 ${index+1}" ${index===fallbacks.length-1?'disabled':''}>↓</button><button class="button ghost small" type="button" data-fallback-remove="${index}" aria-label="删除备用模型 ${index+1}">删除</button></div></li>`).join(''):'<li class="settings-fallback-empty">尚未添加备用模型 · 当前仅使用上方主模型</li>';
+    $('#addFallback').disabled=fallbacks.length>=20;
+  };
+  const updateFallbackModels=(reset=true)=>{
+    const provider=$('#fallbackProvider').value;
+    const models=data.ai_models?.[provider]||[];
+    $('#fallbackModelOptions').innerHTML=models.filter(item=>item.id).map(item=>`<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`).join('');
+    if(reset)$('#fallbackModel').value=models.find(item=>item.id)?.id||(provider==='api'?'':'auto');
+  };
+  $('#fallbackProvider').addEventListener('change',()=>updateFallbackModels());
+  $('#addFallback').addEventListener('click',()=>{
+    const item={provider:$('#fallbackProvider').value,model:$('#fallbackModel').value.trim()};
+    const error=$('#fallbackError');error.textContent='';
+    if(!item.model||(item.provider==='api'&&item.model==='auto')){error.textContent='请填写具体模型 ID';return;}
+    if(fallbacks.some(saved=>saved.provider===item.provider&&saved.model===item.model)){error.textContent='该备用模型已在列表中';return;}
+    if(fallbacks.length>=20)return;
+    fallbacks.push(item);paintFallbacks();
+  });
+  $('#fallbackList').addEventListener('click',e=>{
+    const button=e.target.closest('button');if(!button)return;
+    let index,target;
+    if(button.dataset.fallbackRemove!==undefined){fallbacks.splice(Number(button.dataset.fallbackRemove),1);}
+    else{
+      const up=button.dataset.fallbackUp!==undefined;
+      index=Number(up?button.dataset.fallbackUp:button.dataset.fallbackDown);target=index+(up?-1:1);
+      if(target<0||target>=fallbacks.length)return;
+      [fallbacks[index],fallbacks[target]]=[fallbacks[target],fallbacks[index]];
+    }
+    paintFallbacks();
+    $('#fallbackError').textContent='';
+  });
+  paintFallbacks();updateFallbackModels();
+  setupAIConnection(modelOpts);
+  $('[name="ai_engine"]').addEventListener('change',e=>{$('.settings-jev').open=e.target.value==='jev'});
   const showCatalogStatus=()=>{
     const provider=$('#aiProvider').value;
     $('#modelRefreshRow').hidden=provider!=='workbuddy';
@@ -707,17 +793,11 @@ async function renderSettings(){
       data.ai_models=fresh.ai_models;data.ai_model_catalogs=fresh.ai_model_catalogs;
       const selected=$('#aiModel').value;
       $('#aiModel').innerHTML=modelOpts($('#aiProvider').value,selected);
-      showCatalogStatus();toast('模型列表已刷新');
+      showCatalogStatus();updateFallbackModels(false);toast('模型列表已刷新');
     }catch(err){$('#modelCatalogStatus').textContent=err.message}
     finally{button.disabled=false;button.textContent='刷新模型列表'}
   });
-  $('#settingsForm').addEventListener('submit',async e=>{
-    e.preventDefault();const f=new FormData(e.target),error=$('#settingsError');error.textContent='';
-    try{
-      await api('/api/settings',{method:'PUT',body:JSON.stringify({engine_python:f.get('engine_python'),ai_engine:f.get('ai_engine'),ai_provider:f.get('ai_provider'),ai_model:f.get('ai_model'),jev_api_key:f.get('jev_api_key'),jev_base_url:f.get('jev_base_url'),skill_path:f.get('skill_path'),mcp_enabled:f.get('mcp_enabled')==='on'})});
-      toast('设置已保存');
-    }catch(err){error.textContent=err.message}
-  });
+
 }
 
 function labelClauseText(clause){return [...(clause.text||'')];}
@@ -911,7 +991,7 @@ async function route(){
     if(hash==='#/label')return await renderLabel();
     if(hash==='#/skill'){location.replace('#/settings/skill');return;}
     if(hash==='#/mcp'){location.replace('#/settings/mcp');return;}
-    if(hash.startsWith('#/settings'))return await renderSettingsPage(hash.split('/')[2]||'runtime');
+    if(hash.startsWith('#/settings'))return await renderSettingsPage(hash.split('/')[2]||'ai');
     if(hash.startsWith('#/editor'))return await window.LiveCutEditor.mount(app);
     if(hash==='#/postprocess'){setCrumb('视频后处理');return await window.LiveCutPostprocess.mount(app);}
     return await renderDashboard();
@@ -1192,12 +1272,14 @@ api('/api/health').then(x=>$('#systemVersion').textContent=`v${x.version} · 已
 route();
 
 
-async function setupAIConnection() {
+async function setupAIConnection(modelOpts) {
   const error = $('#aiConnectionError');
   const show = message => { if (error?.isConnected) error.textContent = message; };
   const refresh = async (fill=false) => {
     const connection = await api('/api/ai/access');
     if (!$('#codexConnection')) return;
+    $('#codexConnection').parentElement.dataset.state=connection.codex.logged_in?'ready':'idle';
+    $('#apiKeyState').parentElement.dataset.state=connection.api.api_key_configured?'ready':'idle';
     $('#codexConnection').textContent = connection.codex.logged_in ? '已登录' : connection.codex.available ? '尚未登录' : '未找到内置 Codex 工具';
     $('#codexLogin').disabled = !connection.codex.available || connection.codex.login.status === 'waiting';
     $('#codexCancel').disabled = connection.codex.login.status !== 'waiting';
@@ -1241,15 +1323,16 @@ async function setupAIConnection() {
       await api('/api/ai/config', {method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(form)))});
       form.querySelector('[name="api_key"]').value = '';
       toast('已保存，当前剪辑使用 API 模型');
-      await renderSettings();
+      await renderSettingsPage('ai');
     } catch(e) { show(e.message); } finally { button.disabled = false; }
   };
   try { await refresh(true); } catch(e) { show(e.message); }
 }
 
-async function renderSettingsPage(tab='runtime') {
-  const tabs={runtime:'运行环境',ai:'AI 配置',skill:'Skill 管理',mcp:'MCP 接入',editor:'剪辑与导出',desktop:'桌面应用'};
-  if(!tabs[tab])tab='runtime';
+async function renderSettingsPage(tab='ai') {
+  clearTimeout(state.aiPoll);
+  const tabs={ai:'AI 配置',runtime:'运行环境',skill:'Skill 管理',mcp:'MCP 接入',editor:'剪辑与导出',desktop:'桌面应用'};
+  if(!tabs[tab])tab='ai';
   if(tab==='skill')await renderSkill();
   else if(tab==='mcp')await renderMcp();
   else if(tab==='editor'&&window.LiveCutEditor)await window.LiveCutEditor.settings(app);
@@ -1259,22 +1342,11 @@ async function renderSettingsPage(tab='runtime') {
     $('#desktopInfo').textContent=info?`LiveCut ${info.version} · ${info.platform} · 工作目录：${info.workspace}`:'当前通过浏览器访问。桌面版本使用同一套剪辑项目与本地服务。';
     if(info){const button=document.createElement('button');button.className='button ghost';button.textContent='切换工作目录并重启';button.onclick=()=>window.livecutDesktop.changeWorkspace();$('#desktopInfo').append(document.createElement('br'),button);}
   } else {
-    await renderSettings();
-    $('#aiConnectionForm').closest('.panel').hidden=tab!=='ai';
-    const form=$('#settingsForm');
-    const groups=[...form.children];
-    for(const el of groups){
-      if(el.matches('button,.form-error'))continue;
-      const names=[...el.querySelectorAll('[name]')].map(x=>x.name);
-      const ai=el.id==='modelRefreshRow'||names.some(x=>x.startsWith('ai_')||x.startsWith('jev_'));
-      if(el.id==='modelRefreshRow'){el.hidden=tab!=='ai'||$('#aiProvider').value!=='workbuddy';continue;}
-      if(el.id==='modelTestRow'){el.hidden=tab!=='ai';continue;}
-      const section=el.classList.contains('settings-section');
-      el.hidden=section||((tab==='ai')?!ai:ai);
-    }
+    await renderSettings(tab);
   }
   setCrumb('系统设置');
   const nav=document.createElement('nav');nav.className='settings-tabs';nav.setAttribute('aria-label','系统设置分类');
   nav.innerHTML=Object.entries(tabs).map(([id,label])=>`<a class="tab-button ${tab===id?'active':''}" href="#/settings/${id}" ${tab===id?'aria-current="page"':''}>${label}</a>`).join('');
-  app.prepend(nav);
+  const slot=$('#settingsNavSlot');
+  if(slot)slot.replaceWith(nav);else app.prepend(nav);
 }

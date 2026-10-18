@@ -3,7 +3,7 @@
 
 设计约束（对应 issue 的「AI 调用边界」）：
   - 不逐批、不用 agent 多轮、不注入 memory/历史；
-  - 固定模型、固定 schema，任何非法返回 = 明确报错并停止；
+  - 固定 schema，按用户配置的备用模型顺序处理调用失败；
   - 不自动修复、不静默兜底。
 
 两种实现共享同一签名与同一 schema：
@@ -12,7 +12,7 @@
   - ``jev``：走 TypeSafe Jev 的 ``system_one``，把 schema 翻译成问答。
 
 选择通过 ``PIPELINE_AI_ENGINE``（llm/jev，默认 llm）与 ``PIPELINE_AI_PROVIDER``
-控制。旧编排的多 provider 自动降级链不在这里复现：任一 provider 失败即报错。
+控制。旧编排的多 provider 自动降级链不在这里复现：未配置备用模型时，任一 provider 失败即报错。
 """
 from __future__ import annotations
 
@@ -184,9 +184,10 @@ def resolve_provider(provider: str | None = None) -> tuple[str, str]:
 
 
 def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
-              timeout: int) -> dict[str, Any]:
+              timeout: int, *, provider: str | None = None) -> dict[str, Any]:
+    requested = provider or os.environ.get("PIPELINE_AI_PROVIDER") or "auto"
     prompt = json_prompt(prompt, json_schema)
-    if os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
+    if requested == 'api':
         from ..api_transport import json_completion
         chosen = model or os.environ.get('PIPELINE_AI_MODEL', '')
         contract = prompt + '\nRequired JSON contract: ' + json.dumps(json_schema, ensure_ascii=False)
@@ -196,7 +197,7 @@ def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
             return result
         except (ValueError, RuntimeError) as exc:
             raise AIReturnError(str(exc)) from exc
-    provider_id, executable = resolve_provider()
+    provider_id, executable = resolve_provider(requested)
     provider = _CLI_BUILDERS[provider_id](Path(executable))
     chosen_model = (model or os.environ.get("PIPELINE_AI_MODEL") or "auto").strip() or "auto"
     if hasattr(provider, "normalize_model"):
@@ -319,13 +320,26 @@ def _call_jev(model: str, prompt: str, json_schema: dict[str, Any],
 def ai_call(model: str, prompt: str, json_schema: dict[str, Any],
             timeout: int = DEFAULT_TIMEOUT) -> dict[str, Any]:
     """一次无状态 AI 调用，返回符合 ``json_schema`` 顶层契约的对象。"""
-    engine = (os.environ.get("PIPELINE_AI_ENGINE") or "llm").strip().lower()
-    if engine == "llm":
-        data = _call_llm(model, prompt, json_schema, timeout)
-    elif engine == "jev":
-        data = _call_jev(model, prompt, json_schema, timeout)
-    else:
-        raise PipelineConfigError(f"不支持的 AI 引擎: {engine}")
-    if not isinstance(data, dict):
-        raise AIReturnError(f"AI 返回不是 JSON 对象：{type(data).__name__}")
-    return data
+    from agent_video.ai_fallback import run_with_fallbacks, validate_response, validate_stage_response
+    primary = {"engine": (os.environ.get("PIPELINE_AI_ENGINE") or "llm").strip().lower(),
+               "provider": os.environ.get("PIPELINE_AI_PROVIDER") or "auto",
+               "model": model or os.environ.get("PIPELINE_AI_MODEL") or "auto"}
+
+    def invoke(candidate):
+        if candidate["engine"] == "llm":
+            data = _call_llm(candidate["model"], prompt, json_schema, timeout,
+                             provider=candidate["provider"])
+        elif candidate["engine"] == "jev":
+            data = _call_jev(candidate["model"], prompt, json_schema, timeout)
+        else:
+            raise PipelineConfigError(f"不支持的 AI 引擎: {candidate['engine']}")
+        if not isinstance(data, dict):
+            raise AIReturnError(f"AI 返回不是 JSON 对象：{type(data).__name__}")
+        try:
+            validate_response(data, json_schema)
+            validate_stage_response(data)
+        except ValueError as exc:
+            raise AIReturnError(str(exc)) from exc
+        return data
+
+    return run_with_fallbacks(primary, invoke, AIReturnError)

@@ -30,7 +30,7 @@ class JudgeProgress:
                 and os.environ.get("PIPELINE_AI_PROVIDER", "auto") in ("", "auto")):
             return None
         settings = {key: os.environ.get(key, "") for key in (
-            "PIPELINE_AI_ENGINE", "PIPELINE_AI_PROVIDER", "PIPELINE_AI_MODEL",
+            "PIPELINE_AI_ENGINE", "PIPELINE_AI_PROVIDER", "PIPELINE_AI_MODEL", "PIPELINE_AI_FALLBACKS",
             "LIVE_CUT_API_BASE_URL", "TYPESAFE_BASE_URL")}
         payload = json.dumps([1, model, prompt, schema, settings], ensure_ascii=False, sort_keys=True)
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()

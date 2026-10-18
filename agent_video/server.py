@@ -908,8 +908,9 @@ try {{
 
     def settings(self, *, refresh_models: bool = False) -> dict[str, Any]:
         keys = ["engine_python", "skill_path", "mcp_enabled", "mcp_token",
-                "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir"]
+                "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir", "ai_fallbacks"]
         result = {key: self.store.get_setting(key) for key in keys}
+        result["ai_fallbacks"] = result.get("ai_fallbacks") or []
         raw_jev_key = str(self.store.get_setting("jev_api_key") or "").strip()
         result["jev_api_key_configured"] = bool(raw_jev_key)
         if raw_jev_key:
@@ -961,12 +962,15 @@ try {{
 
     def update_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
         allowed = {"engine_python", "skill_path", "mcp_enabled", "ai_engine", "ai_provider",
-                   "ai_model", "jev_api_key", "jev_base_url", "export_dir"}
+                   "ai_model", "jev_api_key", "jev_base_url", "export_dir", "ai_fallbacks"}
         if "ai_engine" in payload and str(payload["ai_engine"]) not in {"llm", "jev"}:
             raise ValueError("ai_engine 必须是 llm 或 jev")
         if "ai_provider" in payload and str(payload["ai_provider"]) not in {
                 "auto", "opencode", "codex", "workbuddy", "antigravity", "api"}:
             raise ValueError("ai_provider 无效")
+        if "ai_fallbacks" in payload:
+            from .ai_fallback import normalize_fallbacks
+            payload = {**payload, "ai_fallbacks": normalize_fallbacks(payload["ai_fallbacks"])}
         for key in allowed & payload.keys():
             val = payload[key]
             if key == "jev_api_key":
@@ -974,6 +978,8 @@ try {{
                 if not val_str or "****" in val_str:
                     continue
                 self.store.set_setting(key, val_str)
+            elif key == "ai_fallbacks":
+                self.store.set_setting(key, val)
             elif key == "mcp_enabled":
                 self.store.set_setting(key, bool(val))
             else:

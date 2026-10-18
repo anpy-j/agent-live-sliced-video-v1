@@ -29,7 +29,7 @@ class JobAIConfigurationTest(unittest.TestCase):
 
     def assert_workbuddy(self, jid):
         job=self.store.get_job(jid); config=json.loads(job['remote_model_json'])
-        self.assertEqual(config, {'ai_engine':'llm','ai_provider':'workbuddy','ai_model':'hy3'})
+        self.assertEqual(config, {'ai_engine':'llm','ai_provider':'workbuddy','ai_model':'hy3','ai_fallbacks':[]})
         with patch.dict(os.environ, {'PIPELINE_AI_PROVIDER':'opencode','PIPELINE_AI_MODEL':'old-model'}):
             with self.runner._ai_environment(job):
                 self.assertEqual(os.environ['PIPELINE_AI_PROVIDER'],'workbuddy')

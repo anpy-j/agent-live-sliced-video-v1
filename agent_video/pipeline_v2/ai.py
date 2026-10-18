@@ -1,4 +1,4 @@
-"""V2-only cached, audited calls. No automatic retries or provider fallback.
+"""V2-only cached, audited calls. Ordered model fallback for S3/S4; every attempt remains budgeted and audited.
 
 CLI-internal attempts may be invisible until final usage arrives. Observed
 budgets are stop conditions, not a promise that already billed tokens can be
@@ -59,6 +59,10 @@ def positive_env(name, default, maximum):
     return value
 
 
+class BudgetExceeded(AIReturnError):
+    """Application usage limits stop execution across all providers."""
+
+
 class Calls:
     def __init__(self, directory: Path, model: str, timeout: int = AI_DEFAULT_TIMEOUT, caller=None):
         self.directory = directory
@@ -91,9 +95,20 @@ class Calls:
         save(self.ledger_path, self.ledger)
 
     def call(self, stage, key, prompt, schema):
+        from agent_video.ai_fallback import run_with_fallbacks
+        primary = {"engine": os.environ.get("PIPELINE_AI_ENGINE", "llm"),
+                   "provider": self.provider, "model": self.model}
+        if stage not in {"judge", "order"}:
+            return self._call_once(stage, key, prompt, schema, primary)
+        return run_with_fallbacks(
+            primary, lambda candidate: self._call_once(stage, key, prompt, schema, candidate),
+            AIReturnError, fatal_errors=(BudgetExceeded,))
+
+    def _call_once(self, stage, key, prompt, schema, candidate):
+        model, provider = candidate["model"], candidate["provider"]
         if len(prompt) > self.limits["prompt_chars"]:
-            raise AIReturnError("V2 输入超过字符预算，停止而不是静默截断素材")
-        fingerprint = digest([REVISION, self.model, self.provider, schema, prompt, self.limits, SYSTEM])
+            raise BudgetExceeded("V2 输入超过字符预算，停止而不是静默截断素材")
+        fingerprint = digest([REVISION, model, provider, candidate["engine"], schema, prompt, self.limits, SYSTEM])
         folder = self.directory / "calls" / stage
         path = folder / (key + "-" + fingerprint[:16] + ".json")
         if path.exists():
@@ -107,23 +122,24 @@ class Calls:
             return record["data"]
         self._write_ledger()
         if self.ledger["total_calls"] >= self.limits["calls"] or self.ledger["output_tokens"] >= self.limits["output_tokens"]:
-            raise AIReturnError("V2 累计调用预算已用完，停止后续调用")
+            raise BudgetExceeded("V2 累计调用预算已用完，停止后续调用")
         record = {"fingerprint": fingerprint, "stage": stage, "key": key,
+                  "provider": provider, "model": model,
                   "usage": {"input_tokens": 0, "output_tokens": 0},
                   "usage_available": False, "data": None, "error": None}
         save(folder / (key + "-" + fingerprint[:16] + ".request.json"),
-             {"model": self.model, "prompt": prompt, "schema": schema})
+             {"model": model, "provider": provider, "prompt": prompt, "schema": schema})
         started = time.monotonic()
         # Persist intent before launch, so a killed task cannot silently lose an attempt.
         self.ledger["calls"].append(record)
         self._write_ledger()
         try:
             if self.caller:
-                result = self.caller(self.model, prompt, schema, self.timeout)
+                result = self.caller(model, prompt, schema, self.timeout)
                 if "data" not in result:
                     result = {"data": result}
             else:
-                result = self._native(prompt, schema, folder)
+                result = self._native(prompt, schema, folder, candidate)
             record["usage"] = {k: int((result.get("usage") or {}).get(k) or 0)
                                for k in ("input_tokens", "output_tokens")}
             record["usage_available"] = bool(result.get("usage"))
@@ -134,7 +150,7 @@ class Calls:
             validate(record["data"], schema)
             total = sum(c["usage"]["output_tokens"] for c in self.ledger["calls"])
             if total > self.limits["output_tokens"]:
-                raise AIReturnError("V2 实际累计输出超出预算，本次结果不放行")
+                raise BudgetExceeded("V2 实际累计输出超出预算，本次结果不放行")
             return record["data"]
         except Exception as exc:
             record["error"] = str(exc)[:1000]
@@ -146,16 +162,25 @@ class Calls:
             save(path, record)
             self._write_ledger()
 
-    def _native(self, prompt, schema, folder):
-        if os.environ.get("PIPELINE_AI_ENGINE", "llm") != "llm":
+    def _native(self, prompt, schema, folder, candidate=None):
+        candidate = candidate or {"provider": self.provider, "model": self.model,
+                                  "engine": os.environ.get("PIPELINE_AI_ENGINE", "llm")}
+        if candidate["engine"] != "llm":
             raise PipelineConfigError("V2 完整表达契约需要 llm 引擎；V1 的 Jev 设置保持原样")
-        if self.provider == "api":
-            raise PipelineConfigError("V2 当前支持 CLI provider；直接 API 调用请选择 V1 或 V3，或在设置中选择 CLI provider")
+        if candidate["provider"] == "api":
+            import json
+            from agent_video.api_transport import json_completion
+            data, usage = json_completion(
+                base_url=os.environ.get("LIVE_CUT_API_BASE_URL", "https://api.openai.com/v1"),
+                api_key=os.environ.get("LIVE_CUT_API_KEY", ""), model=candidate["model"],
+                prompt=SYSTEM + "\n" + prompt + "\nRequired JSON contract: " + json.dumps(schema, ensure_ascii=False),
+                timeout=self.timeout)
+            return {"data": data, "usage": usage}
         # Honour the provider the caller recorded instead of silently falling
         # back to the first installed CLI, which may be a different subscription.
-        provider_id, executable = resolve_provider(self.provider)
+        provider_id, executable = resolve_provider(candidate["provider"])
         provider = _CLI_BUILDERS[provider_id](Path(executable))
-        model = provider.normalize_model(self.model) if hasattr(provider, "normalize_model") else self.model
+        model = provider.normalize_model(candidate["model"]) if hasattr(provider, "normalize_model") else candidate["model"]
         if provider_id != "workbuddy":
             # Other installed native schema providers have their own process timeout.
             result = provider.generate_json(model=model, prompt=SYSTEM + "\n" + prompt,

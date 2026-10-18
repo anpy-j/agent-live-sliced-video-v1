@@ -116,12 +116,13 @@ class VersionsTest(unittest.TestCase):
                 runner._export_outputs(root, manifest, str(root / 'out'), 'segments', 'V3', 'fixture.mp4')
                 modern.assert_called_once(); legacy.assert_not_called()
 
-    def test_v2_rejects_api_without_fallback(self):
+    def test_v2_api_uses_transport_without_resolving_cli(self):
         from agent_video.pipeline_v2.ai import Calls
         from agent_video.pipeline.errors import PipelineConfigError
         with tempfile.TemporaryDirectory() as temp, patch.dict('os.environ', {'PIPELINE_AI_PROVIDER': 'api', 'PIPELINE_AI_ENGINE': 'llm'}):
             calls = Calls(Path(temp), 'fixture')
-            with patch('agent_video.pipeline_v2.ai.resolve_provider') as resolve:
-                with self.assertRaisesRegex(PipelineConfigError, '直接 API'):
-                    calls._native('prompt', {}, Path(temp))
+            with patch('agent_video.pipeline_v2.ai.resolve_provider') as resolve, patch('agent_video.api_transport.json_completion', return_value=({'ok':True}, {'input_tokens':2})) as transport:
+                result = calls._native('prompt', {}, Path(temp))
+                self.assertEqual(result, {'data':{'ok':True}, 'usage':{'input_tokens':2}})
+                self.assertEqual(transport.call_args.kwargs['model'], 'fixture')
                 resolve.assert_not_called()

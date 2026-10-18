@@ -35,6 +35,7 @@ _AI_ENV_KEYS = {
     "ai_engine": "PIPELINE_AI_ENGINE",
     "ai_provider": "PIPELINE_AI_PROVIDER",
     "ai_model": "PIPELINE_AI_MODEL",
+    "ai_fallbacks": "PIPELINE_AI_FALLBACKS",
     "api_base_url": "LIVE_CUT_API_BASE_URL",
     "judge_concurrency": "PIPELINE_JUDGE_CONCURRENCY",
     "judge_retries": "PIPELINE_JUDGE_RETRIES",
@@ -164,6 +165,9 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
     if os.name != "nt":
         os.setsid()
 
+    from .ai_fallback import set_reporter
+    set_reporter(lambda payload: result_queue.put(("ai_fallback", payload)))
+
     s1_key = None
     s1_reused_from = None
 
@@ -234,6 +238,7 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
     else:
         result_queue.put(("success", manifest))
     finally:
+        set_reporter(None)
         # 变量必须活到管线结束；任务被强制终止时 OS 会关闭句柄并清理所有后代。
         _ = job_handle
 
@@ -364,7 +369,7 @@ class JobRunner:
         self.store.add_event(job_id, stage_id, "warning", "cancelled", "任务已取消")
         return True
 
-    def _refresh_ai_configuration(self, job_id: str, reason: str) -> dict[str, str]:
+    def _refresh_ai_configuration(self, job_id: str, reason: str) -> dict[str, Any]:
         """Start a new manual attempt with current settings, preserving its audit trail."""
         job = self.store.get_job(job_id)
         if not job:
@@ -372,12 +377,16 @@ class JobRunner:
         defaults = {"ai_engine": "llm", "ai_provider": "auto", "ai_model": "auto"}
         configuration = {key: str(self.store.get_setting(key) or default).strip() or default
                          for key, default in defaults.items()}
+        configuration["ai_fallbacks"] = self.store.get_setting("ai_fallbacks", [])
         try:
             saved = json.loads(job.get("remote_model_json") or "{}")
-            previous = {key: saved.get(key) for key in defaults} if isinstance(saved, dict) else {}
+            previous = {key: saved.get(key) for key in configuration} if isinstance(saved, dict) else {}
         except (TypeError, ValueError):
             previous = {}
         self.store.update_job(job_id, remote_model_json=json.dumps(configuration))
+        previous.setdefault("ai_fallbacks", [])
+        if previous.get("ai_fallbacks") is None:
+            previous["ai_fallbacks"] = []
         if previous != configuration:
             self.store.add_event(
                 job_id, None, "info", "ai_configuration_updated",
@@ -681,6 +690,14 @@ class JobRunner:
                 if message[0] == "stage":
                     _, stage, status, text = message
                     on_stage(stage, status, text)
+                elif message[0] == "ai_fallback":
+                    payload = message[1]
+                    selected = payload.get("next") or payload.get("selected")
+                    switching = payload["status"] == "switching"
+                    text = (f"模型调用失败，切换备用模型：{selected['provider']} / {selected['model']}"
+                            if switching else f"备用模型调用成功：{selected['provider']} / {selected['model']}")
+                    self.store.add_event(job_id, self._active_stage.get(job_id),
+                                         "warning" if switching else "info", "ai_fallback", text, payload)
                 else:
                     terminal = message
             process.join(timeout=2)
@@ -739,9 +756,13 @@ class JobRunner:
         override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
             value = override.get(setting_key, self.store.get_setting(setting_key))
+            if setting_key == "ai_fallbacks":
+                # An empty snapshot must override both current settings and inherited env.
+                value = json.dumps(override.get(setting_key, []) if job else (value or []))
             if value:
                 os.environ[env_key] = str(value)
-        if self.vault and os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
+        if self.vault and (os.environ.get('PIPELINE_AI_PROVIDER') == 'api'
+                           or any(item['provider'] == 'api' for item in json.loads(os.environ['PIPELINE_AI_FALLBACKS']))):
             os.environ['LIVE_CUT_API_KEY'] = self.vault.get('model-api-key')
         for env_key, default in _AI_ENV_DEFAULTS.items():
             if not os.environ.get(env_key):

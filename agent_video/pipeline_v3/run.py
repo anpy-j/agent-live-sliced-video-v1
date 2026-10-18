@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+from agent_video.ai_fallback import response_check
 from agent_video.pinyin_rules import load_rules
 
 import argparse
@@ -164,7 +165,8 @@ def _judge_batch_once(model: str, batch: list[dict[str, Any]],
                       product_name: str | None, timeout: int) -> dict[int, dict[str, Any]]:
     """一次独立的 S3 批次 AI 调用 + 契约校验，返回该批 ``{id: decision}``（单次尝试）。"""
     members = [clause for unit in batch for clause in unit["members"]]
-    data = ai_call(model, _judge_prompt(batch, product_name), DECISION_SCHEMA, timeout)
+    with response_check(lambda data: _validate_decisions(data, members)):
+        data = ai_call(model, _judge_prompt(batch, product_name), DECISION_SCHEMA, timeout)
     return _validate_decisions(data, members)
 
 
@@ -216,6 +218,8 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
                         on_batch(result)
                 return result
             except AIReturnError as exc:
+                if getattr(exc, "fallback_exhausted", False):
+                    raise
                 last = exc
                 with lock:
                     attempts += 1
@@ -643,8 +647,10 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     else:
         _emit(on_stage, "order", "start",
               f"单独重跑 AI 精选编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
-                    ORDER_SCHEMA, ai_timeout)
+    with response_check(lambda data: _validate_order(
+            data, candidates, target_seconds, target_tolerance, available)):
+        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
+                        ORDER_SCHEMA, ai_timeout)
     main_product, ordered_ids, total_seconds, sections = _validate_order(
         order, candidates, target_seconds, target_tolerance, available)
     main_product = product_name or main_product
@@ -847,8 +853,10 @@ def run_pipeline(media: str, workdir: str, *,
     else:
         _emit(on_stage, "order",
               "start", f"AI 精选编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
-                    ORDER_SCHEMA, ai_timeout)
+    with response_check(lambda data: _validate_order(
+            data, candidates, target_seconds, target_tolerance, available)):
+        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
+                        ORDER_SCHEMA, ai_timeout)
     ai_calls += 1
     main_product, ordered_ids, total_seconds, sections = _validate_order(
         order, candidates, target_seconds, target_tolerance, available)
