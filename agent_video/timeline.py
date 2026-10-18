@@ -23,6 +23,12 @@ from typing import Any
 from .jianying_paths import resolve_draft_media_placeholder
 
 
+def _absolute_source_path(value: Any) -> str:
+    """空路径保持为空，避免 os.path.abspath("") 把工作目录误当成素材。"""
+    raw = str(value or "").strip()
+    return os.path.abspath(raw) if raw else ""
+
+
 @dataclass
 class TimelineSegment:
     """时间线上的单个片段。"""
@@ -69,7 +75,7 @@ class TimelineSegment:
             segment_id=str(data.get("segment_id", "片段")),
             timeline_start=t_start,
             timeline_end=t_end,
-            source_path=os.path.abspath(str(data["source_path"])),
+            source_path=_absolute_source_path(data.get("source_path")),
             source_start=s_start,
             source_end=s_end,
             speed=speed,
@@ -214,27 +220,122 @@ def map_clause(timeline: VirtualTimeline, clause: dict[str, Any]) -> dict[str, A
     return timeline.map_clause(clause)
 
 
-def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = None) -> VirtualTimeline:
-    """解析剪映 draft_content.json 字典格式。"""
+def _draft_material_index(
+    data: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, float], dict[str, dict[str, Any]]]:
+    """建立草稿里的视频素材、倍速与组合片段索引。"""
     materials = data.get("materials") or {}
-    videos_list = materials.get("videos") or []
-    speeds_list = materials.get("speeds") or []
 
     # 建立素材映射
     video_map: dict[str, dict[str, Any]] = {}
-    for v in videos_list:
-        vid = v.get("id")
-        if vid:
-            video_map[vid] = v
+    for v in materials.get("videos") or []:
+        if isinstance(v, dict) and v.get("id"):
+            video_map[v["id"]] = v
 
     speed_map: dict[str, float] = {}
-    for s in speeds_list:
+    for s in materials.get("speeds") or []:
+        if not isinstance(s, dict):
+            continue
         sid = s.get("id")
         if sid and "speed" in s:
             try:
                 speed_map[sid] = float(s["speed"])
             except (ValueError, TypeError):
                 pass
+
+    # 剪映把「组合片段」(compound clip) 存成 materials.drafts 里的
+    # type == "combination"：外层素材 path 为空，真实素材在内嵌 draft 的
+    # materials.videos 中，必须展开才能拿到原片路径与时间。
+    combination_map: dict[str, dict[str, Any]] = {}
+    for item in materials.get("drafts") or []:
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        if str(item.get("type") or "") != "combination":
+            continue
+        if isinstance(item.get("draft"), dict):
+            combination_map[item["id"]] = item
+    return video_map, speed_map, combination_map
+
+
+def _resolve_segment_source(video_material: dict[str, Any], draft_dir: Path | None) -> str:
+    """把片段材质解析成原素材绝对路径；解析不出来时返回空串。"""
+    raw_path = resolve_draft_media_placeholder(video_material.get("path") or "", draft_dir)
+    if not raw_path and draft_dir:
+        # 检查是否有同名或 Resources 里的文件
+        name = video_material.get("material_name") or ""
+        if name and (draft_dir / name).is_file():
+            raw_path = str(draft_dir / name)
+        elif name and (draft_dir / "Resources" / name).is_file():
+            raw_path = str(draft_dir / "Resources" / name)
+    if not raw_path:
+        return ""
+    if draft_dir and not Path(raw_path).is_absolute():
+        raw_path = str(Path(draft_dir) / raw_path)
+    return os.path.abspath(raw_path)
+
+
+def _timerange_seconds(timerange: dict[str, Any]) -> tuple[float, float]:
+    """剪映时间戳通常为微秒 (1秒 = 1,000,000 微秒)，少数草稿用秒。"""
+    start_raw = float(timerange.get("start", 0) or 0)
+    dur_raw = float(timerange.get("duration", 0) or 0)
+    scale = 1_000_000.0 if dur_raw > 10_000 else 1.0
+    return start_raw / scale, dur_raw / scale
+
+
+def _expand_combination_segment(
+    seg: dict[str, Any],
+    extra_refs: list[str],
+    combination_map: dict[str, dict[str, Any]],
+    draft_dir: Path | None,
+) -> list[TimelineSegment]:
+    """把组合片段展开成真实素材上的片段（保留外层裁剪与变速）。"""
+    combination = next((combination_map[ref] for ref in extra_refs if ref in combination_map), None)
+    if combination is None:
+        return []
+    inner_data = combination.get("draft") or {}
+    if not inner_data.get("tracks"):
+        return []
+    inner_segments = _parse_draft_segments(inner_data, draft_dir)
+    if not inner_segments:
+        return []
+
+    outer_t_start, outer_t_dur = _timerange_seconds(seg.get("target_timerange") or {})
+    outer_s_start, outer_s_dur = _timerange_seconds(seg.get("source_timerange") or {})
+    if outer_t_dur <= 1e-6:
+        return []
+    if outer_s_dur <= 1e-6:
+        # 没有 source_timerange 时按整个组合片段从头引用
+        outer_s_start, outer_s_dur = 0.0, outer_t_dur
+    outer_speed = outer_s_dur / outer_t_dur
+
+    window_start = outer_s_start
+    window_end = outer_s_start + outer_s_dur
+    expanded: list[TimelineSegment] = []
+    for inner in inner_segments:
+        clip_start = max(inner.timeline_start, window_start)
+        clip_end = min(inner.timeline_end, window_end)
+        if clip_end - clip_start <= 1e-3:
+            continue
+        inner_offset = clip_start - inner.timeline_start
+        source_start = inner.source_start + inner_offset * inner.speed
+        source_dur = (clip_end - clip_start) * inner.speed
+        timeline_start = outer_t_start + (clip_start - window_start) / outer_speed
+        timeline_dur = (clip_end - clip_start) / outer_speed
+        expanded.append(TimelineSegment(
+            segment_id=inner.segment_id,
+            timeline_start=round(timeline_start, 3),
+            timeline_end=round(timeline_start + timeline_dur, 3),
+            source_path=inner.source_path,
+            source_start=round(source_start, 3),
+            source_end=round(source_start + source_dur, 3),
+            speed=round(inner.speed * outer_speed, 4),
+        ))
+    return expanded
+
+
+def _parse_draft_segments(data: dict[str, Any], draft_dir: Path | None = None) -> list[TimelineSegment]:
+    """解析草稿主视频轨道上的片段，时间线相对 0 起算。"""
+    video_map, speed_map, combination_map = _draft_material_index(data)
 
     tracks = data.get("tracks") or []
     # Jianying 11 can store the primary picture track as ``mixed``.  Only keep
@@ -262,32 +363,11 @@ def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = No
     for idx, seg in enumerate(raw_segments):
         material_id = seg.get("material_id")
         video_material = video_map.get(material_id) or {}
-        raw_path = resolve_draft_media_placeholder(video_material.get("path") or "", draft_dir)
-        if not raw_path and draft_dir:
-            # 检查是否有同名或 Resources 里的文件
-            name = video_material.get("material_name") or ""
-            if name and (draft_dir / name).is_file():
-                raw_path = str(draft_dir / name)
-            elif name and (draft_dir / "Resources" / name).is_file():
-                raw_path = str(draft_dir / "Resources" / name)
-
-        source_path = os.path.abspath(raw_path) if raw_path else ""
+        source_path = _resolve_segment_source(video_material, draft_dir)
 
         # 剪映时间戳通常为微秒 (1秒 = 1,000,000 微秒)
-        s_tr = seg.get("source_timerange") or {}
-        t_tr = seg.get("target_timerange") or {}
-
-        s_start_raw = float(s_tr.get("start", 0))
-        s_dur_raw = float(s_tr.get("duration", 0))
-        t_start_raw = float(t_tr.get("start", 0))
-        t_dur_raw = float(t_tr.get("duration", 0))
-
-        scale = 1_000_000.0 if (s_dur_raw > 10_000 or t_dur_raw > 10_000) else 1.0
-
-        s_start = s_start_raw / scale
-        s_dur = s_dur_raw / scale
-        t_start = t_start_raw / scale
-        t_dur = t_dur_raw / scale
+        s_start, s_dur = _timerange_seconds(seg.get("source_timerange") or {})
+        t_start, t_dur = _timerange_seconds(seg.get("target_timerange") or {})
 
         # 倍速计算
         speed = 1.0
@@ -298,6 +378,16 @@ def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = No
                 break
         if abs(speed - 1.0) < 1e-4 and t_dur > 0 and s_dur > 0:
             speed = s_dur / t_dur
+
+        if not source_path:
+            expanded = _expand_combination_segment(seg, extra_refs, combination_map, draft_dir)
+            if expanded:
+                segments.extend(expanded)
+                continue
+            raise ValueError(
+                f"片段{idx + 1} 的素材路径无法解析：该片段可能是组合片段、云端素材或本地素材已丢失，"
+                f"请在剪映中确认素材可见后重新保存草稿"
+            )
 
         seg_id = f"片段{idx + 1}"
         segments.append(TimelineSegment(
@@ -311,6 +401,14 @@ def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = No
         ))
 
     segments.sort(key=lambda s: s.timeline_start)
+    for index, segment in enumerate(segments):
+        segment.segment_id = f"片段{index + 1}"
+    return segments
+
+
+def _parse_jianying_draft_dict(data: dict[str, Any], draft_dir: Path | None = None) -> VirtualTimeline:
+    """解析剪映 draft_content.json 字典格式。"""
+    segments = _parse_draft_segments(data, draft_dir)
     title = draft_dir.name if draft_dir else "剪映虚拟时间线"
     timeline_id = f"时间线_{re.sub(r'[^a-zA-Z0-9_]+', '', title)[:24] or '01'}"
     return VirtualTimeline(timeline_id=timeline_id, title=title, segments=segments)
@@ -538,6 +636,10 @@ def extract_virtual_timeline_audio(
     seg_files: list[str] = []
     for idx, seg in enumerate(timeline.segments):
         if not os.path.isfile(seg.source_path):
+            if not seg.source_path:
+                raise FileNotFoundError(
+                    f"片段 {seg.segment_id} 没有可用的素材路径（组合片段或云端素材未能解析），请重新创建任务"
+                )
             raise FileNotFoundError(f"片段 {seg.segment_id} 对应的原始素材文件不存在: {seg.source_path}")
 
         seg_wav = str(seg_dir / f"seg_{idx:04d}.wav")

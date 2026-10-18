@@ -281,12 +281,12 @@ CODEX_MODELS = [
 ]
 
 OPENCODE_FALLBACK_MODELS = [
-    ("jysd/deepseek-v4.1-flash", "deepseek-v4.1-flash"),
+    ("opencode/deepseek-v4.1-flash-free", "deepseek-v4.1-flash-free"),
     ("opencode-go/gpt-5.6-luna", "gpt-5.6-luna"),
     ("opencode-go/glm-5.3", "glm-5.3"),
     ("openai/gpt-5.6-sol", "gpt-5.6-sol"),
     ("google/gemini-3.8-flash", "gemini-3.8-flash"),
-    ("jysd/glm-5.3-flash", "glm-5.3-flash"),
+    ("opencode/glm-5.3-flash-free", "glm-5.3-flash-free"),
 ]
 
 
@@ -1383,10 +1383,10 @@ class OpenCodeCli(CliProvider):
         return events, cls._find_plan("".join(text_parts)) if text_parts else None
 
     _ALIASES: dict[str, str] = {
-        "deepseek-v4.1-flash": "jysd/deepseek-v4.1-flash",
+        "deepseek-v4.1-flash": "opencode/deepseek-v4.1-flash-free",
         "deepseek-flash": "deepseek/deepseek-flash",
         "deepseek-v4-pro": "deepseek/deepseek-v4-pro",
-        "glm-5.3-flash": "jysd/glm-5.3-flash",
+        "glm-5.3-flash": "opencode/glm-5.3-flash-free",
         "glm-5.2": "jysd/glm-5.2",
         "glm-5.2-instant": "jysd/glm-5.2-instant",
         "glm-5.2-reasoning": "jysd/glm-5.2-reasoning",
@@ -1401,15 +1401,15 @@ class OpenCodeCli(CliProvider):
         id_map = {m.lower(): m for m in model_ids}
         if raw.lower() in id_map:
             return id_map[raw.lower()]
-        if raw.lower() in self._ALIASES:
-            alias = self._ALIASES[raw.lower()]
-            if alias.lower() in id_map:
-                return id_map[alias.lower()]
-            return alias
+        alias = self._ALIASES.get(raw.lower())
+        if alias and alias.lower() in id_map:
+            return id_map[alias.lower()]
         matches = [m for m in model_ids if "/" in m and m.split("/", 1)[1].lower() == raw.lower()]
         if matches:
-            jysd_match = next((m for m in matches if m.startswith("jysd/")), None)
-            return jysd_match or matches[0]
+            opencode_match = next((m for m in matches if m.startswith("opencode/")), None)
+            return opencode_match or matches[0]
+        if alias:
+            return alias
         return raw
 
     def validate_model(self, model: str) -> None:

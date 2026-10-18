@@ -507,5 +507,61 @@ class FindObjectExtractionTest(unittest.TestCase):
             self.assertIn("工具权限被拒绝", str(ctx.exception))
 
 
+class ProbeProviderTest(unittest.TestCase):
+    """probe_provider 复用真实 provider 路径做一次最小结构化自检。"""
+
+    class _FakeProvider:
+        def __init__(self, executable):
+            self.executable = Path(executable)
+            self.requested = None
+
+        def normalize_model(self, model):
+            if not model or model == "auto":
+                return "local/deepseek-v4.1-flash-free"
+            return "local/" + model.split("/", 1)[-1]
+
+        def validate_model(self, model):
+            if model != "local/deepseek-v4.1-flash-free":
+                raise ValueError("不支持模型: " + model)
+
+        def generate_json(self, *, model, prompt, schema, cwd, timeout):
+            self.requested = model
+            return {"data": {"ok": True}}
+
+    def test_probe_uses_resolved_provider_and_model(self):
+        from agent_video.pipeline import ai as pipeline_ai
+        with patch.object(pipeline_ai, "resolve_provider",
+                          return_value=("opencode", "/tmp/opencode")), \
+                patch.dict(pipeline_ai._CLI_BUILDERS, {"opencode": self._FakeProvider}):
+            result = pipeline_ai.probe_provider(provider="opencode", model="deepseek-v4.1-flash-free")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["provider"], "opencode")
+        self.assertEqual(result["model"], "local/deepseek-v4.1-flash-free")
+        self.assertIn("调用成功", result["message"])
+
+    def test_probe_rejects_unsupported_model(self):
+        from agent_video.pipeline import ai as pipeline_ai
+        from agent_video.pipeline.errors import PipelineConfigError
+        with patch.object(pipeline_ai, "resolve_provider",
+                          return_value=("opencode", "/tmp/opencode")), \
+                patch.dict(pipeline_ai._CLI_BUILDERS, {"opencode": self._FakeProvider}):
+            with self.assertRaises(PipelineConfigError):
+                pipeline_ai.probe_provider(provider="opencode", model="not-installed")
+
+    def test_probe_reports_missing_json_contract(self):
+        from agent_video.pipeline import ai as pipeline_ai
+        from agent_video.pipeline.errors import AIReturnError
+
+        class BadProvider(self._FakeProvider):
+            def generate_json(self, *, model, prompt, schema, cwd, timeout):
+                return {"data": {"other": 1}}
+
+        with patch.object(pipeline_ai, "resolve_provider",
+                          return_value=("opencode", "/tmp/opencode")), \
+                patch.dict(pipeline_ai._CLI_BUILDERS, {"opencode": BadProvider}):
+            with self.assertRaises(AIReturnError):
+                pipeline_ai.probe_provider(provider="opencode", model="auto")
+
+
 if __name__ == "__main__":
     unittest.main()

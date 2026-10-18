@@ -124,6 +124,9 @@ button.status:hover{transform:none;background:rgba(168,255,53,.08)}
 .settings-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}.settings-tabs a{text-decoration:none}.settings-form [hidden]{display:none!important}
 
 /* Shared rule management */
+.rules-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.rules-tabs [role="tab"]:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:3px}#pinyinPanel[hidden],#repetitionPanel[hidden],#fillerPanel[hidden]{display:none!important}
+.rules-panel .rules-table{min-width:720px}.rules-panel .rules-table th:first-child{min-width:110px}.rules-panel .rules-table th:last-child{min-width:220px}
+.repetition-group{border:1px solid var(--border,#333);border-radius:8px;padding:16px;margin:16px 0;min-width:0}.repetition-group summary{cursor:pointer;font-weight:600;overflow-wrap:anywhere}.repetition-group p{color:var(--muted,#aaa)}.repetition-group mark{background:#f0d77a;color:#252016;border-radius:3px;padding:1px 2px}
 .rules-panel{padding:24px;margin-bottom:20px;min-width:0}.rules-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;align-items:end}.rules-test-controls{display:flex;gap:16px;align-items:end;flex-wrap:wrap}.rules-test-controls .field{flex:1;min-width:180px}.rules-table-wrap{overflow:auto;margin-top:16px}.rules-table{width:100%;border-collapse:collapse;text-align:left}.rules-table th,.rules-table td{padding:12px;border-bottom:1px solid var(--border,#ddd);vertical-align:top;overflow-wrap:anywhere}.rules-table td:nth-child(2){min-width:180px}.rules-table small{color:var(--muted,#667085)}
 .rules-check{display:flex;align-items:center;gap:8px;padding:10px 0}.rules-panel input[type="checkbox"]{width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px}.rules-panel [hidden]{display:none!important}
 

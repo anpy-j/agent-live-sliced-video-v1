@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from agent_video.pinyin_rules import load_rules
+from agent_video import filler_rules, rule_pipeline
 
 import argparse
 import copy
@@ -183,6 +184,23 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
 
     def run_batch(batch: list[dict[str, Any]]) -> dict[int, dict[str, Any]]:
         nonlocal attempts
+        checkpoint_key = None
+        if hasattr(on_batch, "lookup") and model != "auto":
+            from agent_video.ai_contract import json_prompt
+            checkpoint_key = on_batch.key(model, json_prompt(_judge_prompt(batch, product_name),
+                                                            DECISION_SCHEMA), DECISION_SCHEMA)
+            with lock:
+                cached = on_batch.lookup(checkpoint_key)
+            if cached is not None:
+                members = [clause for unit in batch for clause in unit["members"]]
+                try:
+                    result = _validate_decisions({"decisions": cached}, members)
+                except AIReturnError:
+                    pass  # Damaged checkpoints are recomputed, never accepted blindly.
+                else:
+                    with lock:
+                        on_batch(result)
+                    return result
         last: AIReturnError | None = None
         for _ in range(retries + 1):
             try:
@@ -190,6 +208,8 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
                 with lock:
                     attempts += 1
                     if on_batch is not None:
+                        if checkpoint_key is not None:
+                            on_batch.store(checkpoint_key, result)
                         on_batch(result)
                 return result
             except AIReturnError as exc:
@@ -390,10 +410,76 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
     if available is not None and available < floor:
         floor = available
     if total < floor or total > high + tolerance + overflow:
-        raise AIReturnError(
-            f"S4 排序总时长 {total:.2f}s 不在目标 {low:g}~{high:g}s 内"
-            f"（长单元溢出容忍 {overflow:.2f}s）")
+        # 时长偏离目标仅作提示，不再中断任务：素材可用量、语速与长单元溢出
+        # 都可能让成片落不进目标区间，交由后续人工微调。
+        print(f"[order] S4 排序总时长 {total:.2f}s 不在目标 {low:g}~{high:g}s 内"
+              f"（长单元溢出容忍 {overflow:.2f}s），继续执行",
+              file=sys.stderr, flush=True)
     return main_product.strip(), seen, total, sections
+
+
+def _filter_s2(clauses, workdir, min_duration):
+    settings = rule_pipeline.load_settings()
+    features = settings["features"]
+    pinyin_snapshot = load_rules() if features["pinyin"]["enabled"] else {"revision": "disabled", "rules": []}
+    _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
+    filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
+    repetition = features["repetition"]
+    report = (rule_pipeline.apply_repetition(clauses, repetition["options"])
+              if repetition["enabled"] else {"removed_ids": [], "status": "disabled"})
+    _dump(os.path.join(workdir, "s2-rule-pipeline.snapshot.json"),
+          {**settings, "repetition": report})
+
+
+def _clean_s4(candidates, ordered_ids, clauses, workdir):
+    by_id = {c["id"]: c for c in candidates}
+    selected = [by_id[cid] for cid in ordered_ids]
+    settings = rule_pipeline.load_settings()
+    enabled = settings["features"]["filler"]["enabled"]
+    snapshot = filler_rules.load_rules() if enabled else {"revision": "disabled", "rules": []}
+    report = filler_rules.clean_selection(selected,
+                                         filler_rules.load_words(workdir, clauses) if enabled else [], snapshot)
+    report["integration"] = {**settings["features"]["filler"], "revision": settings["revision"]}
+    _dump(os.path.join(workdir, "filler-rules.snapshot.json"), report["rules"])
+    return report
+
+
+def _restore_s4_cleaning(order_data, candidates):
+    report = order_data.get("filler_cleanup")
+    if report is None:
+        return candidates
+    version = report.get("version")
+    if version not in (1, 2) or report.get("source_candidates") != candidates:
+        raise PipelineError("S4 口头词清理快照与上游不一致，请重新执行 S4")
+    cleaned = report.get("cleaned_candidates")
+    if not isinstance(cleaned, list):
+        raise PipelineError("S4 口头词清理结果损坏，请重新执行 S4")
+    if version == 2 and report.get("cleaned_digest") != filler_rules.clips_digest(cleaned):
+        raise PipelineError("S4 口头词清理快照被改动，请重新执行 S4")
+    # Keep old leading-only reports renderable; new reports may contain multiple cuts per ID.
+    index = 0
+    for before in candidates:
+        last_end, char_cursor, count = float(before["start"]), 0, 0
+        while index < len(cleaned) and cleaned[index].get("id") == before["id"]:
+            after = cleaned[index]
+            try:
+                start, end = float(after["start"]), float(after["end"])
+                text = after["text"]
+                position = before["text"].find(text, char_cursor)
+                valid = (last_end <= start < end <= float(before["end"])
+                         and bool(text) and position >= 0)
+            except (KeyError, TypeError, ValueError):
+                valid = False
+            if not valid:
+                raise PipelineError("S4 口头词清理区间损坏，请重新执行 S4")
+            last_end, char_cursor = end, position + len(text)
+            index += 1
+            count += 1
+        if count == 0 or version == 1 and count != 1:
+            raise PipelineError("S4 口头词清理片段缺失，请重新执行 S4")
+    if index != len(cleaned):
+        raise PipelineError("S4 口头词清理片段失配，请重新执行 S4")
+    return cleaned
 
 
 def run_pipeline_stage(media: str, workdir: str, stage: str, *,
@@ -439,9 +525,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         base = _load_required(os.path.join(workdir, "clauses.json"), "S1 子句数据")
         clauses = copy.deepcopy(base["clauses"])
         _emit(on_stage, "filter", "start", "单独重跑规则粗筛（复用 S1 数据）")
-        pinyin_snapshot = load_rules()
-        _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
-        filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
+        _filter_s2(clauses, workdir, min_duration)
         usable = [clause for clause in clauses if clause["usable"]]
         if not usable:
             raise RuleFilterEmpty(f"S2 规则筛后无可用子句（共 {len(clauses)} 条全部被剔除）")
@@ -509,6 +593,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         by_id = {candidate["id"]: candidate for candidate in candidates}
         ordered_clauses = sorted((by_id[cid] for cid in position if cid in by_id),
                                  key=lambda candidate: position[candidate["id"]])
+        ordered_clauses = _restore_s4_cleaning(order_data, ordered_clauses)
         if not ordered_clauses:
             raise PipelineError("S4 排序结果为空，无法渲染成片")
         _emit(on_stage, "render", "start", "单独重跑渲染成片（复用 S4 排序结果）")
@@ -526,6 +611,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
             "timeline_id": virtual_timeline.timeline_id if virtual_timeline else None,
             "virtual_timeline": virtual_timeline.to_dict() if virtual_timeline else None,
             "duration": float(judged_data.get("duration") or 0.0),
+            "filler_cleanup": order_data.get("filler_cleanup"),
             "main_product": order_data.get("main_product") or "",
             "order_sections": order_data.get("sections") or [],
             "ai_calls": 0,
@@ -573,11 +659,14 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     timeline = {"source": media, "duration": float(judged_data.get("duration") or 0.0),
                 "clauses": clauses}
     _dump(os.path.join(workdir, "timeline.json"), timeline)
-    result = {"stage": stage, "main_product": main_product, "sections": sections,
+    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir)
+    total_seconds = cleanup["total_seconds"]
+    result = {"filler_cleanup": cleanup, "stage": stage, "main_product": main_product, "sections": sections,
               "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3)}
     _dump(os.path.join(workdir, "order.json"), result)
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；上游数据保持不变")
+          f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；口头词清理 "
+          f"{sum(r['status'] == 'cleaned' for r in cleanup['rows'])} 段；上游数据保持不变")
     return result
 
 
@@ -658,6 +747,9 @@ def run_pipeline(media: str, workdir: str, *,
         clauses = cached_timeline["clauses"]
         duration = float(cached_timeline.get("duration") or 0.0)
         timeline = cached_timeline
+        words = filler_rules.load_words(workdir, clauses)
+        if words:
+            timeline["words"] = words
         _dump(timeline_path, timeline)
         _dump(clauses_path, timeline)
         _emit(on_stage, "asr", "done", f"复用已有 {len(clauses)} 个子句")
@@ -704,15 +796,14 @@ def run_pipeline(media: str, workdir: str, *,
             timeline = {"source": media, "duration": round(float(duration), 3),
                         "clauses": clauses}
 
+        timeline["words"] = words
         _dump(timeline_path, timeline)
         _dump(clauses_path, timeline)
         _emit(on_stage, "asr", "done", f"切出 {len(clauses)} 个子句")
 
     # S2 —— 规则粗筛（确定性）
     _emit(on_stage, "filter", "start", "规则粗筛（违禁/价格/场控/去重）")
-    pinyin_snapshot = load_rules()
-    _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
-    filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
+    _filter_s2(clauses, workdir, min_duration)
     _dump(os.path.join(workdir, "clauses.filtered.json"),
           {"source": source_name, "duration": timeline["duration"], "clauses": clauses})
     usable = [clause for clause in clauses if clause["usable"]]
@@ -775,12 +866,16 @@ def run_pipeline(media: str, workdir: str, *,
                               if candidate["id"] in position),
                              key=lambda candidate: position[candidate["id"]])
     _dump(os.path.join(workdir, "timeline.json"), timeline)
+    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir)
+    ordered_clauses = cleanup["cleaned_candidates"]
+    total_seconds = cleanup["total_seconds"]
     _dump(os.path.join(workdir, "order.json"), {
-        "stage": "order", "main_product": main_product, "sections": sections,
+        "filler_cleanup": cleanup, "stage": "order", "main_product": main_product, "sections": sections,
         "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
     })
     _emit(on_stage, "order", "done",
-          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s")
+          f"选出 {len(ordered_clauses)} 段、共 {total_seconds:.2f}s；口头词清理 "
+          f"{sum(r['status'] == 'cleaned' for r in cleanup['rows'])} 段")
 
     # S6 —— 渲染（确定性）
     _emit(on_stage, "render", "start", "ffmpeg 逐段剪切并拼接")
@@ -803,6 +898,7 @@ def run_pipeline(media: str, workdir: str, *,
         "timeline_id": virtual_timeline.timeline_id if virtual_timeline else None,
         "virtual_timeline": virtual_timeline.to_dict() if virtual_timeline else None,
         "duration": timeline["duration"],
+        "filler_cleanup": cleanup,
         "main_product": main_product,
         "order_sections": sections,
         "ai_calls": ai_calls,

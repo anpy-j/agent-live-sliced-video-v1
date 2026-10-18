@@ -1,5 +1,5 @@
 {
-  "revision": "e14b6852ffcd9fc3",
+  "revision": "46a7b0e1147541e8",
   "rules": [
     {
       "id": "d506da9c304c4016a79f2449bae2bd21",
@@ -20,6 +20,118 @@
       "pinyin": "shui diao",
       "name": "shui diao",
       "note": "水貂",
+      "enabled": true
+    },
+    {
+      "id": "4032be6866684b428510bb3a47b1c3f3",
+      "pinyin": "mou wei",
+      "name": "mou wei",
+      "note": "某V",
+      "enabled": true
+    },
+    {
+      "id": "069047a3ebb74e7a820b355072cd0842",
+      "pinyin": "wo gei ni men shi yi xia",
+      "name": "wo gei ni men shi yi xia",
+      "note": "我给你们试一下",
+      "enabled": true
+    },
+    {
+      "id": "0688de93a8724d9dac31479bb39adee8",
+      "pinyin": "yuan ban",
+      "name": "yuan ban",
+      "note": "原版",
+      "enabled": true
+    },
+    {
+      "id": "75af3b7015f1406e802142a943285077",
+      "pinyin": "lian jie",
+      "name": "lian jie",
+      "note": "链接",
+      "enabled": true
+    },
+    {
+      "id": "1165847f7aba49df9760d8db078d1064",
+      "pinyin": "xiao liang",
+      "name": "xiao liang",
+      "note": "销量",
+      "enabled": true
+    },
+    {
+      "id": "9a9e4458686d4ab29496db6d415e0a6c",
+      "pinyin": "zhi ding",
+      "name": "zhi ding",
+      "note": "置顶",
+      "enabled": true
+    },
+    {
+      "id": "16349cd5961b4847a12283a9ed14c1a7",
+      "pinyin": "bai fen bai",
+      "name": "bai fen bai",
+      "note": "百分百",
+      "enabled": true
+    },
+    {
+      "id": "48dee5d75a19401f99148dbe33ae8c8b",
+      "pinyin": "ge di",
+      "name": "ge di",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "2fcc4c81bc1d42ceacbb196bec3c714f",
+      "pinyin": "he ben",
+      "name": "he ben",
+      "note": "赫本",
+      "enabled": true
+    },
+    {
+      "id": "3af7ef5f91e64e1c8f85092c18c028c7",
+      "pinyin": "ge mou di",
+      "name": "ge mou di",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "503f1229275c46efa66a8cdff5d44950",
+      "pinyin": "xiang nai nai",
+      "name": "xiang nai nai",
+      "note": "香奶奶",
+      "enabled": true
+    },
+    {
+      "id": "448e0b4c40c144b385b0fb7a4362508c",
+      "pinyin": "lang zi",
+      "name": "lang zi",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "6115d2fa7ad4444083221e8f114f1b8b",
+      "pinyin": "zhuo ya",
+      "name": "zhuo ya",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "fcab2f1e95e64d119da2ca85a936180e",
+      "pinyin": "a ma shi",
+      "name": "a ma shi",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "9d3bc7c6817d49e6a20a0fcc1031a85c",
+      "pinyin": "miu miu",
+      "name": "miu miu",
+      "note": "",
+      "enabled": true
+    },
+    {
+      "id": "7f5564b2eee240b980236e64acc0b2a4",
+      "pinyin": "di ao",
+      "name": "di ao",
+      "note": "",
       "enabled": true
     }
   ]

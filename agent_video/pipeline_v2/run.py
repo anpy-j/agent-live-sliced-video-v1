@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from agent_video.pipeline_v3.ai import DEFAULT_TIMEOUT as AI_DEFAULT_TIMEOUT
 from agent_video.pipeline_v3.errors import PipelineError
 from agent_video.pipeline_v3.filter import activate_account_vocab
 from agent_video.pipeline_v3.render import build_segments, build_virtual_segments, render_video
@@ -48,7 +49,8 @@ def check_upstream(value, source_fp, name):
 
 def run_pipeline(media, workdir, *, target_seconds=(70.0, 90.0), product_name=None,
                  output_stem=None, on_stage=None, virtual_timeline=None, only_stage=None,
-                 ai_model=None, ai_timeout=240, ai_fn=None, render_fn=None, **shared_kwargs):
+                 ai_model=None, ai_timeout=AI_DEFAULT_TIMEOUT, ai_fn=None, render_fn=None,
+                 **shared_kwargs):
     workspace = Path(workdir).resolve()
     directory = workspace / "v2"
     directory.mkdir(parents=True, exist_ok=True)

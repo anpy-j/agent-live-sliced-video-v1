@@ -30,6 +30,7 @@ from agent_video.ai import (AntigravityCli, CodexCli, OpenCodeCli,
                             WorkBuddyCli, _workbuddy_cli_entries)
 
 from .errors import AIReturnError, PipelineConfigError
+from agent_video.ai_contract import json_prompt, save_failure
 
 def _default_timeout() -> int:
     """单次 AI 调用上限，秒。
@@ -184,6 +185,7 @@ def resolve_provider(provider: str | None = None) -> tuple[str, str]:
 
 def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
               timeout: int) -> dict[str, Any]:
+    prompt = json_prompt(prompt, json_schema)
     if os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
         from ..api_transport import json_completion
         chosen = model or os.environ.get('PIPELINE_AI_MODEL', '')
@@ -213,7 +215,12 @@ def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
                 model=chosen_model, prompt=prompt, schema=json_schema,
                 cwd=Path(temp_dir), timeout=timeout)
         except ProviderResponseError as exc:
-            raise AIReturnError(f"{provider_id} AI 调用失败：{exc}") from exc
+            diagnostic = save_failure(provider_id, chosen_model, json_schema, exc)
+            detail = f"；诊断：{diagnostic}" if diagnostic else ""
+            required = ", ".join(json_schema.get("required") or [])
+            raise AIReturnError(
+                f"{provider_id} AI 调用失败（模型 {chosen_model}，必需字段 {required}）：{exc}{detail}"
+            ) from exc
         except (OSError, RuntimeError) as exc:
             raise AIReturnError(f"{provider_id} AI 调用失败：{exc}") from exc
     return result["data"]

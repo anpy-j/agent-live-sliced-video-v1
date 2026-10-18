@@ -35,12 +35,11 @@ class VersionsTest(unittest.TestCase):
         vocab_v3.set_profile({}, None)
         activate_v3()
 
-    def test_v1_hard_duration_and_v3_soft_duration(self):
+    def test_v1_and_v3_accept_duration_outside_target(self):
         candidates = [{'id': 0, 'start': 0, 'end': 2, 'text': '面料柔软'}]
         order = {'main_product': '马甲', 'ordered_ids': [0],
                  'sections': [{'role': 'hook', 'ids': [0]}]}
-        with self.assertRaises(v1.AIReturnError):
-            v1._validate_order(order, candidates, (70, 90), 1)
+        self.assertEqual(v1._validate_order(order, candidates, (70, 90), 1)[2], 2)
         self.assertEqual(v3._validate_order(order, candidates, (70, 90), 1)[2], 2)
 
     def test_v1_requires_hook_while_v3_accepts_selling_point(self):

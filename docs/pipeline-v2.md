@@ -41,13 +41,15 @@
 | 环境变量 | 默认值 | 含义 |
 |---|---:|---|
 | `PIPELINE_V2_MAX_CALLS` | 16 | 任务累计启动调用数量，含失败与手动重跑 |
-| `PIPELINE_V2_MAX_OUTPUT_TOKENS` | 64000 | 可观测累计输出用量停止线 |
-| `PIPELINE_V2_REQUEST_OUTPUT` | 8000 | WorkBuddy 每请求输出限制；同时检查每次CLI可见及汇总用量 |
+| `PIPELINE_V2_MAX_OUTPUT_TOKENS` | 400000 | 可观测累计输出用量停止线（长素材 S3 多批 + S4/S5 的合计） |
+| `PIPELINE_V2_REQUEST_OUTPUT` | 32000 | WorkBuddy 每请求输出上限（`CODEBUDDY_CODE_MAX_OUTPUT_TOKENS`）；同时检查每次CLI可见及汇总用量 |
 | `PIPELINE_V2_PROMPT_CHARS` | 24000 | 单次输入字符上限，超出时停止，不静默截断 |
 
-单次默认超时 240 秒。WorkBuddy 使用独立调用环境、最多两轮、关闭普通重试并设置空流恢复期限，监控可见流式用量并核查最终累计报告。
+单次默认超时与 V1/V3 同源（`PIPELINE_AI_TIMEOUT`，默认 900 秒）。WorkBuddy 使用独立调用环境、最多六轮、关闭普通重试并设置空流恢复期限，监控可见流式用量并核查最终累计报告。
 
-**这些限制不能保证供应商绝不超额计费。** 已知 CLI 隐藏恢复可能在最终返回时才暴露累计用量。超过停止线会记录失败、阻止后续调用和结果放行，但不能撤回已经发生的消耗。没有把未验证的“low effort”或“推理 token 限额”当作硬保证。
+每请求输出上限必须接近模型自身的输出额度，不能当成花费预算：`hy3` 等模型是纯推理模型（`onlyReasoning`、`canDisableThinking=false`），思考 token 也计入输出。把上限压到 8000 会让请求以 `finish_reason=length` 截断，从而触发 CLI 内置的 4 次 “Structured output not captured” 重试（每次约 60–70 秒、各自计费）。该重试次数在 CLI 内硬编码，无法通过环境变量关闭，因此轮次预算按“1 次正常提交 + 4 次内置重试”留出余量。
+
+**这些限制不能保证供应商绝不超额计费。** 已知 CLI 隐藏恢复可能在最终返回时才暴露累计用量。只要 CLI 真的提交了符合 schema 的结构结果，隐藏重试的可见用量会记入 `usage.json` 的 `budget_breached_calls` 并放行该结果，因为这次消耗已经发生、丢弃结果只会白付一次；只有在没有拿到结构结果时才按预算停止。超过累计停止线仍会记录失败并阻止后续调用，但不能撤回已经发生的消耗。没有把未验证的“low effort”或“推理 token 限额”当作硬保证。
 
 ## 验证
 

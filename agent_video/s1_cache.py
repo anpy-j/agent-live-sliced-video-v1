@@ -20,18 +20,11 @@ def input_key(timeline: VirtualTimeline, version: str) -> str:
     files = []
     for name in timeline.source_paths:
         path = Path(name)
-        before = path.stat()
-        content = hashlib.sha256()
-        with path.open("rb") as stream:
-            for block in iter(lambda: stream.read(4 * 1024 * 1024), b""):
-                content.update(block)
-        after = path.stat()
-        if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
-            raise ValueError("素材正在变动，请保存完成后重新开始编辑")
-        files.append({"path": str(path.resolve()), "size": after.st_size,
-                      "mtime_ns": after.st_mtime_ns, "sha256": content.hexdigest()})
+        metadata = path.stat()
+        files.append({"path": str(path.resolve()), "size": metadata.st_size,
+                      "mtime_ns": metadata.st_mtime_ns})
     # Bump this contract when S1's transcription/splitting semantics change.
-    return _digest({"contract": 1, "pipeline_version": version,
+    return _digest({"contract": 2, "pipeline_version": version,
                     "timeline": timeline.to_dict(), "files": files})
 
 
@@ -41,6 +34,15 @@ def prepare(workspace: Path, timeline: VirtualTimeline, version: str):
     candidates = [workspace / SNAPSHOT]
     if workspace.parent.name == "edits":
         candidates.extend(sorted(workspace.parent.glob(f"*/{SNAPSHOT}"), reverse=True))
+        root = workspace.parent.parent
+        if root.parent.name == "timelines":
+            # A relocated draft/media path can change the task directory digest,
+            # while older jobs retain their original directory. The verified key,
+            # not directory membership, decides whether S1 is still reusable.
+            prefix = root.name.rsplit("-", 1)[0] + "-"
+            for sibling in sorted(root.parent.iterdir(), reverse=True):
+                if sibling != root and sibling.is_dir() and sibling.name.startswith(prefix):
+                    candidates.extend(sorted((sibling / "edits").glob(f"*/{SNAPSHOT}"), reverse=True))
     reused = None
     data = None
     for candidate in candidates:

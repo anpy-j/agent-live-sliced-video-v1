@@ -187,6 +187,23 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
 
     def run_batch(batch: list[dict[str, Any]]) -> dict[int, dict[str, Any]]:
         nonlocal attempts
+        checkpoint_key = None
+        if hasattr(on_batch, "lookup") and model != "auto":
+            from agent_video.ai_contract import json_prompt
+            checkpoint_key = on_batch.key(model, json_prompt(_judge_prompt(batch, product_name),
+                                                            DECISION_SCHEMA), DECISION_SCHEMA)
+            with lock:
+                cached = on_batch.lookup(checkpoint_key)
+            if cached is not None:
+                members = [clause for unit in batch for clause in unit["members"]]
+                try:
+                    result = _validate_decisions({"decisions": cached}, members)
+                except AIReturnError:
+                    pass  # Damaged checkpoints are recomputed, never accepted blindly.
+                else:
+                    with lock:
+                        on_batch(result)
+                    return result
         last: AIReturnError | None = None
         for _ in range(retries + 1):
             try:
@@ -194,6 +211,8 @@ def _run_judge_batches(model: str, batches: list[list[dict[str, Any]]],
                 with lock:
                     attempts += 1
                     if on_batch is not None:
+                        if checkpoint_key is not None:
+                            on_batch.store(checkpoint_key, result)
                         on_batch(result)
                 return result
             except AIReturnError as exc:

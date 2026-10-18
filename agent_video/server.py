@@ -87,12 +87,13 @@ class Application:
                         and (self.smart.workspace(j["id"]) / "S2.json").is_file())
         return {"jobs": jobs}
 
-    def test_pinyin_rules(self, payload):
-        from .pinyin_rules import load_rules, match_text
+    def _rule_test_rows(self, payload):
         job_id = str(payload.get("job_id") or "")
         kind = payload.get("kind", "legacy")
         if kind == "smart":
             job = self.smart.get_job(job_id)
+            if not job:
+                raise ValueError("任务不存在")
             file = self.smart.workspace(job_id) / "S2.json"
         elif kind == "legacy":
             job = self.store.get_job(job_id)
@@ -111,6 +112,59 @@ class Application:
         rows = data.get("clauses", []) if kind == "legacy" else [
             *[{**r, "usable": True} for r in data.get("kept", [])],
             *[{**r, "usable": False, "reason": r.get("filter_reason")} for r in data.get("removed", [])]]
+        return rows
+
+    def filler_test_jobs(self):
+        return {"jobs": [{"id": j["id"], "title": j["title"], "version": "v1"}
+                         for j in self.store.list_jobs(limit=10000)
+                         if j["status"] == "completed" and j.get("pipeline_version", "v1") == "v1"
+                         and j.get("job_type") != "remix"
+                         and (Path(j["workspace"]) / "order.json").is_file()]}
+
+    def test_filler_rules(self, payload):
+        from . import filler_rules
+        snapshot = filler_rules.load_rules(self.data_dir / "filler_rules.json")
+        rule_id = payload.get("rule_id")
+        if rule_id:
+            rule = next((r for r in snapshot["rules"] if r["id"] == rule_id), None)
+            if rule is None:
+                raise ValueError("请选择存在的口头词规则")
+            snapshot = {**snapshot, "rules": [{**rule, "enabled": True}]}
+        if payload.get("job_id"):
+            job = self.store.get_job(str(payload["job_id"]))
+            if (not job or job["status"] != "completed" or job.get("pipeline_version", "v1") != "v1"
+                    or job.get("job_type") == "remix"):
+                raise ValueError("请选择已完成的 V1 任务")
+            workspace = Path(job["workspace"])
+            from .pipeline.units import order_candidates
+            clauses = json.loads((workspace / "timeline.json").read_text(encoding="utf-8"))["clauses"]
+            order = json.loads((workspace / "order.json").read_text(encoding="utf-8"))
+            candidates = {c["id"]: c for c in order_candidates([c for c in clauses if c.get("usable")])}
+            try:
+                selected = [candidates[cid] for cid in order["ordered_ids"]]
+            except KeyError:
+                raise ValueError("任务 S4 与上游不一致，请重新执行 S4") from None
+            report = filler_rules.clean_selection(selected, filler_rules.load_words(workspace, clauses), snapshot)
+            rows = report["rows"]
+        else:
+            text = str(payload.get("text") or "").strip()
+            if not text or len(text) > 10000:
+                raise ValueError("请输入1–10000字测试文本或选择任务")
+            row = filler_rules.match_text(text, snapshot)
+            rows = [{**row, "cleaned_text": row["preview_text"] if row["preview_text"] else text,
+                     "status": "preview", "reason": "仅文本预览；音视频切点请使用任务测试"}]
+        return {"revision": snapshot["revision"], "rows": rows, "total": len(rows),
+                "matched": sum(bool(r["hits"]) for r in rows),
+                "cleaned": sum(r["status"] == "cleaned" for r in rows)}
+
+    def test_repetition_rules(self, payload):
+        from .repetition_rules import match_rows, trial_options
+        options = trial_options(payload)
+        return match_rows(self._rule_test_rows(payload), options)
+
+    def test_pinyin_rules(self, payload):
+        from .pinyin_rules import load_rules, match_text
+        rows = self._rule_test_rows(payload)
         snapshot = load_rules(self.data_dir / "pinyin_rules.json")
         rule_id = payload.get("rule_id")
         if rule_id is not None:
@@ -407,19 +461,28 @@ class Application:
             item["duration_text"] = f"{int(minutes)}分{seconds:04.1f}秒"
         return discovered
 
+    @property
+    def jianying_library_path(self) -> Path:
+        return self.root / "data" / "jianying_library.json"
+
     def list_jianying_drafts(self) -> dict[str, Any]:
         from .jianying import (
             default_export_dir, draft_title_base, list_jianying_drafts, next_available_title,
         )
+        from .jianying_library import load_library
 
         drafts = list_jianying_drafts(
             cache_path=self.root / "data" / "jianying_draft_cache.json"
         )
+        library = load_library(self.jianying_library_path)
         export_dir = default_export_dir()
         titles = self.store.list_job_titles()
         active_titles = self.store.list_active_job_titles()
         covers: dict[str, Path] = {}
         for draft in drafts:
+            entry = library["drafts"].get(draft["id"]) or {}
+            draft["folder"] = entry.get("folder", "")
+            draft["note"] = entry.get("note", "")
             draft["suggested_title"] = next_available_title(
                 draft["name"], titles, export_dir
             )
@@ -438,6 +501,7 @@ class Application:
         self._jianying_covers = covers
         return {
             "drafts": drafts,
+            "folders": library["folders"],
             "pipeline_versions": ["v1", "v2", "v3"],
             "default_pipeline_version": "v1",
             "defaults": {
@@ -448,6 +512,18 @@ class Application:
                 "timeline_strategy": "longest",
             },
         }
+
+    def update_jianying_draft(self, draft_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        from .jianying_library import update_draft
+
+        if "folder" not in payload and "note" not in payload:
+            raise ValueError("请提供要更新的文件夹或备注")
+        return update_draft(
+            self.jianying_library_path,
+            draft_id,
+            folder=payload.get("folder"),
+            note=payload.get("note"),
+        )
 
     def jianying_cover(self, draft_id: str) -> Path | None:
         return getattr(self, "_jianying_covers", {}).get(draft_id)
@@ -867,6 +943,22 @@ try {{
         result["ai_model_catalogs"] = {"workbuddy": workbuddy_catalog_info()}
         return result
 
+    def test_ai_model(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """验证当前选择的 AI 提供方/模型能否完成一次结构化调用。"""
+        provider = str(payload.get("provider")
+                       or self.store.get_setting("ai_provider", "auto")).strip().lower() or "auto"
+        model = str(payload.get("model")
+                    or self.store.get_setting("ai_model", "auto")).strip() or "auto"
+        if provider == "api":
+            result = self.ai_access.test()
+            return {"ok": True, "provider": "api", "model": model,
+                    "message": result.get("message") or "API 连接成功"}
+        from .pipeline.ai import probe_provider
+        try:
+            return probe_provider(provider=provider, model=model)
+        except Exception as exc:  # 统一转成前端可读的 400 错误
+            raise ValueError(str(exc) or "模型测试失败") from exc
+
     def update_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
         allowed = {"engine_python", "skill_path", "mcp_enabled", "ai_engine", "ai_provider",
                    "ai_model", "jev_api_key", "jev_base_url", "export_dir"}
@@ -1199,10 +1291,20 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"ok": True, "version": "0.1.0"})
             if path == "/api/dashboard":
                 return self.json_response(self.app.store.dashboard())
+            if path == "/api/rules/pipeline":
+                from .rule_pipeline import load_settings
+                return self.json_response(load_settings(self.app.data_dir / "rule_pipeline.json"))
+            if path == "/api/rules/filler":
+                from .filler_rules import load_rules
+                return self.json_response(load_rules(self.app.data_dir / "filler_rules.json"))
+            if path == "/api/rules/filler/jobs":
+                return self.json_response(self.app.filler_test_jobs())
             if path == "/api/rules/pinyin":
                 from .pinyin_rules import load_rules
                 return self.json_response(load_rules(self.app.data_dir / "pinyin_rules.json"))
             if path == "/api/rules/pinyin/jobs":
+                return self.json_response(self.app.pinyin_test_jobs())
+            if path == "/api/rules/repetition/jobs":
                 return self.json_response(self.app.pinyin_test_jobs())
             if path == "/api/jobs":
                 return self.json_response({"jobs": self.app.store.list_jobs()})
@@ -1250,7 +1352,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/skill":
                 return self.json_response(self.app.skill())
             if path == "/api/mcp":
-                return self.json_response(self.app.mcp_info(self.headers.get("Host", "127.0.0.1:8787")))
+                return self.json_response(self.app.mcp_info(self.headers.get("Host", "127.0.0.1:8788")))
             if path == "/api/label/profile":
                 return self.json_response(self.app.label_profile_info())
             if path == "/api/label/sessions":
@@ -1276,8 +1378,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path == "/api/rules/filler/test":
+                return self.json_response(self.app.test_filler_rules(payload))
+            if path == "/api/rules/filler":
+                from .filler_rules import save_rule
+                return self.json_response(save_rule(self.app.data_dir / "filler_rules.json", payload))
             if path == "/api/rules/pinyin/test":
                 return self.json_response(self.app.test_pinyin_rules(payload))
+            if path == "/api/rules/repetition/test":
+                return self.json_response(self.app.test_repetition_rules(payload))
             if path == "/api/rules/pinyin":
                 from .pinyin_rules import save_rule
                 return self.json_response(save_rule(self.app.data_dir / "pinyin_rules.json", payload))
@@ -1288,6 +1397,7 @@ class Handler(BaseHTTPRequestHandler):
                 actions = {
                     '/api/ai/config': lambda: self.app.ai_access.save(payload),
                     '/api/ai/test': self.app.ai_access.test,
+                    '/api/ai/test-model': lambda: self.app.test_ai_model(payload),
                     '/api/ai/key/clear': self.app.ai_access.clear_key,
                     '/api/ai/codex/login': self.app.ai_access.login,
                     '/api/ai/codex/cancel': self.app.ai_access.cancel,
@@ -1383,11 +1493,20 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path.startswith("/api/rules/pipeline/"):
+                from .rule_pipeline import save_setting
+                return self.json_response(save_setting(self.app.data_dir / "rule_pipeline.json", path.rsplit("/", 1)[1], payload))
+            if path.startswith("/api/rules/filler/"):
+                from .filler_rules import save_rule
+                return self.json_response(save_rule(self.app.data_dir / "filler_rules.json", payload, path.rsplit("/", 1)[1]))
             if path.startswith("/api/rules/pinyin/"):
                 from .pinyin_rules import save_rule
                 return self.json_response(save_rule(self.app.data_dir / "pinyin_rules.json", payload, path.rsplit("/", 1)[1]))
             if self.postprocess_route("PUT", path, payload) or self.editor_route("PUT", path, payload):
                 return
+            if path.startswith("/api/jianying/drafts/"):
+                draft_id = path.removeprefix("/api/jianying/drafts/").strip("/")
+                return self.json_response(self.app.update_jianying_draft(draft_id, payload))
             if path == "/api/settings":
                 return self.json_response(self.app.update_settings(payload))
             if path == "/api/skill":
@@ -1406,6 +1525,9 @@ class Handler(BaseHTTPRequestHandler):
             if not self.desktop_authorized():
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
+            if path.startswith("/api/rules/filler/"):
+                from .filler_rules import delete_rule
+                return self.json_response(delete_rule(self.app.data_dir / "filler_rules.json", path.rsplit("/", 1)[1]))
             if path.startswith("/api/rules/pinyin/"):
                 from .pinyin_rules import delete_rule
                 return self.json_response(delete_rule(self.app.data_dir / "pinyin_rules.json", path.rsplit("/", 1)[1]))
@@ -1538,7 +1660,7 @@ class Server(ThreadingHTTPServer):
 
 class ServiceSession:
     """Shared lifecycle for CLI and desktop; owns lock, HTTP server and workers."""
-    def __init__(self, root: Path, host='127.0.0.1', port=8787, data_root=None, vault=None):
+    def __init__(self, root: Path, host='127.0.0.1', port=8788, data_root=None, vault=None):
         self.root, self.data_root = Path(root), Path(data_root or root)
         self.host, self.port, self.vault = host, port, vault
         self.lock = DataLock(self.data_root)
@@ -1584,7 +1706,7 @@ class ServiceSession:
         self.close()
 
 
-def serve(root: Path, host: str = "127.0.0.1", port: int = 8787, data_root=None) -> None:
+def serve(root: Path, host: str = "127.0.0.1", port: int = 8788, data_root=None) -> None:
     with ServiceSession(root, host, port, data_root=data_root) as session:
         if os.environ.get('LIVECUT_DESKTOP_TOKEN'):
             print('LIVECUT_READY ' + json.dumps({'port': session.server.server_port}), flush=True)

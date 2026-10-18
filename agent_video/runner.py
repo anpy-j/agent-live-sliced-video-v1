@@ -165,6 +165,7 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
         os.setsid()
 
     s1_key = None
+    s1_reused_from = None
 
     def on_stage(stage: str, status: str, message: str) -> None:
         if status == "start" and pause_event is not None and pause_event.is_set():
@@ -172,6 +173,8 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
         if stage == "asr" and status == "done" and s1_key is not None:
             from .s1_cache import save
             save(Path(workspace), s1_key)
+            if s1_reused_from is not None:
+                message = f"复用任务 {s1_reused_from.name} 的 S1；{message}"
         result_queue.put(("stage", stage, status, message))
 
     try:
@@ -185,7 +188,7 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
         if vt is not None and only_stage is None and not remix_config_file.is_file():
             from .s1_cache import prepare
             on_stage("asr", "start", "检查时间线和素材文件，查找可复用的 S1")
-            s1_key, _ = prepare(Path(workspace), vt, pipeline_version)
+            s1_key, s1_reused_from = prepare(Path(workspace), vt, pipeline_version)
         if pipeline_version != "v1" and remix_config_file.is_file():
             raise PipelineError("成片重组仅支持 V1 流程")
         if remix_config_file.is_file():
@@ -728,9 +731,11 @@ class JobRunner:
         未配置 DB 设置时，用 ``_AI_ENV_DEFAULTS`` 注入生产默认（S3 并发/重试）；DB
         设置或调用方已有的环境变量优先，仍可回退成串行。
         """
-        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY", "LIVECUT_PINYIN_RULES"}
+        managed = set(_AI_ENV_KEYS.values()) | set(_AI_ENV_DEFAULTS) | {"LIVE_CUT_API_KEY", "LIVECUT_PINYIN_RULES", "LIVECUT_FILLER_RULES", "LIVECUT_RULE_PIPELINE"}
         previous = {key: os.environ.get(key) for key in managed}
         os.environ["LIVECUT_PINYIN_RULES"] = str(self.project_root / "data" / "pinyin_rules.json")
+        os.environ["LIVECUT_FILLER_RULES"] = str(self.project_root / "data" / "filler_rules.json")
+        os.environ["LIVECUT_RULE_PIPELINE"] = str(self.project_root / "data" / "rule_pipeline.json")
         override = json.loads((job or {}).get("remote_model_json") or "{}")
         for setting_key, env_key in _AI_ENV_KEYS.items():
             value = override.get(setting_key, self.store.get_setting(setting_key))

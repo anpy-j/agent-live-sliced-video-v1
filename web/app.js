@@ -1,10 +1,10 @@
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const app = $('#app');
-const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, draftLibrary:{query:'',pipelineVersion:'v1'}, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
+const state = { dashboard:null, job:null, poll:null, mcp:null, selectedStage:null, jianying:null, jianyingAbort:null, draftLibrary:{query:'',pipelineVersion:'v1',folder:'__none__'}, label:{session:null,decisions:{},sel:{},patch:null}, clausesJob:null, clausesData:null, clausesFilter:'s2' };
 const labels = {queued:'排队中',running:'执行中',waiting_input:'待继续',completed:'已完成',failed:'执行失败',cancelled:'已取消',pending:'等待',succeeded:'完成'};
 const stageLabels = {asr:'语音转写与切分',filter:'规则粗筛',judge:'AI 可用性判定',order:'AI 精选编排',render:'渲染成片'};
-const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',pinyin_rule:'拼音规则',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
+const reasonLabels = {too_short:'文本过短',non_chinese:'中文占比低',duration_gate:'时长不足',pinyin_rule:'拼音规则',repetition_rule:'重复限制规则',hard_vocab:'违禁词',stage_chatter:'场控话术',malformed_speech:'病句/口误',duplicate:'重复',literal_duplicate:'字面重复',semantic_duplicate:'语义重复',invalid_bounds:'时间异常'};
 const icons = {
   video:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2v8l-4-2z"/></svg>',
   file:'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
@@ -258,26 +258,60 @@ async function renderJianyingDrafts(force=false){
   const prefs=state.draftLibrary;
   const supported=data.pipeline_versions||['v1'];
   if(!supported.includes(prefs.pipelineVersion))prefs.pipelineVersion='v1';
+  const foldersOf=target=>Array.isArray(target?.folders)?target.folders:[];
+  if(prefs.folder&&prefs.folder!=='__none__'&&!foldersOf(data).includes(prefs.folder))prefs.folder='';
   const picker=`<div class="pipeline-version-picker" role="group" aria-label="本次剪辑版本">${['v1','v2','v3'].map(version=>`<button type="button" data-pipeline-version="${version}" aria-pressed="${prefs.pipelineVersion===version}" ${supported.includes(version)?'':'disabled'}>${version.toUpperCase()}</button>`).join('')}</div>`;
-  app.innerHTML=`<div class="compact-library-toolbar"><button class="icon-button compact-menu" id="draftMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="all-drafts">全部草稿 <span id="draftResultCount" role="status"></span></div><div class="draft-library-actions">${picker}<label class="library-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="draftSearch" aria-label="搜索草稿" placeholder="搜索草稿…" value="${escapeHtml(prefs.query)}" type="search"></label><button type="button" class="button ghost draft-refresh" data-refresh-jianying title="重新加载本机剪映草稿"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg><span>刷新草稿</span></button></div></div><div id="draftResults"></div>`;
+  const folderControl=`<button type="button" class="button ghost draft-folder-button" id="draftFolderButton" aria-expanded="false" aria-controls="draftFolderMenu" aria-haspopup="menu" title="按文件夹筛选草稿">${icons.folder}<span id="draftFolderLabel">文件夹</span></button><div id="draftFolderMenu" class="queue-action-menu draft-folder-menu" popover="auto" role="menu" aria-label="按文件夹筛选草稿"></div>`;
+  app.innerHTML=`<div class="compact-library-toolbar"><button class="icon-button compact-menu" id="draftMenu" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="all-drafts">全部草稿 <span id="draftResultCount" role="status"></span></div><div class="draft-library-actions">${folderControl}${picker}<label class="library-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="draftSearch" aria-label="搜索草稿" placeholder="搜索草稿…" value="${escapeHtml(prefs.query)}" type="search"></label><button type="button" class="button ghost draft-refresh" data-refresh-jianying title="重新加载本机剪映草稿"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg><span>刷新草稿</span></button></div></div><div id="draftResults"></div>`;
+  const paintFolderMenu=()=>{
+    const list=foldersOf(data);
+    $('#draftFolderLabel').textContent=prefs.folder===''?'文件夹':prefs.folder==='__none__'?'未分类':prefs.folder;
+    $('#draftFolderMenu').innerHTML=`<button type="button" role="menuitemradio" aria-checked="${prefs.folder===''}" data-draft-folder="">全部草稿</button><button type="button" role="menuitemradio" aria-checked="${prefs.folder==='__none__'}" data-draft-folder="__none__">未分类</button>`+list.map(name=>`<button type="button" role="menuitemradio" aria-checked="${prefs.folder===name}" data-draft-folder="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('');
+    $$('[data-draft-folder]').forEach(button=>button.addEventListener('click',()=>{
+      prefs.folder=button.dataset.draftFolder;
+      const menu=$('#draftFolderMenu');
+      if(menu.matches(':popover-open'))menu.hidePopover();
+      paintFolderMenu();draw();
+    }));
+  };
   const draw=()=>{
-    const visible=drafts.filter(d=>`${d.name} ${d.suggested_title}`.toLocaleLowerCase().includes(prefs.query.trim().toLocaleLowerCase())).sort((a,b)=>new Date(b.modified_at||0)-new Date(a.modified_at||0));
+    const keyword=prefs.query.trim().toLocaleLowerCase();
+    const folderMatch=draft=>prefs.folder===''?true:prefs.folder==='__none__'?!draft.folder:draft.folder===prefs.folder;
+    const visible=drafts.filter(d=>`${d.name} ${d.suggested_title}`.toLocaleLowerCase().includes(keyword)&&folderMatch(d)).sort((a,b)=>new Date(b.modified_at||0)-new Date(a.modified_at||0));
+    const filtered=prefs.query.trim()||prefs.folder!=='';
     const cards=visible.map(draft=>{
       const timeline=draft.recommended_timeline;
       const activeCount=Number(draft.active_job_count||0);
       const seconds=Math.max(0,Math.floor(Number(timeline?.timeline_duration)||0));
       const clock=`${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;
-      const info=timeline?`最长时间线：${timeline.name||timeline.title||'时间线'} · ${durationText(seconds)}\n成片名称：${draft.suggested_title}\n更新：${formatTime(draft.modified_at)}`:draft.timeline_error||'未发现有效时间线';
-      return `<article class="compact-draft" title="${escapeHtml(info)}"><div class="compact-cover"><div class="draft-placeholder">${icons.video}</div>${draft.cover_url?`<img loading="lazy" decoding="async" src="${escapeHtml(draft.cover_url)}" alt="${escapeHtml(draft.name)}封面">`:''}${activeCount?`<span class="draft-state busy">剪辑中 · ${activeCount}</span>`:!timeline?'<span class="draft-state unavailable">需检查</span>':''}<button type="button" class="draft-edit" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'} aria-label="剪辑 ${escapeHtml(draft.name)}"><span>${timeline?'开始剪辑':'无法剪辑'}</span></button></div><h2 title="${escapeHtml(draft.name)}">${escapeHtml(draft.name)}</h2><div class="compact-draft-meta"><span>${timeline?clock:'无法读取'}</span><span>${draft.modified_at?escapeHtml(formatTime(draft.modified_at).split(' ')[0]):'—'}</span></div></article>`;
+      const note=String(draft.note||'');
+      const info=[timeline?`最长时间线：${timeline.name||timeline.title||'时间线'} · ${durationText(seconds)}`:draft.timeline_error||'未发现有效时间线',`成片名称：${draft.suggested_title}`,draft.folder?`文件夹：${draft.folder}`:'',note?`备注：${note}`:'',draft.modified_at?`更新：${formatTime(draft.modified_at)}`:''].filter(Boolean).join('\n');
+      const noteBadge=note?`<span class="draft-note" title="${escapeHtml(note)}">${escapeHtml(note)}</span>`:'';
+      const stateBadge=activeCount?`<span class="draft-state busy${note?' shifted':''}">剪辑中 · ${activeCount}</span>`:!timeline?`<span class="draft-state unavailable${note?' shifted':''}">需检查</span>`:'';
+      const folderTag=draft.folder?`<span class="draft-folder-tag" title="文件夹：${escapeHtml(draft.folder)}">${icons.folder}${escapeHtml(draft.folder)}</span>`:'';
+      return `<article class="compact-draft" data-draft-card="${escapeHtml(draft.id)}" title="${escapeHtml(info)}"><div class="compact-cover">${noteBadge}<div class="draft-placeholder">${icons.video}</div>${draft.cover_url?`<img loading="lazy" decoding="async" src="${escapeHtml(draft.cover_url)}" alt="${escapeHtml(draft.name)}封面">`:''}${stateBadge}<button type="button" class="draft-edit" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'} aria-label="剪辑 ${escapeHtml(draft.name)}"><span>${timeline?'开始剪辑':'无法剪辑'}</span></button></div><h2 title="${escapeHtml(draft.name)}">${escapeHtml(draft.name)}</h2><div class="compact-draft-meta"><span>${timeline?clock:'无法读取'}</span><span>${draft.modified_at?escapeHtml(formatTime(draft.modified_at).split(' ')[0]):'—'}</span>${folderTag}</div></article>`;
     }).join('');
-    $('#draftResultCount').textContent=prefs.query.trim()?`${visible.length} / ${drafts.length}`:String(drafts.length);
-    $('#draftResults').innerHTML=visible.length?`<div class="compact-draft-grid">${cards}</div>`:`<div class="empty">${icons.empty}<h3>${drafts.length?'没有匹配的草稿':'还没有剪映草稿'}</h3><p>${drafts.length?'试试其他关键词。':'在剪映专业版保存草稿后，点击右上角「刷新草稿」。'}</p>${drafts.length?'<button class="button ghost" id="clearDraftFilters">清除搜索</button>':''}</div>`;
+    $('#draftResultCount').textContent=filtered?`${visible.length} / ${drafts.length}`:String(drafts.length);
+    $('#draftResults').innerHTML=visible.length?`<div class="compact-draft-grid">${cards}</div>`:`<div class="empty">${icons.empty}<h3>${drafts.length?'没有匹配的草稿':'还没有剪映草稿'}</h3><p>${drafts.length?'试试其他关键词或文件夹。':'在剪映专业版保存草稿后，点击右上角「刷新草稿」。'}</p>${filtered?'<button class="button ghost" id="clearDraftFilters">清除筛选</button>':''}</div>`;
     $$('.compact-cover img').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
-    $('#clearDraftFilters')?.addEventListener('click',()=>{prefs.query='';$('#draftSearch').value='';draw()});
+    $('#clearDraftFilters')?.addEventListener('click',()=>{prefs.query='';prefs.folder='';$('#draftSearch').value='';paintFolderMenu();draw()});
     $$('[data-edit-jianying]').forEach(button=>button.addEventListener('click',()=>{
       const draft=drafts.find(item=>item.id===button.dataset.editJianying);
       if(draft)enqueueJianyingDraft(draft,defaults,button);
     }));
+    $$('[data-draft-card]').forEach(card=>card.addEventListener('contextmenu',event=>{
+      event.preventDefault();
+      const draft=drafts.find(item=>item.id===card.dataset.draftCard);
+      if(draft)openDraftContextMenu(draft,foldersOf(data),{x:event.clientX,y:event.clientY},payload=>saveDraftLibrary(draft,payload));
+    }));
+  };
+  const saveDraftLibrary=async(draft,payload)=>{
+    const result=await api(`/api/jianying/drafts/${encodeURIComponent(draft.id)}`,{method:'PUT',body:JSON.stringify(payload)});
+    draft.folder=result.folder||'';draft.note=result.note||'';
+    if(Array.isArray(result.folders))data.folders=result.folders;
+    if(prefs.folder&&prefs.folder!=='__none__'&&!foldersOf(data).includes(prefs.folder))prefs.folder='';
+    paintFolderMenu();draw();
+    toast(draft.folder?`已加入文件夹「${draft.folder}」`:'草稿整理已保存');
   };
   $('#draftSearch').addEventListener('input',e=>{prefs.query=e.target.value;draw()});
   const descriptions={v1:"原有流程，保留句单元和时长约束",v2:"完整表达整理、编排和独立验收",v3:"逐子句精选，时长为软目标"};
@@ -286,6 +320,16 @@ async function renderJianyingDrafts(force=false){
     prefs.pipelineVersion=button.dataset.pipelineVersion;
     $$('[data-pipeline-version]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.pipelineVersion===prefs.pipelineVersion)));
   }));
+  paintFolderMenu();
+  const folderButton=$('#draftFolderButton'),folderMenu=$('#draftFolderMenu');
+  folderButton.addEventListener('click',()=>{
+    if(folderMenu.matches(':popover-open')){folderMenu.hidePopover();return;}
+    folderMenu.showPopover();
+    const rect=folderButton.getBoundingClientRect(),height=folderMenu.offsetHeight;
+    folderMenu.style.left=`${Math.max(8,Math.min(innerWidth-folderMenu.offsetWidth-8,rect.right-folderMenu.offsetWidth))}px`;
+    folderMenu.style.top=`${rect.bottom+height+8>innerHeight?Math.max(8,rect.top-height-6):rect.bottom+6}px`;
+  });
+  folderMenu.addEventListener('toggle',()=>folderButton.setAttribute('aria-expanded',String(folderMenu.matches(':popover-open'))));
   $('#draftMenu').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
   $('[data-refresh-jianying]').addEventListener('click',async()=>{
     try{await renderJianyingDrafts(true)}catch(err){
@@ -293,6 +337,66 @@ async function renderJianyingDrafts(force=false){
     }
   });
   draw();
+}
+
+function closeDraftContextMenu(){document.querySelectorAll('.draft-context-layer').forEach(layer=>layer.remove());}
+
+function openDraftContextMenu(draft,folders,point,onSaved){
+  closeDraftContextMenu();
+  let selected=draft.folder||'';
+  const folderList=[...folders];
+  const layer=document.createElement('div');
+  layer.className='draft-context-layer';
+  layer.innerHTML=`<div class="draft-context-backdrop" data-context-backdrop></div>
+    <div class="draft-context-menu" role="dialog" aria-modal="true" aria-label="${escapeHtml(draft.name)} 整理">
+      <header class="draft-context-head"><b title="${escapeHtml(draft.name)}">${escapeHtml(draft.name)}</b><small>右键整理草稿</small></header>
+      <section class="draft-context-section">
+        <span class="draft-context-label">加入文件夹</span>
+        <div class="draft-folder-choices" role="radiogroup" aria-label="选择文件夹"></div>
+        <div class="draft-folder-new">
+          <input type="text" class="draft-new-folder" maxlength="40" placeholder="新建文件夹名称" aria-label="新建文件夹名称">
+          <button type="button" class="button ghost" data-create-folder>新建</button>
+        </div>
+      </section>
+      <section class="draft-context-section">
+        <label class="draft-context-label" for="draftNoteInput">备注</label>
+        <textarea id="draftNoteInput" class="draft-note-input" maxlength="60" placeholder="显示在封面左上角">${escapeHtml(draft.note||'')}</textarea>
+      </section>
+      <div class="draft-context-actions">
+        <button type="button" class="button ghost" data-context-cancel>取消</button>
+        <button type="button" class="button primary" data-context-save>保存</button>
+      </div>
+    </div>`;
+  document.body.appendChild(layer);
+
+  const panel=layer.querySelector('.draft-context-menu'),choices=layer.querySelector('.draft-folder-choices'),newFolder=layer.querySelector('.draft-new-folder'),note=layer.querySelector('.draft-note-input');
+  const paintChoices=()=>{
+    choices.innerHTML=[`<button type="button" class="draft-folder-choice${selected===''?' selected':''}" data-folder="">不加入</button>`].concat(folderList.map(name=>`<button type="button" class="draft-folder-choice${selected===name?' selected':''}" data-folder="${escapeHtml(name)}">${escapeHtml(name)}</button>`)).join('');
+    $$('.draft-folder-choice',choices).forEach(button=>button.addEventListener('click',()=>{selected=button.dataset.folder;paintChoices();}));
+  };
+  paintChoices();
+  const close=()=>{document.removeEventListener('keydown',onKey);closeDraftContextMenu();};
+  const onKey=event=>{if(event.key==='Escape')close();};
+  document.addEventListener('keydown',onKey);
+
+  let left=Math.max(10,Math.min(innerWidth-panel.offsetWidth-10,point.x)),top=Math.max(10,Math.min(innerHeight-panel.offsetHeight-10,point.y));
+  panel.style.left=`${left}px`;panel.style.top=`${top}px`;
+
+  layer.querySelector('[data-context-backdrop]').addEventListener('click',close);
+  layer.querySelector('[data-context-cancel]').addEventListener('click',close);
+  layer.querySelector('[data-create-folder]').addEventListener('click',()=>{
+    const name=newFolder.value.trim();
+    if(!name){newFolder.focus();return;}
+    if(!folderList.some(item=>item.toLowerCase()===name.toLowerCase()))folderList.push(name);
+    selected=name;newFolder.value='';paintChoices();
+  });
+  newFolder.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();layer.querySelector('[data-create-folder]').click();}});
+  layer.querySelector('[data-context-save]').addEventListener('click',async event=>{
+    const button=event.currentTarget;button.disabled=true;button.textContent='保存中…';
+    try{await onSaved({folder:selected,note:note.value.trim()});close();}
+    catch(err){button.disabled=false;button.textContent='保存';toast(err.message);}
+  });
+  newFolder.focus();
 }
 
 function nextSuggestedTitle(title){const match=String(title).match(/-(\d+)$/);return match?`${title.slice(0,-match[0].length)}-${Number(match[1])+1}`:`${title}-1`;}
@@ -384,7 +488,7 @@ function paintJobClauses(){
   const isRemix=data.job_type==='remix',counts=data.counts||{},filter=state.clausesFilter||'s2';
   const filters=isRemix?clauseFilters.filter(f=>!['s4','s4rej'].includes(f.key)).map(f=>({...f,label:({s2:'字面去重后',s3:'最终保留',s2rej:'字面重复',s3rej:'语义重复'})[f.key]||f.label})):clauseFilters;
   if(!box.querySelector('.clause-list')){
-    box.innerHTML=`<div class="clause-tools" role="group" aria-label="切换放行与剔除列表">${filters.map(f=>`<button type="button" class="tab-button" data-clause-filter="${f.key}">${f.label} <em></em></button>`).join('')}</div><div class="clause-summary" role="status"></div><div class="label-list clause-list"></div>`;
+    box.innerHTML=`<div class="clause-body"><div class="clause-tools" role="group" aria-label="切换放行与剔除列表">${filters.map(f=>`<button type="button" class="tab-button" data-clause-filter="${f.key}">${f.label} <em></em></button>`).join('')}</div><div class="clause-main"><div class="clause-summary" role="status"></div><div class="label-list clause-list"></div></div></div>`;
     $$('[data-clause-filter]',box).forEach(btn=>btn.addEventListener('click',()=>{state.clausesFilter=btn.dataset.clauseFilter;paintJobClauses();$('.clause-list',box).scrollTop=0}));
   }
   filters.forEach(f=>{const btn=$(`[data-clause-filter="${f.key}"]`,box);btn.classList.toggle('active',f.key===filter);btn.setAttribute('aria-pressed',String(f.key===filter));$('em',btn).textContent=counts[f.countKey]??0;});
@@ -502,7 +606,7 @@ async function renderJob(jobId){
   const controls=$('#jobControls');controls.innerHTML=jobControlsHtml(job);controls.dataset.renderKey=deliverablesControlsKey(job);
   app.innerHTML=`<div class="task-detail-page"><div class="task-heading"><a href="#/queue" class="back-link" aria-label="返回队列">${icons.arrow}</a><div class="detail-title"><h1 title="${escapeHtml(job.title)}">${escapeHtml(job.title)}${jobTypeTag(job)}</h1><div class="task-meta"><span title="${escapeHtml(job.source_path)}">${escapeHtml(job.source_path)}${jobTargetText(job,'目标')}</span><time title="任务创建时间">${formatTime(job.created_at||job.updated_at)}</time><span id="jobAiConfiguration">${escapeHtml(jobAiConfigurationText(job))}</span></div></div></div>
   <div class="panel task-workflow"><div class="panel-head"><div><h2>剪辑流程</h2><p id="jobProgressMeta">${Math.round(job.progress||0)}% · 当前节点 ${escapeHtml(jobStageLabel(job,job.current_stage)||'—')}</p></div><span class="connection-state" id="jobConnectionState"><i></i>实时连接正常</span></div><div class="workflow" id="jobWorkflow" data-render-key="${escapeHtml(workflowKey(job))}">${workflowHtml(job)}</div></div>
-  <div class="task-workspace"><section class="panel task-results"><div class="panel-head"><div><h2>${job.job_type==='remix'?'片段去重与分组':'子句筛选结果'}</h2><p>S2 规则粗筛 → S3 AI 判定 → S4 成片精选</p></div><span class="task-live-hint"><i></i>结果实时更新</span></div><div id="jobClauses"></div></section>
+  <div class="task-workspace"><section class="panel task-results"><div id="jobClauses"></div></section>
   <aside class="task-inspector"><div class="panel stage-detail" id="jobStageDetail" data-render-key="${escapeHtml(stageDetailKey(job))}">${stageDetailHtml(job)}</div>
   <details class="panel task-extra"><summary>任务产物 <span>${job.artifacts.length} 个</span></summary><div id="jobArtifacts" data-render-key="${escapeHtml(artifactsKey(job))}">${artifactsHtml(job)}</div></details>
   <details class="panel task-extra"><summary>全部执行事件</summary><div class="timeline" id="jobEvents" data-render-key="${escapeHtml(eventsKey(job))}">${eventsHtml(job)}</div></details></aside></div></div>`;
@@ -566,6 +670,7 @@ async function renderSettings(){
     <label>AI 提供方<select name="ai_provider" id="aiProvider">${opts({auto:'自动',api:'API Key 直连',opencode:'OpenCode',codex:'Codex',workbuddy:'WorkBuddy',antigravity:'Antigravity'},selectedProvider)}</select><small>auto 会按可用性自动选择。</small></label>
     <label>AI 模型<select name="ai_model" id="aiModel">${modelOpts(selectedProvider,data.ai_model||'auto')}</select><small>模型选项会根据 AI 提供方自动更新。</small></label>
     <div class="job-row-actions" id="modelRefreshRow"><button class="button ghost" id="refreshModels" type="button">刷新模型列表</button><small id="modelCatalogStatus" role="status"></small></div>
+    <div class="job-row-actions" id="modelTestRow"><button class="button ghost" id="testModel" type="button">测试模型</button><small id="modelTestStatus" role="status"></small></div>
     <div class="settings-section"><b>JEV 云端</b><small>${data.jev_api_key_configured?'已配置密钥。':'尚未配置密钥。'}</small></div>
     <label>JEV API Key<input name="jev_api_key" value="${escapeHtml(data.jev_api_key||'')}" placeholder="留空保持现有密钥"><small>仅为安全展示，留空或保持掩码不会覆盖现有密钥。</small></label>
     <label>JEV Base URL<input name="jev_base_url" value="${escapeHtml(data.jev_base_url||'')}"></label>
@@ -584,7 +689,17 @@ async function renderSettings(){
     $('#modelCatalogStatus').textContent=(descriptions[info.source]||'可刷新 WorkBuddy 模型目录')+(info.count?` · ${info.count} 个选项`:'');
   };
   showCatalogStatus();
-  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto');showCatalogStatus()});
+  $('#aiProvider').addEventListener('change',e=>{$('#aiModel').innerHTML=modelOpts(e.target.value,'auto');$('#modelTestStatus').textContent='';showCatalogStatus()});
+  $('#aiModel').addEventListener('change',()=>{$('#modelTestStatus').textContent=''});
+  $('#testModel').addEventListener('click',async()=>{
+    const button=$('#testModel'),status=$('#modelTestStatus');
+    button.disabled=true;status.textContent='正在测试调用，请稍候…';
+    try{
+      const result=await api('/api/ai/test-model',{method:'POST',body:JSON.stringify({provider:$('#aiProvider').value,model:$('#aiModel').value})});
+      status.textContent=result.message||'测试通过';
+    }catch(err){status.textContent=err.message}
+    finally{button.disabled=false}
+  });
   $('#refreshModels').addEventListener('click',async()=>{
     const button=$('#refreshModels');button.disabled=true;button.textContent='刷新中…';
     try{
@@ -1153,6 +1268,7 @@ async function renderSettingsPage(tab='runtime') {
       const names=[...el.querySelectorAll('[name]')].map(x=>x.name);
       const ai=el.id==='modelRefreshRow'||names.some(x=>x.startsWith('ai_')||x.startsWith('jev_'));
       if(el.id==='modelRefreshRow'){el.hidden=tab!=='ai'||$('#aiProvider').value!=='workbuddy';continue;}
+      if(el.id==='modelTestRow'){el.hidden=tab!=='ai';continue;}
       const section=el.classList.contains('settings-section');
       el.hidden=section||((tab==='ai')?!ai:ai);
     }

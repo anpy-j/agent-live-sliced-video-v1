@@ -1,0 +1,21 @@
+{
+  "revision": "9f582cfef72d81a9",
+  "rules": [
+    {
+      "id": "b67e4b8f117a44718351343eddceee9f",
+      "pinyin": "wo gen ni shuo",
+      "name": "wo gen ni shuo",
+      "note": "",
+      "enabled": true,
+      "scope": "all"
+    },
+    {
+      "id": "e018565144b242aa88b24131437a5020",
+      "pinyin": "wo gei ni shuo",
+      "name": "wo gei ni shuo",
+      "note": "",
+      "enabled": true,
+      "scope": "all"
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,7 @@ from agent_video.ai import (AntigravityCli, CodexCli, OpenCodeCli,
                             WorkBuddyCli, _workbuddy_cli_entries)
 
 from .errors import AIReturnError, PipelineConfigError
+from agent_video.ai_contract import json_prompt, save_failure
 
 def _default_timeout() -> int:
     """单次 AI 调用上限，秒。
@@ -184,6 +186,7 @@ def resolve_provider(provider: str | None = None) -> tuple[str, str]:
 
 def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
               timeout: int) -> dict[str, Any]:
+    prompt = json_prompt(prompt, json_schema)
     if os.environ.get('PIPELINE_AI_PROVIDER') == 'api':
         from ..api_transport import json_completion
         chosen = model or os.environ.get('PIPELINE_AI_MODEL', '')
@@ -213,10 +216,72 @@ def _call_llm(model: str, prompt: str, json_schema: dict[str, Any],
                 model=chosen_model, prompt=prompt, schema=json_schema,
                 cwd=Path(temp_dir), timeout=timeout)
         except ProviderResponseError as exc:
-            raise AIReturnError(f"{provider_id} AI 调用失败：{exc}") from exc
+            diagnostic = save_failure(provider_id, chosen_model, json_schema, exc)
+            detail = f"；诊断：{diagnostic}" if diagnostic else ""
+            required = ", ".join(json_schema.get("required") or [])
+            raise AIReturnError(
+                f"{provider_id} AI 调用失败（模型 {chosen_model}，必需字段 {required}）：{exc}{detail}"
+            ) from exc
         except (OSError, RuntimeError) as exc:
             raise AIReturnError(f"{provider_id} AI 调用失败：{exc}") from exc
     return result["data"]
+
+
+PROBE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {"ok": {"type": "boolean"}},
+    "required": ["ok"],
+}
+
+
+def _probe_timeout() -> int:
+    raw = os.environ.get("LIVECUT_AI_PROBE_TIMEOUT")
+    if raw:
+        try:
+            value = int(float(raw))
+        except ValueError:
+            value = 0
+        if value > 0:
+            return value
+    return 180
+
+
+def probe_provider(provider: str = "auto", model: str = "auto", *,
+                   timeout: int | None = None) -> dict[str, Any]:
+    """用一次最小结构化调用验证 CLI provider/model 是否可用。
+
+    与正式管线共用 ``resolve_provider`` 与 ``CliProvider.generate_json``，所以测试
+    结果反映真实调用路径（同样的可执行文件解析、模型归一化和原生 schema 调用）。
+    失败时抛出 ``PipelineConfigError`` / ``AIReturnError``，由调用方转成可读消息。
+    """
+    provider_id, executable = resolve_provider(provider)
+    instance = _CLI_BUILDERS[provider_id](Path(executable))
+    chosen = (model or "auto").strip() or "auto"
+    if hasattr(instance, "normalize_model"):
+        chosen = instance.normalize_model(chosen)
+    if chosen != "auto" and hasattr(instance, "validate_model"):
+        try:
+            instance.validate_model(chosen)
+        except ValueError as exc:
+            raise PipelineConfigError(str(exc)) from exc
+    limit = timeout or _probe_timeout()
+    started = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix="livecut-ai-probe-",
+                                     ignore_cleanup_errors=True) as temp_dir:
+        try:
+            result = instance.generate_json(
+                model=chosen, prompt='你是连通性自检工具，请只返回 JSON {"ok": true}。',
+                schema=PROBE_SCHEMA, cwd=Path(temp_dir), timeout=limit)
+        except ProviderResponseError as exc:
+            raise AIReturnError(f"{provider_id} 调用失败：{exc}") from exc
+        except (OSError, RuntimeError) as exc:
+            raise AIReturnError(f"{provider_id} 调用失败：{exc}") from exc
+    if (result.get("data") or {}).get("ok") is not True:
+        raise AIReturnError(f'{provider_id} 已返回结果，但没有按契约返回 {{"ok": true}}')
+    seconds = round(time.monotonic() - started, 1)
+    return {"ok": True, "provider": provider_id, "model": chosen, "seconds": seconds,
+            "message": f"{provider_id} · {chosen} 调用成功（{seconds}s）"}
 
 
 def _schema_to_questions(schema: dict[str, Any]) -> dict[str, Any]:

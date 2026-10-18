@@ -16,7 +16,7 @@ from agent_video.runner import JobRunner, _run_pipeline_child
 from agent_video.server import Application
 from agent_video.pipeline_v3.errors import PipelineError, AIReturnError
 from agent_video.pipeline_v2 import contracts as schemas
-from agent_video.pipeline_v2.ai import Calls
+from agent_video.pipeline_v2.ai import TURN_BUDGET, Calls
 from agent_video.pipeline_v2.common import (block_issues, compile_clips, digest, make_block,
                                             plan_blocks, prepare, read, save, source_fingerprint)
 from agent_video.pipeline_v2.content import extract
@@ -256,11 +256,13 @@ class V2UsageTest(unittest.TestCase):
                 Calls(Path(temp), "auto", caller=fn).call("review", "a", "123456", schemas.REVIEW)
             fn.assert_not_called()
 
-    def test_hidden_cli_usage_is_checked_even_when_data_exists(self):
-        # A single result reports hidden recovery usage. Never launch the installed CLI.
+    def test_hidden_cli_usage_is_audited_but_does_not_discard_a_submitted_answer(self):
+        # A reasoning model can burn the CLI's hard-coded retry loop before it
+        # submits. Never launch the installed CLI; the reported usage must still
+        # be kept in the ledger, but a complete schema-shaped answer is used.
         from agent_video.ai import WorkBuddyCli
         terminal = {"type": "result", "structured_output": {"issues": []},
-                    "usage": {"input_tokens": 500, "output_tokens": 18000}, "is_error": False}
+                    "usage": {"input_tokens": 500, "output_tokens": 70000}, "is_error": False}
 
         class Process:
             def __init__(self):
@@ -279,8 +281,81 @@ class V2UsageTest(unittest.TestCase):
                  patch("agent_video.pipeline_v2.ai.subprocess.Popen", return_value=Process()) as launch:
                 result = calls._workbuddy(provider, "auto", "test", schemas.REVIEW, Path(temp))
             self.assertEqual(launch.call_args.kwargs["env"]["ACC_PRODUCT_CONFIG_PATH"], "fixture-models.json")
-            self.assertEqual(result["usage"]["output_tokens"], 18000)
+            self.assertEqual(result["usage"]["output_tokens"], 70000)
+            self.assertTrue(result["budget_breached"])
+            self.assertIsNone(result["error"])
+
+    def test_over_budget_without_a_structure_still_stops(self):
+        # Nothing usable came back, so billed retries stop the call.
+        terminal = {"type": "result", "result": "推理中",
+                    "usage": {"input_tokens": 500, "output_tokens": 70000}, "is_error": False}
+
+        class Process:
+            def __init__(self):
+                self.stdin = io.StringIO()
+                self.stdout = io.StringIO(json.dumps(terminal) + "\n")
+                self.stderr = io.StringIO()
+                self.returncode = 0
+            def poll(self):
+                return 0
+
+        from agent_video.ai import WorkBuddyCli
+        with tempfile.TemporaryDirectory() as temp:
+            calls = Calls(Path(temp), "auto")
+            provider = WorkBuddyCli(Path("fake-cli"))
+            with patch.object(provider, "_ensure_available"), patch.object(provider, "validate_model"), \
+                 patch.object(provider, "runtime_environment", return_value={}), \
+                 patch("agent_video.pipeline_v2.ai.subprocess.Popen", return_value=Process()):
+                result = calls._workbuddy(provider, "auto", "test", schemas.REVIEW, Path(temp))
+            self.assertIsNone(result["data"])
             self.assertIn("超", result["error"])
+
+    def _streaming(self, lines):
+        from agent_video.ai import WorkBuddyCli
+
+        class Process:
+            def __init__(self):
+                self.stdin = io.StringIO()
+                self.stdout = io.StringIO("".join(json.dumps(line) + "\n" for line in lines))
+                self.stderr = io.StringIO()
+                self.returncode = 0
+            def poll(self):
+                return 0
+
+        return Process(), WorkBuddyCli(Path("fake-cli"))
+
+    def _run_stream(self, lines):
+        process, provider = self._streaming(lines)
+        with tempfile.TemporaryDirectory() as temp, \
+             patch.object(provider, "_ensure_available"), patch.object(provider, "validate_model"), \
+             patch.object(provider, "runtime_environment", return_value={}), \
+             patch("agent_video.pipeline_v2.ai.subprocess.Popen", return_value=process):
+            return Calls(Path(temp), "auto")._workbuddy(
+                provider, "auto", "test", schemas.REVIEW, Path(temp))
+
+    def test_terminal_result_is_read_after_the_normal_two_turns(self):
+        # DeepSeek reports the structured answer in the terminal result event, so
+        # two legitimate assistant turns must not abort before reaching it.
+        turns = [{"type": "assistant",
+                  "message": {"id": f"m{n}", "content": [{"type": "text", "text": "推理中"}],
+                              "usage": {"input_tokens": 100, "output_tokens": 200}}}
+                 for n in (1, 2)]
+        turns.append({"type": "result", "is_error": False, "structured_output": {"issues": []},
+                      "usage": {"input_tokens": 300, "output_tokens": 400}})
+        result = self._run_stream(turns)
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["data"], {"issues": []})
+
+    def test_hidden_recovery_beyond_turn_budget_stops(self):
+        # The CLI's own retry loop tops out at four retries; more responses than
+        # that with no structure means recovery must stop.
+        turns = [{"type": "assistant",
+                  "message": {"id": f"m{n}", "content": [{"type": "text", "text": "推理中"}],
+                              "usage": {"input_tokens": 100, "output_tokens": 200}}}
+                 for n in range(1, TURN_BUDGET + 2)]
+        result = self._run_stream(turns)
+        self.assertIn("轮次超过预算", result["error"])
+        self.assertIsNone(result["data"])
 
 
 class V1IsolationTest(unittest.TestCase):

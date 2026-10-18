@@ -46,13 +46,46 @@ class S1CacheTest(unittest.TestCase):
                 self.assertFalse((self.new / "timeline.json").exists())
                 self.assertFalse((self.new / "clauses.filtered.json").exists())
 
-    def test_changed_bytes_even_with_same_size_and_mtime_cannot_reuse(self):
+    def test_same_size_and_mtime_reuses_without_reading_media(self):
         self.seed()
         original = self.media.stat()
         self.media.write_bytes(b"modified video")
         os.utime(self.media, ns=(original.st_atime_ns, original.st_mtime_ns))
+        original_open = Path.open
+
+        def no_media_read(path, *args, **kwargs):
+            if path == self.media:
+                raise AssertionError("Media contents must not be read for S1 validation")
+            return original_open(path, *args, **kwargs)
+
+        with patch.object(Path, "open", no_media_read):
+            self.assertEqual(s1_cache.prepare(self.new, self.timeline, "v1")[1], self.old)
+        self.assertTrue((self.new / "clauses.json").exists())
+
+    def test_size_change_with_same_mtime_invalidates(self):
+        self.seed()
+        original = self.media.stat()
+        self.media.write_bytes(b"longer modified video")
+        os.utime(self.media, ns=(original.st_atime_ns, original.st_mtime_ns))
         self.assertIsNone(s1_cache.prepare(self.new, self.timeline, "v1")[1])
-        self.assertFalse((self.new / "clauses.json").exists())
+
+    def test_mtime_change_with_same_size_invalidates(self):
+        self.seed()
+        original = self.media.stat()
+        os.utime(self.media, ns=(original.st_atime_ns, original.st_mtime_ns + 1000000000))
+        self.assertIsNone(s1_cache.prepare(self.new, self.timeline, "v1")[1])
+
+    def test_same_timeline_with_different_directory_digest_reuses_verified_s1(self):
+        self.old = self.root / "timelines" / "draft-oldhash" / "edits" / "old"
+        self.new = self.root / "timelines" / "draft-newhash" / "edits" / "new"
+        self.old.mkdir(parents=True)
+        self.new.mkdir(parents=True)
+        expected = self.seed()
+        _, reused = s1_cache.prepare(self.new, self.timeline, "v1")
+        self.assertEqual(reused, self.old)
+        self.assertEqual(json.loads((self.new / "clauses.json").read_text(encoding="utf-8")), expected)
+        self.media.write_bytes(b"longer modified video")
+        self.assertIsNone(s1_cache.prepare(self.new, self.timeline, "v1")[1])
 
     def test_geometry_speed_and_version_changes_invalidate(self):
         self.seed()

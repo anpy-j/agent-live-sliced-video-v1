@@ -373,6 +373,33 @@ class JobApiTest(unittest.TestCase):
         self.assertIn({"id": "gpt-6-astra", "name": "GPT-6 Astra"}, models["codex"])
         self.assertIn("glm-5.1", {model["id"] for model in models["workbuddy"]})
         self.assertEqual(models["opencode"][0]["id"], "auto")
+        opencode_ids = {model["id"] for model in models["opencode"]}
+        self.assertIn("opencode/deepseek-v4.1-flash-free", opencode_ids)
+        self.assertIn("opencode/glm-5.3-flash-free", opencode_ids)
+
+    def test_test_ai_model_delegates_api_provider(self):
+        with patch.object(self.app.ai_access, "test",
+                          return_value={"ok": True, "message": "连接成功"}) as probe:
+            result = self.app.test_ai_model({"provider": "api", "model": "gpt-x"})
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["provider"], "api")
+        self.assertEqual(result["message"], "连接成功")
+        probe.assert_called_once()
+
+    def test_test_ai_model_surfaces_cli_probe_result(self):
+        with patch("agent_video.pipeline.ai.probe_provider",
+                   return_value={"ok": True, "provider": "opencode", "model": "auto",
+                                 "message": "opencode · auto 调用成功（1.0s）"}) as probe:
+            result = self.app.test_ai_model({"provider": "opencode", "model": "auto"})
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["provider"], "opencode")
+        probe.assert_called_once_with(provider="opencode", model="auto")
+
+    def test_test_ai_model_raises_readable_error(self):
+        with patch("agent_video.pipeline.ai.probe_provider",
+                   side_effect=RuntimeError("opencode 不可用")):
+            with self.assertRaisesRegex(ValueError, "opencode 不可用"):
+                self.app.test_ai_model({"provider": "opencode", "model": "auto"})
 
     def test_inspect_and_create_timeline_job(self):
         draft_file = self.root / "draft_content.json"
@@ -465,6 +492,47 @@ class JobApiTest(unittest.TestCase):
             encoding="utf-8"))
         self.assertEqual(restored["dedupe_strength"], "strict")
         self.assertTrue((Path(job["workspace"]) / "virtual_timeline.json").is_file())
+
+
+class JianyingDraftLibraryTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.app = Application(self.root)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_update_requires_folder_or_note(self):
+        with self.assertRaisesRegex(ValueError, "文件夹或备注"):
+            self.app.update_jianying_draft("draft-a", {})
+
+    def test_update_draft_persists_and_returns_folders(self):
+        result = self.app.update_jianying_draft("draft-a", {"folder": "服装", "note": "已发布"})
+
+        self.assertEqual(result["folder"], "服装")
+        self.assertEqual(result["note"], "已发布")
+        self.assertIn("服装", result["folders"])
+        self.assertTrue(self.app.jianying_library_path.is_file())
+
+    def test_listing_injects_folder_and_note(self):
+        self.app.update_jianying_draft("draft-a", {"folder": "服装", "note": "已发布"})
+        drafts = [{"id": "draft-a", "name": "米兰", "cover_path": None}]
+        with patch("agent_video.jianying.list_jianying_drafts", return_value=drafts):
+            payload = self.app.list_jianying_drafts()
+
+        self.assertEqual(payload["folders"], ["服装"])
+        self.assertEqual(payload["drafts"][0]["folder"], "服装")
+        self.assertEqual(payload["drafts"][0]["note"], "已发布")
+
+    def test_listing_defaults_blank_when_unassigned(self):
+        drafts = [{"id": "draft-b", "name": "未整理", "cover_path": None}]
+        with patch("agent_video.jianying.list_jianying_drafts", return_value=drafts):
+            payload = self.app.list_jianying_drafts()
+
+        self.assertEqual(payload["folders"], [])
+        self.assertEqual(payload["drafts"][0]["folder"], "")
+        self.assertEqual(payload["drafts"][0]["note"], "")
 
 
 if __name__ == "__main__":
