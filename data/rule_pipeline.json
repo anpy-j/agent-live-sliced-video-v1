@@ -1,6 +1,11 @@
 {
-  "revision": "6086ae94114204b2",
+  "revision": "10ac3aacb782e552",
   "features": {
+    "breath": {
+      "version": "v1",
+      "stage": "S4",
+      "enabled": false
+    },
     "pinyin": {
       "version": "v1",
       "stage": "S2",

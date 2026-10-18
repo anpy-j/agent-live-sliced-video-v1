@@ -21,6 +21,8 @@ def row(cid, text, usable=True):
 
 class RulePipelineTest(unittest.TestCase):
     def setUp(self):
+        audio_check = patch('agent_video.filler_audio.refine_cleanup', side_effect=lambda report, *args, **kwargs: report)
+        audio_check.start(); self.addCleanup(audio_check.stop)
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.path = self.root / 'data/rule_pipeline.json'
@@ -112,7 +114,7 @@ class RulePipelineTest(unittest.TestCase):
             return {'main_product': '穿搭', 'sections': [{'role': 'hook', 'ids': [0]}], 'ordered_ids': [0]}
         sequences = []
         for enabled in (False, True):
-            for name in rule_pipeline.DEFAULTS:
+            for name in ("pinyin", "repetition", "filler"):
                 self.set_switch(name, enabled)
             events = []
             with patch.object(pipeline, 'ai_call', side_effect=fake_ai), patch.object(pipeline, 'render_video'):

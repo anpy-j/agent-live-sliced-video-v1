@@ -241,7 +241,7 @@ def clean_candidate(candidate, words, snapshot):
     clip.update(start=parts[0]["start"], end=parts[-1]["end"], text="".join(p["text"] for p in parts))
     if len(parts) > 1:
         clip["parts"] = parts
-    trial.update(status="cleaned", reason=("已按词级时间戳清理" if len(deletions) == len(trial["spans"])
+    trial.update(status="cleaned", reason=("已生成词级候选切点，渲染时复核音频" if len(deletions) == len(trial["spans"])
                                           else "已清理可对齐命中；其余命中无法精确剪切，保留原文"),
                  cleaned_text=clip["text"], cleaned_start=clip["start"], retained_parts=parts,
                  removed_spans=deletions,

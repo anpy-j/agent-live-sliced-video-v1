@@ -435,17 +435,29 @@ def _filter_s2(clauses, workdir, min_duration):
           {**settings, "repetition": report})
 
 
-def _clean_s4(candidates, ordered_ids, clauses, workdir):
+def _clean_s4(candidates, ordered_ids, clauses, workdir, media=None, virtual_timeline=None):
     by_id = {c["id"]: c for c in candidates}
     selected = [by_id[cid] for cid in ordered_ids]
     settings = rule_pipeline.load_settings()
     enabled = settings["features"]["filler"]["enabled"]
     snapshot = filler_rules.load_rules() if enabled else {"revision": "disabled", "rules": []}
-    report = filler_rules.clean_selection(selected,
-                                         filler_rules.load_words(workdir, clauses) if enabled else [], snapshot)
-    report["integration"] = {**settings["features"]["filler"], "revision": settings["revision"]}
+    words = filler_rules.load_words(workdir, clauses) if enabled else []
+    report = filler_rules.clean_selection(selected, words, snapshot)
+    if enabled and media is not None:
+        from ..filler_audio import refine_cleanup
+        report = refine_cleanup(report, words, media, virtual_timeline)
+    legacy_revision = rule_pipeline._snapshot({k: v for k, v in settings["features"].items() if k != "breath"})["revision"]
+    report["integration"] = {**settings["features"]["filler"], "revision": legacy_revision}
     _dump(os.path.join(workdir, "filler-rules.snapshot.json"), report["rules"])
     return report
+
+
+def _calibrate_breath(clips, media, virtual_timeline=None, workdir=None):
+    # Off is a strict bypass: no audio work, timestamps, or additional snapshot.
+    if not rule_pipeline.load_settings()["features"]["breath"]["enabled"]:
+        return None
+    from ..breath import calibrate
+    return calibrate(clips, media, virtual_timeline, words=filler_rules.load_words(workdir, []) if workdir else [])
 
 
 def _restore_s4_cleaning(order_data, candidates):
@@ -598,6 +610,8 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         ordered_clauses = sorted((by_id[cid] for cid in position if cid in by_id),
                                  key=lambda candidate: position[candidate["id"]])
         ordered_clauses = _restore_s4_cleaning(order_data, ordered_clauses)
+        from ..breath import restore
+        ordered_clauses = restore(order_data.get("breath_detection"), ordered_clauses)
         if not ordered_clauses:
             raise PipelineError("S4 排序结果为空，无法渲染成片")
         _emit(on_stage, "render", "start", "单独重跑渲染成片（复用 S4 排序结果）")
@@ -615,6 +629,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
             "timeline_id": virtual_timeline.timeline_id if virtual_timeline else None,
             "virtual_timeline": virtual_timeline.to_dict() if virtual_timeline else None,
             "duration": float(judged_data.get("duration") or 0.0),
+            **({"breath_detection": order_data["breath_detection"]} if "breath_detection" in order_data else {}),
             "filler_cleanup": order_data.get("filler_cleanup"),
             "main_product": order_data.get("main_product") or "",
             "order_sections": order_data.get("sections") or [],
@@ -665,10 +680,13 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     timeline = {"source": media, "duration": float(judged_data.get("duration") or 0.0),
                 "clauses": clauses}
     _dump(os.path.join(workdir, "timeline.json"), timeline)
-    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir)
-    total_seconds = cleanup["total_seconds"]
+    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir, media, virtual_timeline)
+    breath = _calibrate_breath(cleanup["cleaned_candidates"], media, virtual_timeline, workdir)
+    total_seconds = breath["total_seconds"] if breath else cleanup["total_seconds"]
     result = {"filler_cleanup": cleanup, "stage": stage, "main_product": main_product, "sections": sections,
               "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3)}
+    if breath is not None:
+        result["breath_detection"] = breath
     _dump(os.path.join(workdir, "order.json"), result)
     _emit(on_stage, "order", "done",
           f"选出 {len(ordered_ids)} 段、共 {total_seconds:.2f}s；口头词清理 "
@@ -874,10 +892,14 @@ def run_pipeline(media: str, workdir: str, *,
                               if candidate["id"] in position),
                              key=lambda candidate: position[candidate["id"]])
     _dump(os.path.join(workdir, "timeline.json"), timeline)
-    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir)
+    cleanup = _clean_s4(candidates, ordered_ids, clauses, workdir, media, virtual_timeline)
     ordered_clauses = cleanup["cleaned_candidates"]
-    total_seconds = cleanup["total_seconds"]
+    breath = _calibrate_breath(ordered_clauses, media, virtual_timeline, workdir)
+    if breath is not None:
+        ordered_clauses = breath["cleaned_candidates"]
+    total_seconds = breath["total_seconds"] if breath else cleanup["total_seconds"]
     _dump(os.path.join(workdir, "order.json"), {
+        **({"breath_detection": breath} if breath is not None else {}),
         "filler_cleanup": cleanup, "stage": "order", "main_product": main_product, "sections": sections,
         "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
     })
@@ -906,6 +928,7 @@ def run_pipeline(media: str, workdir: str, *,
         "timeline_id": virtual_timeline.timeline_id if virtual_timeline else None,
         "virtual_timeline": virtual_timeline.to_dict() if virtual_timeline else None,
         "duration": timeline["duration"],
+        **({"breath_detection": breath} if breath is not None else {}),
         "filler_cleanup": cleanup,
         "main_product": main_product,
         "order_sections": sections,

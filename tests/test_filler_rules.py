@@ -24,6 +24,8 @@ CANDIDATE = {"id": 0, "text": TEXT, "start": 0, "end": 3, "usable": True, "membe
 
 class FillerRulesTest(unittest.TestCase):
     def setUp(self):
+        audio_check = patch('agent_video.filler_audio.refine_cleanup', side_effect=lambda report, *args, **kwargs: report)
+        audio_check.start(); self.addCleanup(audio_check.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)

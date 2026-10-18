@@ -1,5 +1,5 @@
 {
-  "revision": "9f582cfef72d81a9",
+  "revision": "7224a44118b4d058",
   "rules": [
     {
       "id": "b67e4b8f117a44718351343eddceee9f",
@@ -13,6 +13,38 @@
       "id": "e018565144b242aa88b24131437a5020",
       "pinyin": "wo gei ni shuo",
       "name": "wo gei ni shuo",
+      "note": "",
+      "enabled": true,
+      "scope": "all"
+    },
+    {
+      "id": "1b8b409ba4de4635b68b008a82afa1f7",
+      "pinyin": "er qie",
+      "name": "er qie",
+      "note": "而且",
+      "enabled": true,
+      "scope": "all"
+    },
+    {
+      "id": "e9c218a85b7748608c788dfb871f1f13",
+      "pinyin": "kan dao le ma",
+      "name": "kan dao le ma",
+      "note": "看到了吗",
+      "enabled": true,
+      "scope": "all"
+    },
+    {
+      "id": "43506ad81e7f4884a466aed4df79d2a8",
+      "pinyin": "suo yi",
+      "name": "suo yi",
+      "note": "所以",
+      "enabled": true,
+      "scope": "all"
+    },
+    {
+      "id": "d7f2c770c7444020a6c857b2d0ec6810",
+      "pinyin": "dan shi",
+      "name": "dan shi",
       "note": "",
       "enabled": true,
       "scope": "all"

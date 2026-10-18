@@ -8,6 +8,7 @@ window.renderRules = async function () {
       <button class="button primary" id="pinyinTab" role="tab" aria-selected="true" aria-controls="pinyinPanel" tabindex="0">拼音限制</button>
       <button class="button ghost" id="repetitionTab" role="tab" aria-selected="false" aria-controls="repetitionPanel" tabindex="-1">重复限制</button>
       <button class="button ghost" id="fillerTab" role="tab" aria-selected="false" aria-controls="fillerPanel" tabindex="-1">口头词清理</button>
+      <button class="button ghost" id="breathTab" role="tab" aria-selected="false" aria-controls="breathPanel" tabindex="-1">气口检测</button>
     </div>
     <div id="pinyinPanel" role="tabpanel" aria-labelledby="pinyinTab">${rulePipelinePanel("pinyin", "拼音限制", "S2")}
     <section class="panel rules-panel"><h2>连续拼音限制</h2>
@@ -52,7 +53,7 @@ window.renderRules = async function () {
         </form><p id="fillerMessage" role="status"></p><div id="fillerList"></div>
       </section>
       <section class="panel rules-panel"><h2>清理测试</h2>
-        <p>输入文本预览，或选择已完成的 V1 任务验证 S4 入选片段的实际剪切区间。任务测试只读数据，不修改成片；缺少精确词级边界的命中会跳过并说明原因。</p>
+        <p>输入文本预览，或选择已完成的 V1 任务验证 S4 入选片段的实际剪切区间。任务测试展示词级候选切点，不修改原成片。单句渲染时自动复核音频、逐处校准口头词边界，并检查导出音频；无法确认时提示人工检查。句中清理可生成多段，仅生成所选语句。</p>
         <form id="fillerTestForm" class="rules-form">
           <label class="field">测试方式<select id="fillerTestMode"><option value="text">输入文本</option><option value="job">V1 任务</option></select></label>
           <label class="field" id="fillerTextField">测试文本<textarea id="fillerText" maxlength="10000" placeholder="真的你秋冬这样穿又洋气又好看"></textarea></label>
@@ -61,9 +62,23 @@ window.renderRules = async function () {
           <div><button class="button primary" type="submit" id="fillerTest">开始测试</button></div>
         </form><div id="fillerResults" aria-live="polite"></div>
       </section>
+    </div>
+    <div id="breathPanel" role="tabpanel" aria-labelledby="breathTab" hidden>
+      <section class="panel breath-hero">
+        <div class="breath-eyebrow">AUDIO BOUNDARIES <span>V1 · S4</span></div>
+        <div class="breath-hero-top"><div><h2>让每一次衔接，自然落在气口</h2><p>分析句首、句尾的低音量停顿，收紧多余留白，同时保留 80ms 自然停顿。连续说话与片段内部停顿保持原样。</p></div>
+        <div class="breath-wave" aria-hidden="true">${[18,32,48,25,62,40,72,46,24,12,8,8,12,26,46,66,38,52,30,16].map(h=>`<i style="--h:${h}px"></i>`).join('')}</div></div>
+        <div class="breath-principles"><span>原音分析</span><span>每端最多收紧 0.6 秒</span><span>仅在已选范围内调整</span></div>
+      </section>
+      ${rulePipelinePanel("breath", "气口检测", "S4")}
+      <section class="panel rules-panel breath-workbench">
+        <div class="breath-section-head"><div><span class="breath-eyebrow">COMPARISON STUDIO</span><h2>任务试匹配</h2><p>对已完成任务的全部成片片段进行检测，生成逐段对比与完整合集。试匹配独立运行，开关关闭时也可使用。</p></div><span class="breath-badge">原任务只读</span></div>
+        <form id="breathTestForm" class="breath-controls"><label class="field">已完成 V1 任务<select id="breathJob" required><option value="">正在加载任务…</option></select></label><button class="button primary" type="submit" id="breathTest" disabled>生成对比视频</button></form>
+        <div id="breathResults" aria-live="polite"><div class="breath-empty"><span aria-hidden="true">◉</span><h3>听见切点的变化</h3><p>选择一个任务，比较原始切点与气口校准后的效果。<br>所有片段都会参与，无需重新运行 AI。</p></div></div>
+      </section>
     </div>`;
   let fillerReady = false;
-  const tabs = [$('#pinyinTab'), $('#repetitionTab'), $('#fillerTab')];
+  const tabs = [$('#pinyinTab'), $('#repetitionTab'), $('#fillerTab'), $('#breathTab')];
   const activateTab = index => {
     if (index === 2 && !fillerReady) { fillerReady = true; setupFillerRules(); }
     tabs.forEach((tab, i) => {
@@ -84,6 +99,7 @@ window.renderRules = async function () {
       event.preventDefault(); activateTab(target); tabs[target].focus();
     };
   });
+  setupBreathTrial();
   setupRepetitionTrial(jobData.jobs);
   setupRulePipeline();
   let rules = snapshot.rules, editing = null, result = null;
@@ -147,6 +163,9 @@ window.renderRules = async function () {
 };
 
 function rulePipelinePanel(name, title, stage) {
+  if (name === 'breath') return `<section class="panel breath-switch-panel">
+    <div><div class="breath-eyebrow">PIPELINE INTEGRATION</div><h2>加入 V1 · S4</h2><p>开启后，下次 S4 在口头词清理之后校准切点。关闭时跳过检测，沿用原有 S4 处理。</p><p id="breathPipelineMessage" role="status">已生成的切点随任务保存；重新渲染复用当次结果。</p></div>
+    <button type="button" class="button ghost" role="switch" aria-checked="false" aria-label="气口检测加入 V1 S4" data-rule-pipeline="breath" disabled>读取开关…</button></section>`;
   return `<section class="panel rules-panel"><h2>${title}流程开关</h2>
     <p>接入版本：V1 · 接入阶段：${stage}。开启后在下一次执行 ${stage} 时加入本模块规则；关闭后仍可试匹配。S1–S5 阶段顺序不变，已生成的任务结果不会自动重算。</p>
     <button type="button" class="button ghost" role="switch" aria-checked="false" aria-label="${title}加入 V1 ${stage}" data-rule-pipeline="${name}" disabled>读取开关…</button>
@@ -203,8 +222,8 @@ async function setupRulePipeline() {
 async function setupFillerRules() {
   const form = $('#fillerForm'), output = $('#fillerResults'), message = $('#fillerMessage');
   const scopeLabels = {all: '全部', leading: '句首'};
-  let rules = [], jobs = [], editing = null, generation = 0;
-  const invalidate = () => { generation++; output.textContent = '规则或测试条件已变化，请重新测试。'; };
+  let rules = [], jobs = [], editing = null, generation = 0, trial = null;
+  const invalidate = () => { generation++; trial = null; output.textContent = '规则或测试条件已变化，请重新测试。'; };
   const reset = () => { editing = null; form.reset(); $('button[type="submit"]', form).textContent = '保存'; $('#fillerCancel').hidden = true; };
   const list = () => {
     const selected = $('#fillerTestRule').value;
@@ -242,7 +261,7 @@ async function setupFillerRules() {
     $('#fillerJobField').hidden = $('#fillerTestMode').value !== 'job'; invalidate();
   };
   $('#fillerTestForm').onsubmit = async event => {
-    event.preventDefault(); const button = $('#fillerTest'), version = ++generation;
+    event.preventDefault(); trial = null; const button = $('#fillerTest'), version = ++generation;
     const payload = {rule_id: $('#fillerTestRule').value || null};
     if ($('#fillerTestMode').value === 'job') {
       const job = jobs[Number($('#fillerJob').value)];
@@ -253,9 +272,38 @@ async function setupFillerRules() {
     try {
       const result = await api('/api/rules/filler/test', {method:'POST', body:JSON.stringify(payload)});
       if (version !== generation || !output.isConnected) return;
-      output.innerHTML = `<p>共 ${result.total} 条，命中 ${result.matched} 条，可精确剪切 ${result.cleaned} 条。</p><div class="rules-table-wrap"><table class="rules-table"><thead><tr><th>原文 / 区间</th><th>清理结果 / 区间</th><th>命中 / 处理说明</th></tr></thead><tbody>${result.rows.map(r => `<tr><td>${escapeHtml(r.text)}<br><small>${escapeHtml(r.pinyin || '')}</small>${r.start == null ? '' : `<br><small>${Number(r.start).toFixed(3)}–${Number(r.end).toFixed(3)}s · ID ${escapeHtml(r.id)}</small>`}</td><td>${escapeHtml(r.cleaned_text)}${r.retained_parts ? `<br><small>保留区间：${r.retained_parts.map(p => `${Number(p.start).toFixed(3)}–${Number(p.end).toFixed(3)}s`).join(' / ')} · 减少 ${Number(r.removed_seconds).toFixed(3)}s</small>` : ''}${r.status === 'skipped' ? `<br><small>建议文本：${escapeHtml(r.preview_text)}</small>` : ''}</td><td>${r.hits.map(h => `${escapeHtml(h.pinyin)}：${escapeHtml(h.text)}（字符 ${h.start + 1}–${h.end}）`).join('<br>') || '未命中'}<br><small>${escapeHtml(r.reason)}</small></td></tr>`).join('')}</tbody></table></div>`;
+      output.innerHTML = `<p>共 ${result.total} 条，命中 ${result.matched} 条，可按词级切点试剪 ${result.cleaned} 条。</p><div class="rules-table-wrap"><table class="rules-table"><thead><tr><th>原文 / 区间</th><th>清理结果 / 区间</th><th>命中 / 处理说明</th></tr></thead><tbody>${result.rows.map((r, index) => `<tr><td>${escapeHtml(r.text)}<br><small>${escapeHtml(r.pinyin || '')}</small>${r.start == null ? '' : `<br><small>${Number(r.start).toFixed(3)}–${Number(r.end).toFixed(3)}s · ID ${escapeHtml(r.id)}</small>`}</td><td>${escapeHtml(r.cleaned_text)}${r.retained_parts ? `<br><small>保留区间：${r.retained_parts.map(p => `${Number(p.start).toFixed(3)}–${Number(p.end).toFixed(3)}s`).join(' / ')} · 减少 ${Number(r.removed_seconds).toFixed(3)}s</small>` : ''}${r.status === 'skipped' ? `<br><small>建议文本：${escapeHtml(r.preview_text)}</small>` : ''}</td><td>${r.hits.map(h => `${escapeHtml(h.pinyin)}：${escapeHtml(h.text)}（字符 ${h.start + 1}–${h.end}）`).join('<br>') || '未命中'}<br><small>${escapeHtml(r.reason)}</small>${payload.job_id && r.hits.length ? `<br><button type="button" class="button ghost small" data-filler-render="${index}" ${r.status === 'cleaned' ? '' : 'disabled'}>渲染清理后片段</button><div data-filler-preview="${index}" class="filler-preview" aria-live="polite"></div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+      trial = {payload, result, version};
     } catch (error) { if (version === generation) output.textContent = error.message; }
     finally { button.disabled = false; }
+  };
+  output.onclick = async event => {
+    const button = event.target.closest('[data-filler-render]');
+    if (!button || button.disabled || !trial) return;
+    const current = trial, index = Number(button.dataset.fillerRender);
+    const row = current.result.rows[index];
+    const preview = output.querySelector(`[data-filler-preview="${index}"]`);
+    const valid = () => current.version === generation && preview.isConnected;
+    button.disabled = true; preview.textContent = '正在渲染本句保留区间…';
+    try {
+      let state = await api('/api/rules/filler/render', {method:'POST', body:JSON.stringify({
+        ...current.payload, candidate_id:row.id, revision:current.result.revision})});
+      while (valid()) {
+        state = await api('/api/rules/filler/trials/' + encodeURIComponent(state.id));
+        if (!valid()) return;
+        if (state.status === 'failed') throw new Error(state.error || '片段渲染失败');
+        if (state.status === 'completed') {
+          preview.innerHTML = `<p>本句已生成 ${state.parts.length} 段 · 导出音频复核通过</p>` + state.parts.map((part, i) => {
+            const url = `/api/rules/filler/trials/${encodeURIComponent(state.id)}/${encodeURIComponent(part.name)}`;
+            return `<div><p>片段 ${i + 1} · ${Number(part.start).toFixed(3)}–${Number(part.end).toFixed(3)}s</p><video controls playsinline preload="metadata" src="${url}" aria-label="清理后片段 ${i + 1}"></video><a class="button ghost small" href="${url}" download="${part.name}">下载片段 ${i + 1}</a></div>`;
+          }).join('');
+          return;
+        }
+        preview.textContent = state.progress || `正在渲染本句片段 ${state.parts.length} / ${state.total}…`;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } catch (error) { if (valid()) preview.textContent = error.message; }
+    finally { if (valid()) button.disabled = false; }
   };
   try {
     const [snapshot, data] = await Promise.all([api('/api/rules/filler'), api('/api/rules/filler/jobs')]);
@@ -304,4 +352,65 @@ function setupRepetitionTrial(jobs) {
     } catch (error) { if (version === requestVersion) output.textContent = error.message; }
     finally { button.disabled = false; }
   };
+}
+
+
+async function setupBreathTrial() {
+  const select = $('#breathJob'), output = $('#breathResults'), button = $('#breathTest');
+  let jobs = [], generation = 0;
+  const key = 'livecut-breath-trial';
+  const mediaUrl = (id, name) => `/api/rules/breath/trials/${encodeURIComponent(id)}/${encodeURIComponent(name)}`;
+  const video = (id, name, title) => `<div class="breath-video"><div><strong>${title}</strong><a class="button ghost small" href="${mediaUrl(id,name)}" download="${name}">下载视频</a></div><video controls playsinline preload="metadata" src="${mediaUrl(id,name)}" aria-label="${title}"></video></div>`;
+  const compare = (id, before, after) => `<div class="breath-compare">${video(id,before,'原视频 · 检测前')}${video(id,after,'气口检测后')}</div>`;
+  const show = state => {
+    if (state.status === 'failed') {
+      output.innerHTML = `<div class="breath-error" role="alert"><strong>对比未完成</strong><p>${escapeHtml(state.error || '请重新测试')}</p><p>原任务和原成片未修改，可重新生成对比。</p></div>`; return;
+    }
+    if (state.status !== 'completed') {
+      output.innerHTML = `<div class="breath-progress" role="status"><span class="breath-spinner"></span><div><strong>${escapeHtml(state.progress || '正在准备')}</strong><p>正在后台处理全部片段，可以切换页面，返回后查看结果。</p></div></div>`; return;
+    }
+    output.innerHTML = `<div class="breath-result-head"><h3>${escapeHtml(state.title)}</h3><span class="breath-badge">已完成</span></div>
+      <div class="breath-metrics"><div><strong>${state.pairs.length}</strong><span>全部交付片段</span></div><div><strong>${state.changed}</strong><span>校准的物理区间</span></div><div><strong>${Number(state.removed_seconds).toFixed(2)}<small> 秒</small></strong><span>收紧的边缘停顿</span></div></div>
+      <h3>完整合集</h3><p>两侧按相同片段顺序生成，均使用相同编码设置。</p>${compare(state.id,state.before,state.after)}
+      <h3 class="breath-detail-title">逐段对比 <small>共 ${state.pairs.length} 段</small></h3>
+      <div class="breath-pairs">${state.pairs.map(p=>`<details class="breath-pair"><summary><span>片段 ${String(p.index).padStart(2,'0')}</span><span>${escapeHtml(p.text || '视频片段')}</span></summary>${compare(state.id,p.before,p.after)}</details>`).join('')}</div>
+      <details class="breath-pair breath-boundaries"><summary>查看全部切点明细</summary><div class="rules-table-wrap"><table class="rules-table"><thead><tr><th>片段 ID</th><th>原切点</th><th>检测后切点</th><th>结果</th></tr></thead><tbody>${state.rows.map(r=>`<tr><td>${escapeHtml(r.id)}</td><td>${Number(r.start).toFixed(3)}–${Number(r.end).toFixed(3)}s</td><td>${Number(r.new_start).toFixed(3)}–${Number(r.new_end).toFixed(3)}s</td><td>${escapeHtml(r.reason)}</td></tr>`).join('')}</tbody></table></div></details>`;
+    // Keep only one comparison audio playing, so the two versions can be heard clearly.
+    output.querySelectorAll('video').forEach(v=>v.onplay=()=>output.querySelectorAll('video').forEach(other=>{if(other!==v)other.pause();}));
+  };
+  const monitor = async (id, current) => {
+    button.disabled = true;
+    try {
+      while (output.isConnected && current === generation) {
+        const state = await api('/api/rules/breath/trials/' + encodeURIComponent(id));
+        if (!output.isConnected || current !== generation) return;
+        show(state);
+        if (state.status !== 'running') break;
+        await new Promise(resolve=>setTimeout(resolve,1500));
+      }
+    } catch(error) { if(output.isConnected && current===generation) output.textContent=error.message; }
+    finally { if(output.isConnected && current===generation) button.disabled=!jobs.length; }
+  };
+  $('#breathTestForm').onsubmit = async event => {
+    event.preventDefault();
+    if (!select.value) return;
+    const current = ++generation; button.disabled = true; select.disabled = true;
+    output.innerHTML = '<div class="breath-progress" role="status"><span class="breath-spinner"></span><strong>正在创建对比任务…</strong></div>';
+    try {
+      const state = await api('/api/rules/breath/test', {method:'POST',body:JSON.stringify({job_id:select.value})});
+      localStorage.setItem(key, state.id);
+      await monitor(state.id,current);
+    } catch(error) { if(output.isConnected) output.textContent=error.message; }
+    finally { if(output.isConnected) {button.disabled=!jobs.length;select.disabled=false;} }
+  };
+  try {
+    const data = await api('/api/rules/breath/jobs');
+    if(!select.isConnected) return;
+    jobs=data.jobs;
+    select.innerHTML='<option value="">选择要对比的任务</option>'+jobs.map(j=>`<option value="${escapeHtml(j.id)}">${escapeHtml(j.title)}</option>`).join('');
+    button.disabled=!jobs.length;
+    if(!jobs.length) output.innerHTML='<div class="breath-empty"><h3>暂无已完成的 V1 任务</h3><p>完成一个 V1 任务后，即可在这里生成全部片段的对比视频。</p></div>';
+    const previous=localStorage.getItem(key);
+    if(previous) monitor(previous,++generation);
+  } catch(error) { if(output.isConnected) output.textContent=error.message; }
 }

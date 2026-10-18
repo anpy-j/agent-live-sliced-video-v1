@@ -33,6 +33,8 @@ build/
 # Independent editor runtime and desktop artifacts
 data/editor/
 data/postprocess/
+data/filler_trials/
+data/breath_trials/
 node_modules/
 desktop/runtime/
 desktop/dist/

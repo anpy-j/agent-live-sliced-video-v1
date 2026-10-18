@@ -67,6 +67,10 @@ class Application:
         self._editor_init_lock = threading.Lock()
         self._postprocess = None
         self._postprocess_init_lock = threading.Lock()
+        from .breath_trial import BreathTrials
+        self.breath_trials = BreathTrials(self)
+        from .filler_trial import FillerTrials
+        self.filler_trials = FillerTrials(self)
         self._defaults()
         self.label_overrides = self.store.get_setting("label_overrides", {}) or {}
         self.label_profile = activate_labels(self.label_overrides)
@@ -144,6 +148,10 @@ class Application:
                 selected = [candidates[cid] for cid in order["ordered_ids"]]
             except KeyError:
                 raise ValueError("任务 S4 与上游不一致，请重新执行 S4") from None
+            if "candidate_id" in payload:
+                selected = [c for c in selected if c["id"] == payload["candidate_id"]]
+                if len(selected) != 1:
+                    raise ValueError("指定语句不在任务 S4 入选片段中")
             report = filler_rules.clean_selection(selected, filler_rules.load_words(workspace, clauses), snapshot)
             rows = report["rows"]
         else:
@@ -1303,8 +1311,24 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/rules/filler":
                 from .filler_rules import load_rules
                 return self.json_response(load_rules(self.app.data_dir / "filler_rules.json"))
+            if path == "/api/rules/breath/jobs":
+                return self.json_response(self.app.filler_test_jobs())
+            if path.startswith("/api/rules/breath/trials/"):
+                parts = path.strip("/").split("/")
+                if len(parts) == 5:
+                    return self.json_response(self.app.breath_trials.read(parts[4]))
+                if len(parts) == 6:
+                    return self.send_media(self.app.breath_trials.media(parts[4], parts[5]))
+                raise ValueError("无效的气口测试地址")
             if path == "/api/rules/filler/jobs":
                 return self.json_response(self.app.filler_test_jobs())
+            if path.startswith("/api/rules/filler/trials/"):
+                parts = path.strip("/").split("/")
+                if len(parts) == 5:
+                    return self.json_response(self.app.filler_trials.read(parts[4]))
+                if len(parts) == 6:
+                    return self.send_media(self.app.filler_trials.media(parts[4], parts[5]))
+                raise ValueError("无效的口头词预览地址")
             if path == "/api/rules/pinyin":
                 from .pinyin_rules import load_rules
                 return self.json_response(load_rules(self.app.data_dir / "pinyin_rules.json"))
@@ -1384,8 +1408,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response({"error": "桌面会话验证失败"}, 403)
             path = self.path.partition("?")[0]
             payload = self.read_json()
+            if path == "/api/rules/breath/test":
+                return self.json_response(self.app.breath_trials.start(payload))
             if path == "/api/rules/filler/test":
                 return self.json_response(self.app.test_filler_rules(payload))
+            if path == "/api/rules/filler/render":
+                return self.json_response(self.app.filler_trials.start(payload))
             if path == "/api/rules/filler":
                 from .filler_rules import save_rule
                 return self.json_response(save_rule(self.app.data_dir / "filler_rules.json", payload))

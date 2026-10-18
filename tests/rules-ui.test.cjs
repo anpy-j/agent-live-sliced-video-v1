@@ -53,7 +53,7 @@ async function run() {
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/#/rules`);
   await page.getByRole('tab',{name:'拼音限制'}).waitFor();
-  assert.equal(await page.getByRole('tab').count(),3);
+  assert.equal(await page.getByRole('tab').count(),4);
   assert.equal(await page.locator('#pinyinPanel').isVisible(),true);
   assert.equal(await page.locator('#repetitionPanel').isVisible(),false);
   await page.locator('#pinyinTestRule').selectOption('p1');

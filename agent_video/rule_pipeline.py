@@ -12,6 +12,7 @@ from .repetition_rules import trial_options, match_rows, _characters, _canonical
 
 _LOCK = threading.RLock()
 DEFAULTS = {
+    "breath": {"version": "v1", "stage": "S4", "enabled": False},
     "pinyin": {"version": "v1", "stage": "S2", "enabled": True},
     "repetition": {"version": "v1", "stage": "S2", "enabled": False,
                    "options": trial_options({})},

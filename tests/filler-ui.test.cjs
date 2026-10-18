@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'livecut-filler-ui-'));
 const output = path.join(root, '.runtime', 'filler-ui');
 const source = `
-import json, sys
+import json, sys, subprocess
 from pathlib import Path
 from agent_video.server import Application, Server
 app = Application(Path(sys.argv[1]), Path(sys.argv[2]))
@@ -22,11 +22,23 @@ for name in ['timeline.json', 'clauses.filtered.json']:
     {'w':'这样穿又洋气又好看', 's':1, 'e':2.6}, {'w':'真的。', 's':2.6, 'e':3},
     {'w':texts[1], 's':3, 'e':6}]}), encoding='utf-8')
 (work/'order.json').write_text(json.dumps({'ordered_ids':[0,1]}), encoding='utf-8')
-job_id = app.store.create_job(title='口头词测试素材', source_path='fixture.mp4', workspace=str(work))
+media = work / 'fixture.mp4'
+subprocess.run(['ffmpeg', '-y', '-v', 'error', '-f', 'lavfi', '-i',
+                'color=c=blue:size=160x120:rate=25:duration=6', '-f', 'lavfi', '-i',
+                'sine=frequency=440:duration=6', '-c:v', 'libx264', '-c:a', 'aac',
+                '-shortest', str(media)], check=True, capture_output=True)
+job_id = app.store.create_job(title='口头词测试素材', source_path=str(media), workspace=str(work))
 app.store.update_job(job_id, status='completed')
 server = Server(('127.0.0.1',0),app)
 print('READY:'+str(server.server_port),flush=True)
-server.serve_forever()
+# Synthetic tone fixture: ASR decisions are covered by test_filler_audio.py.
+from unittest.mock import patch
+def checked(report, *args, **kwargs):
+    for row in report['rows']:
+        row['audio_verification'] = {'status': 'verified'}
+    return report
+with patch('agent_video.filler_trial.refine_cleanup', side_effect=checked), patch('agent_video.filler_trial.verify_export', side_effect=lambda path, text: text):
+    server.serve_forever()
 `;
 let child, browser;
 async function run() {
@@ -46,7 +58,7 @@ async function run() {
   await page.goto(`http://127.0.0.1:${port}/#/rules`);
   await page.getByRole('tab',{name:'口头词清理'}).click();
   await page.getByText('暂无口头词规则，请人工添加。',{exact:true}).waitFor();
-  assert.equal(await page.getByRole('tab').count(),3);
+  assert.equal(await page.getByRole('tab').count(),4);
   assert.equal(await page.locator('#pinyinPanel').isVisible(),false);
   const save = async (phrase, scope) => {
     await page.locator('#fillerForm input[name=pinyin]').fill(phrase);
@@ -126,9 +138,28 @@ async function run() {
   await page.locator('#fillerTest').click();
   await page.locator('#fillerResults tbody tr').first().waitFor();
   assert.equal(await page.locator('#fillerResults tbody tr').count(),2);
-  assert.match(await page.locator('#fillerResults').innerText(),/可精确剪切 1 条/);
+  assert.match(await page.locator('#fillerResults').innerText(),/可按词级切点试剪 1 条/);
   assert.match(await page.locator('#fillerResults').innerText(),/0.000–0.600s \/ 1.000–2.600s/);
   assert.match(await page.locator('#fillerResults').innerText(),/同一词块/);
+  const renderButtons = page.locator('[data-filler-render]');
+  assert.equal(await renderButtons.count(),2);
+  assert.equal(await renderButtons.nth(1).isDisabled(),true);
+  const originalFiles = fs.readdirSync(path.join(temporary,'fixture')).map(name=>[name,fs.readFileSync(path.join(temporary,'fixture',name))]);
+  await renderButtons.first().click();
+  await page.locator('[data-filler-preview="0"]').getByText('本句已生成 2 段 · 导出音频复核通过',{exact:true}).waitFor({timeout:60000});
+  assert.equal(await page.locator('#fillerResults video').count(),2);
+  for (const [i, expected] of [[0,.6],[1,1.6]]) {
+    const video = page.locator('#fillerResults video').nth(i);
+    await video.evaluate(v => v.readyState >= 1 ? Promise.resolve() : new Promise((resolve,reject)=>{v.onloadedmetadata=resolve;v.onerror=reject;}));
+    assert.ok(Math.abs(await video.evaluate(v=>v.duration)-expected)<.2);
+    const response = await page.request.get(new URL(await video.getAttribute('src'),page.url()).href);
+    assert.equal(response.status(),200);
+  }
+  for (const [name, content] of originalFiles) assert.deepEqual(fs.readFileSync(path.join(temporary,'fixture',name)),content);
+  const trialsRoot = path.join(temporary,'data','filler_trials');
+  const trialDirs = fs.readdirSync(trialsRoot);
+  assert.equal(trialDirs.length,1);
+  assert.equal(fs.readdirSync(path.join(trialsRoot,trialDirs[0])).filter(n=>n.endsWith('.mp4')).length,2);
   await page.locator('#fillerTab').focus();
   await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
