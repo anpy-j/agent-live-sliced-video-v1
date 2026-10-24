@@ -475,7 +475,7 @@ class Application:
 
     def list_jianying_drafts(self) -> dict[str, Any]:
         from .jianying import (
-            default_export_dir, draft_title_base, list_jianying_drafts, next_available_title,
+            default_export_dir, list_jianying_drafts, next_available_title,
         )
         from .jianying_library import load_library
 
@@ -485,7 +485,8 @@ class Application:
         library = load_library(self.jianying_library_path)
         export_dir = default_export_dir()
         titles = self.store.list_job_titles()
-        active_titles = self.store.list_active_job_titles()
+        path_key = lambda value: os.path.normcase(os.path.abspath(str(value)))
+        usage = [{**item, "path": path_key(item["path"])} for item in self.store.list_draft_usage()]
         covers: dict[str, Path] = {}
         for draft in drafts:
             entry = library["drafts"].get(draft["id"]) or {}
@@ -494,12 +495,15 @@ class Application:
             draft["suggested_title"] = next_available_title(
                 draft["name"], titles, export_dir
             )
-            title_pattern = re.compile(
-                rf"^{re.escape(draft_title_base(draft['name']))}(?:-\d+)?$", re.IGNORECASE
-            )
-            draft["active_job_count"] = sum(
-                1 for title in active_titles if title_pattern.fullmatch(title)
-            )
+            root = path_key(draft["path"]) + os.sep if draft.get("path") else None
+            timelines = list(draft.get("timelines") or [])
+            if draft.get("recommended_timeline"):
+                timelines.append(draft["recommended_timeline"])
+            paths = {path_key(t["path"]) for t in timelines if t.get("path")}
+            records = [item for item in usage if item["path"] in paths
+                       or (root and item["path"].startswith(root))]
+            draft["edit_count"] = sum(item["edit_count"] for item in records)
+            draft["active_job_count"] = sum(item["active"] for item in records)
             cover_path = draft.pop("cover_path", None)
             if cover_path:
                 covers[draft["id"]] = Path(cover_path)
@@ -1337,6 +1341,16 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/rules/repetition/jobs":
                 return self.json_response(self.app.pinyin_test_jobs())
             if path == "/api/jobs":
+                args = urllib.parse.parse_qs(query)
+                if "page" in args:
+                    try:
+                        result = self.app.store.queue_jobs(
+                            page=int(args["page"][0]), page_size=int(args.get("page_size", ["20"])[0]),
+                            status=args.get("status", ["all"])[0], query=args.get("q", [""])[0],
+                            group=args.get("group", ["status"])[0])
+                    except ValueError:
+                        return self.json_response({"error": "分页参数必须为整数"}, 400)
+                    return self.json_response(result)
                 return self.json_response({"jobs": self.app.store.list_jobs()})
             if path == "/api/viral-v2/references":
                 return self.json_response(self.app.viral.list_references())

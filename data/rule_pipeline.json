@@ -1,5 +1,5 @@
 {
-  "revision": "10ac3aacb782e552",
+  "revision": "ff8d6dd6d21f992d",
   "features": {
     "breath": {
       "version": "v1",
@@ -10,17 +10,6 @@
       "version": "v1",
       "stage": "S2",
       "enabled": true
-    },
-    "repetition": {
-      "version": "v1",
-      "stage": "S2",
-      "enabled": false,
-      "options": {
-        "mode": "all",
-        "min_word_length": 4,
-        "min_sentence_length": 4,
-        "min_count": 2
-      }
     },
     "filler": {
       "version": "v1",

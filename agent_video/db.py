@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 from .pipeline_versions import normalize_version, stages_for
+from .pipeline_plugins import PLUGIN_IDS, PLUGIN_STAGES, configuration, extend_stages
 
 
 # 精简管线的唯一阶段序列：ASR → 规则筛 → AI 判定 → AI 排序 → 渲染。
@@ -21,7 +22,7 @@ STAGE_DEFINITIONS = [
     ("render", "渲染成片", 100),
 ]
 
-_LEAN_STAGE_IDS = {stage_id for stage_id, _, _ in STAGE_DEFINITIONS} | {"review"}
+_LEAN_STAGE_IDS = {stage_id for stage_id, _, _ in STAGE_DEFINITIONS} | {"review"} | PLUGIN_IDS
 
 # 旧管线遗留在 jobs 表里的独占列；出现即代表磁盘上是旧 schema。
 _LEGACY_JOB_COLUMNS = {
@@ -195,6 +196,31 @@ class Store:
                 con.execute("ALTER TABLE jobs ADD COLUMN edit_count INTEGER NOT NULL DEFAULT 0")
             if "delivered" not in columns:
                 con.execute("ALTER TABLE jobs ADD COLUMN delivered INTEGER NOT NULL DEFAULT 0")
+            # 独立于任务生命周期保存产出记录，删除任务也不清空草稿累计次数。
+            con.execute("""CREATE TABLE IF NOT EXISTS draft_edit_history (
+                job_id TEXT PRIMARY KEY,
+                draft_path TEXT NOT NULL,
+                edit_count INTEGER NOT NULL
+            )""")
+            snapshot = """
+                INSERT INTO draft_edit_history(job_id, draft_path, edit_count)
+                SELECT id, json_extract(timeline_meta_json, '$.draft_path'),
+                  MAX(edit_count, CASE WHEN status='completed' THEN 1 ELSE 0 END)
+                FROM jobs WHERE job_type='timeline' AND timeline_meta_json IS NOT NULL
+                  AND json_extract(timeline_meta_json, '$.draft_path') IS NOT NULL
+                  AND (edit_count>0 OR status='completed')
+                ON CONFLICT(job_id) DO UPDATE SET
+                  edit_count=MAX(draft_edit_history.edit_count, excluded.edit_count)
+            """
+            con.execute(snapshot)
+            for event in ("INSERT", "UPDATE OF edit_count, status"):
+                trigger_name = "draft_edit_" + ("insert" if event == "INSERT" else "update")
+                con.executescript(f"""
+                    CREATE TRIGGER IF NOT EXISTS {trigger_name} AFTER {event} ON jobs
+                    BEGIN
+                        {snapshot.replace("FROM jobs WHERE", "FROM jobs WHERE id=NEW.id AND")};
+                    END;
+                """)
 
     def create_job(self, *, title: str, source_path: str, workspace: str,
                    job_type: str = "direct", timeline_meta: dict[str, Any] | None = None,
@@ -206,6 +232,8 @@ class Store:
         if job_type == "remix" and pipeline_version != "v1":
             raise ValueError("成片重组仅支持 V1 流程")
         stage_definitions = stages_for(pipeline_version, STAGE_DEFINITIONS)
+        stage_definitions = extend_stages(stage_definitions,
+            configuration(self.path.parent / "rule_pipeline.json")["enabled"], pipeline_version, job_type)
         job_id = f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         now = utc_now()
         first_stage = STAGE_DEFINITIONS[0][0]
@@ -245,6 +273,39 @@ class Store:
             jobs.append(j)
         return jobs
 
+    def queue_jobs(self, *, page: int = 1, page_size: int = 20,
+                   status: str = "all", query: str = "", group: str = "status") -> dict[str, Any]:
+        page_size = max(1, min(100, page_size))
+        where, params = [], []
+        if status != "all":
+            where.append("status = ?")
+            params.append(status)
+        if query.strip():
+            where.append("(instr(lower(title), lower(?)) > 0 OR instr(lower(source_path), lower(?)) > 0)")
+            params.extend([query.strip(), query.strip()])
+        clause = " WHERE " + " AND ".join(where) if where else ""
+        order = "created_at DESC, id DESC"
+        if group == "status":
+            order = ("CASE status WHEN 'running' THEN 0 WHEN 'waiting_input' THEN 1 "
+                     "WHEN 'queued' THEN 2 WHEN 'failed' THEN 3 WHEN 'completed' THEN 4 "
+                     "ELSE 5 END, " + order)
+        with self.connect() as con:
+            counts = {row["status"]: row["n"] for row in con.execute(
+                "SELECT status, COUNT(*) AS n FROM jobs GROUP BY status")}
+            total = con.execute("SELECT COUNT(*) FROM jobs" + clause, params).fetchone()[0]
+            pages = max(1, (total + page_size - 1) // page_size)
+            page = max(1, min(page, pages))
+            rows = con.execute("SELECT * FROM jobs" + clause + " ORDER BY " + order + " LIMIT ? OFFSET ?",
+                               [*params, page_size, (page - 1) * page_size]).fetchall()
+        jobs = []
+        for row in rows:
+            job = dict(row)
+            raw_meta = job.pop("timeline_meta_json", None)
+            job["timeline_meta"] = json.loads(raw_meta) if raw_meta else None
+            jobs.append(job)
+        return {"jobs": jobs, "total": total, "page": page, "page_size": page_size,
+                "pages": pages, "counts": counts}
+
     def list_job_titles(self) -> list[str]:
         with self.connect() as con:
             rows = con.execute("SELECT title FROM jobs").fetchall()
@@ -256,6 +317,23 @@ class Store:
                 "SELECT title FROM jobs WHERE status IN ('queued','running','waiting_input')"
             ).fetchall()
         return [str(row["title"]) for row in rows]
+
+    def list_draft_usage(self) -> list[dict[str, Any]]:
+        """按原始草稿路径返回历史产出与当前排队/执行记录，不受任务列表分页限制。"""
+        with self.connect() as con:
+            rows = con.execute("""
+                SELECT draft_path, edit_count, 0 AS active FROM draft_edit_history
+                UNION ALL
+                SELECT json_extract(timeline_meta_json, '$.draft_path'), 0, 1 FROM jobs
+                WHERE job_type='timeline' AND timeline_meta_json IS NOT NULL
+                  AND status IN ('queued','running','waiting_input')
+            """).fetchall()
+        usage = []
+        for row in rows:
+            if row["draft_path"]:
+                usage.append({"path": row["draft_path"], "edit_count": row["edit_count"],
+                              "active": row["active"]})
+        return usage
 
     def list_recoverable_jobs(self) -> list[dict[str, Any]]:
         with self.connect() as con:
@@ -312,7 +390,9 @@ class Store:
         """一次成片产出 = 剪辑一次；并清掉上一轮的「已剪辑」标记。"""
         with self.connect() as con:
             con.execute(
-                "UPDATE jobs SET edit_count=edit_count+1, delivered=0, updated_at=? WHERE id=?",
+                "UPDATE jobs SET edit_count=MAX(edit_count, COALESCE("
+                "(SELECT edit_count FROM draft_edit_history WHERE job_id=jobs.id),0))+1, "
+                "delivered=0, updated_at=? WHERE id=?",
                 (utc_now(), job_id),
             )
 
@@ -348,10 +428,12 @@ class Store:
         """重置目标节点及其下游状态，同时保留上游状态和历史渲染产物。"""
         job = self.get_job(job_id)
         version = (job or {}).get("pipeline_version", "v1")
-        positions = {sid: position for sid, _, position in stages_for(version, STAGE_DEFINITIONS)}
+        positions = {s["stage_id"]: s["position"] for s in (job or {}).get("stages", [])}
         allowed = {"filter", "judge", "order", "render"}
         if version == "v2":
             allowed |= {"review", "asr"}
+        if version == "v1":
+            allowed |= PLUGIN_IDS.intersection(positions)
         if stage_id not in allowed:
             raise ValueError(f"不支持单节点重跑：{stage_id}")
         position = positions[stage_id]
@@ -403,12 +485,24 @@ class Store:
     def stage_done(self, job_id: str, stage_id: str, message: str,
                    result: dict[str, Any] | None = None) -> None:
         job = self.get_job(job_id)
-        definitions = stages_for((job or {}).get("pipeline_version", "v1"), STAGE_DEFINITIONS)
-        position = next((x[2] for x in definitions if x[0] == stage_id), 0)
+        position = next((s["position"] for s in (job or {}).get("stages", []) if s["stage_id"] == stage_id), 0)
         self.update_stage(job_id, stage_id, status="succeeded", progress=1, message=message,
                           finished_at=utc_now(), result=result, error=None)
         self.update_job(job_id, progress=position)
         self.add_event(job_id, stage_id, "success", "stage_completed", message, result)
+
+    def configure_plugin_stages(self, job_id: str, enabled: bool) -> None:
+        """Synchronize only optional rows; never reset or renumber base stages."""
+        job = self.get_job(job_id)
+        enabled = bool(enabled and job and job.get("pipeline_version", "v1") == "v1"
+                       and job.get("job_type") != "remix")
+        with self.connect() as con:
+            for sid, name, position in PLUGIN_STAGES:
+                if enabled:
+                    con.execute("INSERT OR IGNORE INTO stages(job_id,stage_id,name,position) VALUES(?,?,?,?)",
+                                (job_id, sid, name, position))
+                else:
+                    con.execute("DELETE FROM stages WHERE job_id=? AND stage_id=?", (job_id, sid))
 
     def add_event(self, job_id: str, stage_id: str | None, level: str, kind: str,
                   message: str, payload: Any = None) -> None:

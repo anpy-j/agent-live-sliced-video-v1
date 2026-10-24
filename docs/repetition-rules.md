@@ -14,9 +14,9 @@
 
 `GET /api/rules/repetition/jobs` 获取候选任务；`POST /api/rules/repetition/test` 接收 `job_id`、`kind`（`legacy` / `smart`）、`mode`（`all` / `fact` / `word` / `sentence`，`fact` 表示颜色信息点、`word` 表示有效短语）、`min_word_length`（2–32）、`min_sentence_length`（2–200）及 `min_count`（2–10）。未提供检测参数时使用默认值。返回 `groups`（重复组和全部位置）及 `rows`（子句明细）；`newly_rejected` 仅统计后续完整语句重复，不把局部短语或信息点重复等同于整句可删除。
 
-试匹配不修改数据库任务、S2 文件或成片。新增 V1 S2 流程开关及检测条件保存，开启后仅剔除后续完整重复子句；详细配置与保护条件见 [V1 规则流程开关](rule-pipeline.md)。算法在 `agent_video/repetition_rules.py` 中，后端测试用 `python -m unittest tests.test_repetition_rules tests.test_pinyin_rules`，页面验证用 `node tests/rules-ui.test.cjs`。
+试匹配不修改数据库任务、S2 文件或成片。旧 V1 S2 重复限制开关及自动剔除接入已移除，试匹配条件只用于只读检测。正式流程可选用 [语义归组插件](semantic-groups-plugin.md)，由 S4 从可替代候选中择优。算法在 `agent_video/repetition_rules.py` 中，后端测试用 `python -m unittest tests.test_repetition_rules tests.test_pinyin_rules`，页面验证用 `node tests/rules-ui.test.cjs`。
 
-V1 自动 S2 的执行顺序为「先应用其他规则剔除 → 仅在剩余通过子句中检测重复」，已剔除的句子不能作为重复参照。仅 V1 重复限制流程开关开启时执行新增检测。
+试匹配只索引原 S2 通过子句，已剔除的句子不能作为重复参照。该检测不接入自动 S2，不改变子句去留；基础粗筛原有的去重规则保持不变。
 
 第一版仅覆盖显式词表、句式和完整语句归一化，不声称能判断任意语义等价。漏掉的表达可通过补充描述词、主体或句式扩展；「制作难度很高」与「超级难做」不会自动归为同组。
 

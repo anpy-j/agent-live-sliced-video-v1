@@ -7,6 +7,9 @@ const root = path.resolve(__dirname, '..'), output = path.join(root, '.runtime',
 const jobs = [{id:'fixture', title:'重复检测示例', version:'v1', kind:'legacy'}];
 let rules = [{id:'p1', pinyin:'xian huo', enabled:true, note:'现货'}];
 let submitted, fail = false, slow = false, browser;
+let pipelineSettings = {features:{
+  semantic_groups:{enabled:false,stage:'S3–S4'}, pinyin:{enabled:true,stage:'S2'},
+  filler:{enabled:false,stage:'S4'},breath:{enabled:false,stage:'S4'}}};
 const fixtureRows = Array.from({length:20},(_,i)=>({id:i,text:i===0?'这一件超级的难做':i===19?'超级难做':`第${i}段独立信息`,start:i*3,end:i*3+3,usable:true}));
 fixtureRows.push({id:20,text:'是不是超级超级好看',start:60,end:63,usable:true},
   {id:21,text:'有没有没买到我这个粉色羽绒服的',start:63,end:66,usable:true},
@@ -20,6 +23,12 @@ const server = http.createServer(async (req, res) => {
   const route = new URL(req.url, 'http://localhost').pathname;
   if (route.startsWith('/api/')) {
     res.setHeader('Content-Type', 'application/json');
+    if (route === '/api/rules/pipeline') return res.end(JSON.stringify(pipelineSettings));
+    if (route.startsWith('/api/rules/pipeline/') && req.method === 'PUT') {
+      let body=''; for await (const chunk of req) body += chunk;
+      const name=route.split('/').pop(); Object.assign(pipelineSettings.features[name],JSON.parse(body));
+      return res.end(JSON.stringify(pipelineSettings));
+    }
     if (route.endsWith('/jobs')) return res.end(JSON.stringify({jobs}));
     if (route === '/api/rules/pinyin') {
       if (req.method === 'POST') {
@@ -61,6 +70,31 @@ async function run() {
   await page.locator('#pinyinTest').click();
   await page.locator('#pinyinResults').getByText('现货',{exact:false}).first().waitFor();
   await page.getByRole('tab',{name:'重复限制'}).click();
+  const semanticSwitch = page.getByRole('switch',{name:'语义归组插件',exact:true});
+  await semanticSwitch.waitFor();
+  assert.equal(await semanticSwitch.getAttribute('aria-checked'),'false');
+  await semanticSwitch.click();
+  await page.waitForFunction(()=>document.querySelector('[data-rule-pipeline="semantic_groups"]').getAttribute('aria-checked')==='true');
+  assert.equal(pipelineSettings.features.semantic_groups.enabled,true);
+  assert.equal(await page.locator('[data-rule-pipeline="repetition"]').count(),0);
+  assert.equal(await page.locator('#saveRepetitionPipeline').count(),0);
+  await semanticSwitch.click();
+  await page.waitForFunction(()=>document.querySelector('[data-rule-pipeline="semantic_groups"]').getAttribute('aria-checked')==='false');
+  const nodeChecks = await page.evaluate(()=>{
+    const fixture={pipeline_version:'v1',job_type:'direct',status:'completed',current_stage:'order',runtime:{},events:[],artifacts:[],
+      stages:['asr','filter','judge','claim_extract','claim_group','order','render'].map((stage_id,i)=>({stage_id,name:stage_id,position:i,status:'pending',progress:0}))};
+    const holder=document.createElement('div');holder.innerHTML=workflowHtml(fixture);
+    const dots=[...holder.querySelectorAll('.stage-dot')].map(x=>x.textContent);
+    fixture.current_stage='claim_group';state.selectedStage='claim_group';
+    fixture.stages[4].result={groups:[{name:'穿着舒适',reason:'同一对象，相同信息',ids:[0,1]}]};
+    const detail=stageDetailHtml(fixture);
+    fixture.stages=fixture.stages.filter(s=>!['claim_extract','claim_group'].includes(s.stage_id));
+    const plain=workflowHtml(fixture);state.selectedStage=null;
+    return {dots,detail,plain};
+  });
+  assert.deepEqual(nodeChecks.dots,['01','02','03','+','+','04','05']);
+  assert.match(nodeChecks.detail,/穿着舒适/);
+  assert.doesNotMatch(nodeChecks.plain,/claim_extract|claim_group/);
   assert.equal(await page.locator('#pinyinPanel').isVisible(),false);
   await page.locator('#repetitionTest').click();
   assert.equal(await page.locator('#repetitionJob').evaluate(el=>el.validity.valueMissing),true);

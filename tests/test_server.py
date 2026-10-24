@@ -3,11 +3,15 @@ import json
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+import urllib.error
+import urllib.request
+import os
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_video.server import Application
+from agent_video.server import Application, Server
 
 
 class FilePickerTest(unittest.TestCase):
@@ -20,6 +24,31 @@ class FilePickerTest(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
+
+    def test_queue_http_pagination_and_legacy_response(self):
+        for i in range(3):
+            self.app.store.create_job(title=f"队列 {i}", source_path=str(self.video), workspace=str(self.root / f"job{i}"))
+        server = Server(("127.0.0.1", 0), self.app)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        def get(query):
+            request = urllib.request.Request(f"http://127.0.0.1:{server.server_port}/api/jobs{query}",
+                headers={"X-LiveCut-Desktop": os.environ.get("LIVECUT_DESKTOP_TOKEN", "")})
+            with urllib.request.urlopen(request) as response:
+                return json.load(response)
+        try:
+            result = get("?page=2&page_size=2")
+            self.assertEqual((result["total"], result["page"], len(result["jobs"])), (3, 2, 1))
+            self.assertEqual(result["counts"], {"queued": 3})
+            self.assertEqual(get("?page=1&status=failed")["total"], 0)
+            self.assertEqual(len(get("")["jobs"]), 3)
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                get("?page=bad")
+            self.assertEqual(error.exception.code, 400)
+        finally:
+            server.shutdown()
+            thread.join()
+            server.server_close()
 
     def test_windows_picker_returns_unicode_video_path(self):
         encoded = base64.b64encode(str(self.video).encode("utf-8")).decode("ascii")
@@ -524,6 +553,31 @@ class JianyingDraftLibraryTest(unittest.TestCase):
         self.assertEqual(payload["folders"], ["服装"])
         self.assertEqual(payload["drafts"][0]["folder"], "服装")
         self.assertEqual(payload["drafts"][0]["note"], "已发布")
+
+    def test_counts_outputs_by_source_across_versions_and_titles(self):
+        draft_root = self.root / "draft-a"
+        for version, count, status in [("v1", 2, "completed"), ("v2", 1, "completed"),
+                                       ("v3", 0, "queued"), ("v1", 0, "failed")]:
+            job_id = self.app.store.create_job(
+                title="任意改名", source_path="时间线", workspace=str(self.root / version),
+                job_type="timeline", pipeline_version=version,
+                timeline_meta={"draft_path": str(draft_root / "Timelines" / version / "draft_content.json")})
+            for _ in range(count):
+                self.app.store.bump_edit_count(job_id)
+            self.app.store.update_job(job_id, status=status)
+            if count:
+                self.app.store.delete_job(job_id)
+        other = self.app.store.create_job(
+            title="任意改名", source_path="时间线", workspace=str(self.root / "other"),
+            job_type="timeline", timeline_meta={"draft_path": str(self.root / "draft-ab" / "draft_content.json")})
+        self.app.store.bump_edit_count(other)
+        drafts = [{"id": "a", "name": "改名后的素材", "path": str(draft_root), "cover_path": None},
+                  {"id": "b", "name": "未剪辑素材", "path": str(self.root / "unused"), "cover_path": None}]
+        with patch("agent_video.jianying.list_jianying_drafts", return_value=drafts):
+            result = self.app.list_jianying_drafts()["drafts"]
+        self.assertEqual(result[0]["edit_count"], 3)
+        self.assertEqual(result[0]["active_job_count"], 1)
+        self.assertEqual(result[1]["edit_count"], 0)
 
     def test_listing_defaults_blank_when_unassigned(self):
         drafts = [{"id": "draft-b", "name": "未整理", "cover_path": None}]

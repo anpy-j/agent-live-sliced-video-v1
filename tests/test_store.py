@@ -32,6 +32,36 @@ class StoreTest(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_draft_history_survives_retry_delete_and_reopen(self):
+        job_id = self.store.create_job(title="草稿", source_path="时间线", workspace="/tmp/job",
+                                       job_type="timeline", timeline_meta={"draft_path": "/draft/a.json"})
+        self.assertEqual(self.store.list_draft_usage()[0]["active"], 1)
+        self.store.update_job(job_id, status="failed")
+        self.assertEqual(self.store.list_draft_usage(), [])
+        self.store.bump_edit_count(job_id)
+        self.store.update_job(job_id, status="completed")
+        self.store.reset_job(job_id)
+        self.store.bump_edit_count(job_id)
+        self.store.update_job(job_id, status="completed")
+        self.store.delete_job(job_id)
+        reopened = Store(self.store.path)
+        self.assertEqual(reopened.list_draft_usage(), [
+            {"path": "/draft/a.json", "edit_count": 2, "active": 0}])
+
+    def test_draft_history_backfills_existing_jobs_once(self):
+        job_id = self.store.create_job(title="旧草稿", source_path="时间线", workspace="/tmp/job",
+                                       job_type="timeline", timeline_meta={"draft_path": "/draft/old.json"})
+        with self.store.connect() as con:
+            con.execute("DROP TRIGGER draft_edit_update")
+            con.execute("UPDATE jobs SET status='completed' WHERE id=?", (job_id,))
+        for _ in range(2):
+            reopened = Store(self.store.path)
+            self.assertEqual(reopened.list_draft_usage(), [
+                {"path": "/draft/old.json", "edit_count": 1, "active": 0}])
+        reopened.reset_job(job_id)
+        reopened.bump_edit_count(job_id)
+        self.assertEqual(sum(item["edit_count"] for item in reopened.list_draft_usage()), 2)
+
     def test_job_contains_lean_pipeline_stages(self):
         job_id = self.store.create_job(title="测试", source_path="/tmp/source.mp4",
                                        workspace="/tmp/job")
@@ -42,6 +72,33 @@ class StoreTest(unittest.TestCase):
         self.assertEqual([stage["stage_id"] for stage in job["stages"]],
                          ["asr", "filter", "judge", "order", "render"])
         self.assertEqual(job["events"][0]["kind"], "job_created")
+
+    def test_queue_paginates_all_history_and_clamps_after_deletion(self):
+        for i in range(105):
+            job_id = self.store.create_job(title=f"素材 {i:03}", source_path="/tmp/source.mp4", workspace="/tmp/job")
+            self.store.update_job(job_id, created_at=f"2026-10-{1+i//10:02}T00:{i%10:02}:00Z", status="completed")
+        first = self.store.queue_jobs(group="date")
+        self.assertEqual((first["total"], first["pages"], len(first["jobs"])), (105, 6, 20))
+        last = self.store.queue_jobs(page=999, group="date")
+        self.assertEqual((last["page"], len(last["jobs"])), (6, 5))
+        self.assertEqual(last["jobs"][-1]["title"], "素材 000")
+        for job in last["jobs"]:
+            self.store.delete_job(job["id"])
+        self.assertEqual(self.store.queue_jobs(page=6)["page"], 5)
+
+    def test_queue_filters_searches_and_prioritizes_active_jobs(self):
+        for i, status in enumerate(["completed", "queued", "waiting_input", "running", "failed", "cancelled"]):
+            job_id = self.store.create_job(title=f"素材 {i}", source_path="/tmp/100%_素材.mp4", workspace="/tmp/job")
+            self.store.update_job(job_id, status=status)
+        result = self.store.queue_jobs()
+        self.assertEqual([job["status"] for job in result["jobs"]],
+                         ["running", "waiting_input", "queued", "failed", "completed", "cancelled"])
+        self.assertEqual(result["counts"]["running"], 1)
+        self.assertEqual(self.store.queue_jobs(status="waiting_input")["total"], 1)
+        self.assertEqual(self.store.queue_jobs(query="素材 3")["jobs"][0]["status"], "running")
+        self.assertEqual(self.store.queue_jobs(query="100%_")["total"], 6)
+        self.assertEqual(self.store.queue_jobs(query="missing")["total"], 0)
+        self.assertEqual(self.store.queue_jobs(page=-5, page_size=1000)["page_size"], 100)
 
     def test_stage_transition_is_persisted(self):
         job_id = self.store.create_job(title="测试", source_path="/tmp/source.mp4",

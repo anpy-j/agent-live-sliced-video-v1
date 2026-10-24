@@ -27,7 +27,7 @@ window.renderRules = async function () {
     <button type="button" class="button primary" id="pinyinTest">开始测试</button></div>
     ${jobData.jobs.length ? '' : '<p>暂无带 S2 数据的已完成任务。</p>'}
     <div id="pinyinResults" aria-live="polite"></div></section></div>
-    <div id="repetitionPanel" role="tabpanel" aria-labelledby="repetitionTab" hidden>${rulePipelinePanel("repetition", "重复限制", "S2")}
+    <div id="repetitionPanel" role="tabpanel" aria-labelledby="repetitionTab" hidden>${rulePipelinePanel("semantic_groups", "语义归组插件", "S3–S4")}
       <section class="panel rules-panel"><h2>全局重复表达试匹配</h2>
       <p>在任务内原 S2 通过的全部子句中全局查重，不限制相隔距离。已剔除的子句不计次数，也不作为首次出现。除有效短语和完整语句外，新增颜色信息点检测：不同说法的“两个色／两种颜色”可归为同组，区分明确的商品和颜色集合。</p>
       <p>使用脚本词表与句式规则，不调用 AI。同一句内的强调或口吃不计为重复；至少出现在两条不同子句中。试匹配包含第一次出现，不修改任务。V1 S2 开关开启后，仅删除后续出现的完整重复子句；短语和颜色信息点重复只记录提示，现有基础粗筛继续执行。</p>
@@ -163,32 +163,32 @@ window.renderRules = async function () {
 };
 
 function rulePipelinePanel(name, title, stage) {
+  if (name === 'semantic_groups') return `<section class="panel rules-panel"><h2>语义归组插件</h2>
+    <p>开启后，在 V1 的 S3 与 S4 之间加入“信息提取”和“语义归组”两个可选节点。按完整候选包含的信息归类，同一可替代组由 S4 最多选择一条，有新增卖点的片段独立保留。</p>
+    <p>默认关闭。关闭时不显示这两个节点，不增加 AI 调用，S1–S5 沿用原流程。开启会新增 AI 调用与耗时；重新编排可复用有效分组。</p>
+    <button type="button" class="button ghost" role="switch" aria-checked="false" aria-label="语义归组插件" data-rule-pipeline="semantic_groups" disabled>读取开关…</button>
+    <p id="semantic_groupsPipelineMessage" role="status">设置用于下次新任务或手动重跑；执行中的任务固定使用本次配置，已有成片不会自动重算。仅重新渲染会复用原编排。V2、V3 和成片重组保持原流程。</p></section>`;
   if (name === 'breath') return `<section class="panel breath-switch-panel">
     <div><div class="breath-eyebrow">PIPELINE INTEGRATION</div><h2>加入 V1 · S4</h2><p>开启后，下次 S4 在口头词清理之后校准切点。关闭时跳过检测，沿用原有 S4 处理。</p><p id="breathPipelineMessage" role="status">已生成的切点随任务保存；重新渲染复用当次结果。</p></div>
     <button type="button" class="button ghost" role="switch" aria-checked="false" aria-label="气口检测加入 V1 S4" data-rule-pipeline="breath" disabled>读取开关…</button></section>`;
   return `<section class="panel rules-panel"><h2>${title}流程开关</h2>
     <p>接入版本：V1 · 接入阶段：${stage}。开启后在下一次执行 ${stage} 时加入本模块规则；关闭后仍可试匹配。S1–S5 阶段顺序不变，已生成的任务结果不会自动重算。</p>
     <button type="button" class="button ghost" role="switch" aria-checked="false" aria-label="${title}加入 V1 ${stage}" data-rule-pipeline="${name}" disabled>读取开关…</button>
-    ${name === 'repetition' ? '<button type="button" class="button ghost" id="saveRepetitionPipeline" disabled>保存当前检测条件到 V1 S2</button><p>开启时使用已保存的检测条件。试匹配时调整条件不会自动修改流程配置。</p><p id="repetitionPipelineOptions"></p>' : ''}
     <p role="status" id="${name}PipelineMessage"></p></section>`;
 }
 
 async function setupRulePipeline() {
   let settings, saving = false;
   const switches = [...document.querySelectorAll('[data-rule-pipeline]')];
-  const optionsButton = $('#saveRepetitionPipeline');
   const refresh = () => {
     switches.forEach(button => {
-      const feature = settings.features[button.dataset.rulePipeline];
+      const feature = settings.features[button.dataset.rulePipeline] || {enabled:false, stage:"S3–S4"};
       button.setAttribute('aria-checked', String(feature.enabled));
       button.classList.toggle('primary', feature.enabled); button.classList.toggle('ghost', !feature.enabled);
-      button.textContent = feature.enabled ? `已开启 · 加入 V1 ${feature.stage}` : '已关闭 · 仅试匹配';
+      button.textContent = feature.enabled ? `已开启 · 加入 V1 ${feature.stage}` : button.dataset.rulePipeline === 'semantic_groups' ? '已关闭 · 保持原流程' : '已关闭 · 仅试匹配';
       button.disabled = saving;
     });
-    optionsButton.disabled = saving;
-    const o = settings.features.repetition.options;
-    const modes = {all:'信息点 + 有效短语 + 完整语句', fact:'仅颜色信息点', word:'仅有效短语', sentence:'仅完整语句'};
-    $('#repetitionPipelineOptions').textContent = `已保存：${modes[o.mode]} · 短语至少 ${o.min_word_length} 字 · 语句至少 ${o.min_sentence_length} 字 · 至少 ${o.min_count} 条子句`;
+
   };
   const save = async (name, payload) => {
     if (!settings || saving) return;
@@ -197,24 +197,20 @@ async function setupRulePipeline() {
     try {
       settings = await api('/api/rules/pipeline/' + name, {method:'PUT', body:JSON.stringify(payload)});
       if (!message.isConnected) return;
-      message.textContent = `已保存，下次执行 V1 ${settings.features[name].stage} 生效；试匹配始终可用。`;
+      message.textContent = name === 'semantic_groups'
+        ? '已保存，下次新任务或手动重跑时生效；执行中任务和已有成片保持本次配置。'
+        : `已保存，下次执行 V1 ${settings.features[name].stage} 生效；试匹配始终可用。`;
     } catch (error) { message.textContent = error.message; }
     finally { saving = false; if (message.isConnected) refresh(); }
   };
   switches.forEach(button => button.onclick = () => {
     const name = button.dataset.rulePipeline;
-    save(name, {enabled:!settings.features[name].enabled});
+    save(name, {enabled:!(settings.features[name]?.enabled)});
   });
-  optionsButton.onclick = () => save('repetition', {enabled:settings.features.repetition.enabled,
-    options:{mode:$('#repetitionMode').value, min_word_length:Number($('#repetitionWordLength').value),
-      min_sentence_length:Number($('#repetitionSentenceLength').value), min_count:Number($('#repetitionCount').value)}});
   try {
     settings = await api('/api/rules/pipeline');
     if (!switches[0].isConnected) return;
     if (!settings.features) throw new Error('流程开关读取失败，请刷新重试。');
-    const o = settings.features.repetition.options;
-    $('#repetitionMode').value = o.mode; $('#repetitionWordLength').value = o.min_word_length;
-    $('#repetitionSentenceLength').value = o.min_sentence_length; $('#repetitionCount').value = o.min_count;
     refresh();
   } catch (error) { switches.forEach(button => { $(`#${button.dataset.rulePipeline}PipelineMessage`).textContent = error.message; }); }
 }

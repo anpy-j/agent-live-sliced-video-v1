@@ -40,9 +40,10 @@ class RulePipelineTest(unittest.TestCase):
         defaults = rule_pipeline.load_settings()
         self.assertTrue(defaults['features']['pinyin']['enabled'])
         self.assertTrue(defaults['features']['filler']['enabled'])
-        self.assertFalse(defaults['features']['repetition']['enabled'])
+        self.assertNotIn('repetition', defaults['features'])
+        self.assertFalse(defaults['features']['semantic_groups']['enabled'])
         self.set_switch('pinyin', False)
-        saved = self.set_switch('repetition', True, options={'mode': 'sentence', 'min_count': 3})
+        saved = self.set_switch('semantic_groups', True)
         self.assertFalse(saved['features']['pinyin']['enabled'])
         self.assertTrue(saved['features']['filler']['enabled'])
         self.assertEqual(rule_pipeline.load_settings(), saved)
@@ -67,25 +68,31 @@ class RulePipelineTest(unittest.TestCase):
         snapshot = json.loads((work / 's2-rule-pipeline.snapshot.json').read_text())
         self.assertTrue(snapshot['features']['pinyin']['enabled'])
 
-    def test_repetition_only_removes_whole_later_duplicates(self):
-        clauses = [row(0, '超级超级超级超级好看。'), row(1, '超级好看。'),
-                   row(2, '版型很宽松，超级好看。'), row(3, '超级好看。', False)]
-        report = rule_pipeline.apply_repetition(clauses, rule_pipeline.DEFAULTS['repetition']['options'])
-        self.assertEqual(report['removed_ids'], [1])
-        self.assertTrue(clauses[0]['usable']); self.assertTrue(clauses[2]['usable'])
-        self.assertFalse(clauses[3]['usable']); self.assertEqual(clauses[1]['repetition_reference'], 0)
-        clauses = [row(0, '版型宽松。超级好看。'), row(1, '超级好看。')]
-        self.assertEqual(rule_pipeline.apply_repetition(clauses, rule_pipeline.DEFAULTS['repetition']['options'])['removed_ids'], [])
+    def test_retired_repetition_settings_are_ignored_and_removed_on_save(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({'features': {
+            'repetition': {'enabled': True, 'options': {'mode': 'sentence'}},
+            'pinyin': {'enabled': False}}}), encoding='utf-8')
+        settings = rule_pipeline.load_settings()
+        self.assertNotIn('repetition', settings['features'])
+        self.assertFalse(settings['features']['pinyin']['enabled'])
+        with self.assertRaises(ValueError):
+            self.set_switch('repetition', True)
+        self.set_switch('filler', False)
+        self.assertNotIn('repetition', json.loads(self.path.read_text())['features'])
 
-    def test_repetition_switch_runs_only_in_v1_s2(self):
+    def test_retired_repetition_cannot_delete_s2_candidates(self):
         work = self.root / 'work'; work.mkdir()
         original = [row(0, '超级超级超级超级好看。'), row(1, '超级好看。')]
-        self.set_switch('repetition', False)
-        clauses = copy.deepcopy(original); pipeline._filter_s2(clauses, str(work), .8)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({'features': {'repetition': {
+            'enabled': True, 'options': {'mode': 'sentence'}}}}), encoding='utf-8')
+        clauses = copy.deepcopy(original)
+        pipeline._filter_s2(clauses, str(work), .8)
         self.assertTrue(clauses[1]['usable'])
-        self.set_switch('repetition', True)
-        clauses = copy.deepcopy(original); pipeline._filter_s2(clauses, str(work), .8)
-        self.assertEqual(clauses[1]['reason'], 'repetition_rule')
+        snapshot = json.loads((work / 's2-rule-pipeline.snapshot.json').read_text())
+        self.assertNotIn('repetition', snapshot)
+        self.assertNotIn('repetition', snapshot['features'])
 
     def test_filler_off_preserves_cuts_and_trial_still_matches(self):
         snapshot = filler_rules.save_rule(self.filler, {'phrase': '真的'})
@@ -114,7 +121,7 @@ class RulePipelineTest(unittest.TestCase):
             return {'main_product': '穿搭', 'sections': [{'role': 'hook', 'ids': [0]}], 'ordered_ids': [0]}
         sequences = []
         for enabled in (False, True):
-            for name in ("pinyin", "repetition", "filler"):
+            for name in ("pinyin", "filler"):
                 self.set_switch(name, enabled)
             events = []
             with patch.object(pipeline, 'ai_call', side_effect=fake_ai), patch.object(pipeline, 'render_video'):
@@ -131,7 +138,7 @@ class RulePipelineTest(unittest.TestCase):
 
     def test_v2_v3_s2_not_affected_by_v1_switches(self):
         pinyin_rules.save_rule(self.pinyin, {'pinyin': 'yang qi'})
-        self.set_switch('pinyin', False); self.set_switch('repetition', True)
+        self.set_switch('pinyin', False); self.set_switch('semantic_groups', True)
         words = [{'w': '你秋冬这样穿又洋气又好看。', 's': 0, 'e': 3}]
         for name in ('v2', 'v3'):
             work = self.root / name; work.mkdir()

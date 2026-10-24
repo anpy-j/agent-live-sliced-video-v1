@@ -80,16 +80,14 @@ async function run() {
   await pinyinSwitch.click();
   await page.waitForFunction(()=>document.querySelector('[data-rule-pipeline="pinyin"]').getAttribute('aria-checked')==='false');
   await page.getByRole('tab',{name:'重复限制'}).click();
-  const repetitionSwitch=page.getByRole('switch',{name:'重复限制加入 V1 S2'});
-  assert.equal(await repetitionSwitch.getAttribute('aria-checked'),'false');
-  await page.locator('#repetitionMode').selectOption('sentence');
-  await page.locator('#repetitionCount').fill('3');
-  await page.locator('#saveRepetitionPipeline').click();
-  await page.getByText(/已保存：仅完整语句.*至少 3 条子句/).waitFor();
-  await repetitionSwitch.click();
-  await page.waitForFunction(()=>document.querySelector('[data-rule-pipeline="repetition"]').getAttribute('aria-checked')==='true');
+  assert.equal(await page.locator('[data-rule-pipeline="repetition"]').count(),0);
+  const semanticSwitch=page.getByRole('switch',{name:'语义归组插件',exact:true});
+  assert.equal(await semanticSwitch.getAttribute('aria-checked'),'false');
+  await semanticSwitch.click();
+  await page.waitForFunction(()=>document.querySelector('[data-rule-pipeline="semantic_groups"]').getAttribute('aria-checked')==='true');
   const config=JSON.parse(fs.readFileSync(path.join(temporary,'data','rule_pipeline.json'),'utf8'));
-  assert.equal(config.features.repetition.options.min_count,3);
+  assert.equal(config.features.semantic_groups.enabled,true);
+  assert.equal(Object.hasOwn(config.features,'repetition'),false);
   assert.equal(config.features.pinyin.enabled,false); assert.equal(config.features.filler.enabled,false);
   await page.reload();
   await page.getByRole('tab',{name:'口头词清理'}).click();
@@ -182,7 +180,7 @@ async function run() {
   assert.equal(await page.locator('#pinyinPanel').isVisible(),true);
   assert.equal(await page.locator('#fillerPanel').isVisible(),false);
   assert.deepEqual(errors,[]);
-  console.log('Rule switches and filler UI passed: independent persistent V1 switches, saved repetition options, trials while off, real HTTP CRUD, S4 cut verification, keyboard tabs and mobile layout.');
+  console.log('Rule switches and filler UI passed: independent persistent V1 switches, retired S2 repetition control absent, semantic plugin persistence, trials while off, real HTTP CRUD, S4 cut verification, keyboard tabs and mobile layout.');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{
   await browser?.close();

@@ -23,6 +23,7 @@ from typing import Any, Iterator
 
 from .db import Store, utc_now, STAGE_DEFINITIONS
 from .pipeline_versions import stages_for
+from .pipeline_plugins import PLUGIN_IDS, configuration as plugin_configuration
 from .pipeline import (PipelineError, next_available_dir, next_available_output,
                        group_segments_for_export, render_segment, run_pipeline,
                        run_pipeline_stage)
@@ -221,14 +222,18 @@ def _run_pipeline_child(result_queue: Any, source: str, workspace: str,
         elif pipeline_version != "v1":
             raise PipelineError(f"未知剪辑版本：{pipeline_version}")
         elif only_stage:
+            snapshot = Path(workspace) / "plugins.snapshot.json"
+            plugin_config = json.loads(snapshot.read_text(encoding="utf-8")) if snapshot.is_file() else plugin_configuration()
             manifest = run_pipeline_stage(
                 source, workspace, only_stage, target_seconds=target_seconds,
                 product_name=product_name, output_stem=output_stem, on_stage=on_stage,
-                virtual_timeline=vt)
+                virtual_timeline=vt, plugin_config=plugin_config)
         else:
+            snapshot = Path(workspace) / "plugins.snapshot.json"
+            plugin_config = json.loads(snapshot.read_text(encoding="utf-8")) if snapshot.is_file() else plugin_configuration()
             manifest = run_pipeline(source, workspace, target_seconds=target_seconds,
                                     output_stem=output_stem, product_name=product_name,
-                                    on_stage=on_stage, virtual_timeline=vt)
+                                    on_stage=on_stage, virtual_timeline=vt, plugin_config=plugin_config)
     except JobPaused as exc:
         result_queue.put(("paused", exc.stage))
     except PipelineError as exc:
@@ -337,6 +342,8 @@ class JobRunner:
         self._pause_requested.discard(job_id)
         stage = job.get('run_stage')
         resume_stages = {'filter', 'judge', 'order', 'render'}
+        if job.get('pipeline_version', 'v1') == 'v1':
+            resume_stages |= PLUGIN_IDS
         if job.get('pipeline_version') == 'v2':
             resume_stages |= {'asr', 'review'}
         if stage in resume_stages and job.get('job_type') != 'remix':
@@ -465,7 +472,7 @@ class JobRunner:
             raise KeyError("任务不存在")
         is_v2 = job.get("pipeline_version") == "v2"
         if stage_id not in ({"filter", "judge", "order", "review", "render"} if is_v2 else
-                            {"filter", "judge", "order", "render"}):
+                            {"filter", "judge", "order", "render"} | (PLUGIN_IDS if job.get("pipeline_version", "v1") == "v1" and job.get("job_type") != "remix" else set())):
             raise ValueError("仅支持重新执行 S2、S3、S4 或渲染")
         if job["status"] in {"queued", "running"}:
             self.cancel(job_id)
@@ -489,18 +496,33 @@ class JobRunner:
             "order": ("clauses.judged.json", "S3 AI 可用性判定"),
             "render": ("order.json", "S4 AI 排序编排"),
         }
+        if job.get("pipeline_version", "v1") == "v1" and job.get("job_type") != "remix":
+            config = plugin_configuration(self.project_root / "data" / "rule_pipeline.json")
+            if stage_id in PLUGIN_IDS and not config["enabled"]:
+                raise ValueError("语义归组插件已关闭，请重新执行 S4")
+            required.update({sid: ("timeline.json", "S3 AI 可用性判定") for sid in PLUGIN_IDS})
         filename, label = required[stage_id]
         if not (workspace / filename).is_file():
             raise ValueError(f"{label}数据不存在，不能单独重跑该节点")
         self._refresh_ai_configuration(job_id, "手动重新执行节点")
+        if job.get("pipeline_version", "v1") == "v1" and job.get("job_type") != "remix" and stage_id != "render":
+            (workspace / "plugins.snapshot.json").write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
+            self.store.configure_plugin_stages(job_id, config["enabled"])
+            if stage_id in {"filter", "judge", "claim_extract"}:
+                (workspace / "plugins/semantic_groups/extract.json").unlink(missing_ok=True)
+                (workspace / "plugins/semantic_groups/groups.json").unlink(missing_ok=True)
+            elif stage_id == "claim_group":
+                (workspace / "plugins/semantic_groups/groups.json").unlink(missing_ok=True)
         for name in {
             "filter": ("clauses.filtered.json", "clauses.judged.json", "judge.progress.json", "order.json"),
             "judge": ("clauses.judged.json", "judge.progress.json", "order.json"),
             "order": ("order.json",),
+            "claim_extract": ("order.json",),
+            "claim_group": ("order.json",),
             "render": (),
         }[stage_id]:
             (workspace / name).unlink(missing_ok=True)
-        if stage_id in {"judge", "order"}:
+        if stage_id in {"judge", "order"} | PLUGIN_IDS:
             timeline_path = workspace / "timeline.json"
             if timeline_path.is_file():
                 try:
@@ -612,11 +634,26 @@ class JobRunner:
                                         message="编码结束，正在封装和交付成片", finished_at=None)
             else:
                 self.store.stage_done(job_id, stage, message)
+                if stage in PLUGIN_IDS:
+                    filename = "extract.json" if stage == "claim_extract" else "groups.json"
+                    path = workspace / "plugins" / "semantic_groups" / filename
+                    if path.is_file():
+                        result = json.loads(path.read_text(encoding="utf-8"))
+                        self.store.update_stage(job_id, stage, result=result)
+                        self.store.add_artifact(job_id, stage, "json", message, path, "application/json")
 
         output_stem = str(job.get("title") or "").strip() or None
         product_name = str(job.get("product_name") or "").strip() or None
         try:
             with self._ai_environment(job):
+                if job.get("pipeline_version", "v1") == "v1" and job.get("job_type") != "remix" and only_stage != "render":
+                    snapshot = workspace / "plugins.snapshot.json"
+                    if snapshot.is_file():
+                        config = json.loads(snapshot.read_text(encoding="utf-8"))
+                    else:
+                        config = plugin_configuration()
+                        snapshot.write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
+                    self.store.configure_plugin_stages(job_id, config["enabled"])
                 manifest = self._execute_pipeline(
                     job_id, str(source), str(workspace), target_seconds, on_stage,
                     only_stage=only_stage, output_stem=output_stem,
@@ -965,6 +1002,8 @@ class JobRunner:
             "filter": ("规则筛结果", workspace / "clauses.filtered.json"),
             "judge": ("AI 判定结果", workspace / "clauses.judged.json"),
             "order": ("AI 编排结果", workspace / "order.json"),
+            "claim_extract": ("信息提取结果", workspace / "plugins/semantic_groups/extract.json"),
+            "claim_group": ("语义归组结果", workspace / "plugins/semantic_groups/groups.json"),
         }
         title, path = outputs[stage_id]
         if path.is_file():
@@ -973,7 +1012,10 @@ class JobRunner:
                              "单节点重新执行完成", result)
         # 单节点重跑不再停在 waiting_input：自动优先推进当前计划的下游节点直到出片，
         # 批量恢复时优先完成当前计划，再执行下一个计划。
-        next_stage = {"filter": "judge", "judge": "order", "order": "render"}[stage_id]
+        next_stage = {"filter": "judge", "judge": "order", "order": "render",
+                      "claim_extract": "claim_group", "claim_group": "order"}[stage_id]
+        if stage_id == "judge" and any(s["stage_id"] == "claim_extract" for s in self.store.get_job(job_id)["stages"]):
+            next_stage = "claim_extract"
         self.store.prepare_stage_rerun(job_id, next_stage)
         if job_id in self._pause_requested:
             self.store.update_job(job_id, status="paused")

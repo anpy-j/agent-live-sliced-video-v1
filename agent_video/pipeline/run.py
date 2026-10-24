@@ -13,6 +13,8 @@ from __future__ import annotations
 from agent_video.ai_fallback import response_check
 from agent_video.pinyin_rules import load_rules
 from agent_video import filler_rules, rule_pipeline
+from agent_video import semantic_groups
+from agent_video.pipeline_plugins import configuration as plugin_configuration, PLUGIN_IDS
 
 import argparse
 import copy
@@ -428,11 +430,7 @@ def _filter_s2(clauses, workdir, min_duration):
     pinyin_snapshot = load_rules() if features["pinyin"]["enabled"] else {"revision": "disabled", "rules": []}
     _dump(os.path.join(workdir, "pinyin-rules.snapshot.json"), pinyin_snapshot)
     filter_clauses(clauses, min_duration=min_duration, pinyin_rules=pinyin_snapshot)
-    repetition = features["repetition"]
-    report = (rule_pipeline.apply_repetition(clauses, repetition["options"])
-              if repetition["enabled"] else {"removed_ids": [], "status": "disabled"})
-    _dump(os.path.join(workdir, "s2-rule-pipeline.snapshot.json"),
-          {**settings, "repetition": report})
+    _dump(os.path.join(workdir, "s2-rule-pipeline.snapshot.json"), settings)
 
 
 def _clean_s4(candidates, ordered_ids, clauses, workdir, media=None, virtual_timeline=None):
@@ -516,9 +514,10 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
                        select_visual_fn: Callable[[dict[str, Any]], tuple[float, float]]
                        | None = None,
                        on_stage: StageCallback | None = None,
-                       virtual_timeline: Any | None = None) -> dict[str, Any]:
+                       virtual_timeline: Any | None = None,
+                 plugin_config: dict | None = None) -> dict[str, Any]:
     """只重跑 S2/S3/S4/S6 中的一个节点，并严格复用其上游落盘数据。"""
-    if stage not in {"filter", "judge", "order", "render"}:
+    if stage not in {"filter", "judge", "order", "render"} | PLUGIN_IDS:
         raise PipelineError(f"不支持单节点重跑：{stage}")
     media = os.path.abspath(media)
     workdir = os.path.abspath(workdir)
@@ -657,6 +656,14 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     clauses = copy.deepcopy(judged_data["clauses"])
     usable = [clause for clause in clauses if clause.get("usable")]
     candidates = order_candidates(usable)
+    config = plugin_config if plugin_config is not None else plugin_configuration()
+    if stage in PLUGIN_IDS and not config.get("enabled"):
+        raise PipelineError("语义归组插件已关闭，请重新执行 S4")
+    grouping = semantic_groups.prepare(candidates, workdir, model, ai_timeout, ai_call,
+        lambda sid, status, message: _emit(on_stage, sid, status, message), config,
+        product_name, stop_after=stage if stage in PLUGIN_IDS else None)
+    if stage in PLUGIN_IDS:
+        return {"stage": stage, **grouping}
     available = sum(_duration(candidate) for candidate in candidates)
     if available < target_seconds[0] - target_tolerance:
         _emit(on_stage, "order", "start",
@@ -665,12 +672,17 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     else:
         _emit(on_stage, "order", "start",
               f"单独重跑 AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    with response_check(lambda data: _validate_order(
-            data, candidates, target_seconds, target_tolerance, available)):
-        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
+    def validate_plugin_order(data):
+        validated = _validate_order(data, candidates, target_seconds, target_tolerance, available)
+        semantic_groups.validate_order(data, grouping)
+        return validated
+    with response_check(validate_plugin_order):
+        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available)
+                        + semantic_groups.order_suffix(grouping),
                         ORDER_SCHEMA, ai_timeout)
     main_product, ordered_ids, total_seconds, sections = _validate_order(
         order, candidates, target_seconds, target_tolerance, available)
+    semantic_groups.validate_order(order, grouping)
     main_product = product_name or main_product
     position = {cid: index for index, cid in enumerate(ordered_ids)}
     member_candidate = {member: candidate["id"]
@@ -685,6 +697,8 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     total_seconds = breath["total_seconds"] if breath else cleanup["total_seconds"]
     result = {"filler_cleanup": cleanup, "stage": stage, "main_product": main_product, "sections": sections,
               "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3)}
+    if grouping is not None:
+        result["semantic_groups"] = grouping
     if breath is not None:
         result["breath_detection"] = breath
     _dump(os.path.join(workdir, "order.json"), result)
@@ -717,7 +731,8 @@ def run_pipeline(media: str, workdir: str, *,
                  output_stem: str | None = None,
                  product_name: str | None = None,
                  on_stage: StageCallback | None = None,
-                 virtual_timeline: Any | None = None) -> dict[str, Any]:
+                 virtual_timeline: Any | None = None,
+                 plugin_config: dict | None = None) -> dict[str, Any]:
     """跑完 S1→S2→S3→S4→S6，返回结果摘要并落盘 timeline/manifest 与成片。
 
     ``output_stem`` 是成片文件名主体（来自任务标题）；为空时沿用 ``final``，
@@ -731,6 +746,7 @@ def run_pipeline(media: str, workdir: str, *,
     os.makedirs(workdir, exist_ok=True)
     # S2 必须应用账号级红线词表（价格/现货/发货/库存/尺码/优惠券等），否则大量
     # 红线子句会漏进 S3，白白增加批次与耗时。
+    config = plugin_config if plugin_config is not None else plugin_configuration()
     activate_account_vocab()
     model = ai_model or os.environ.get("PIPELINE_AI_MODEL") or "auto"
     if merge_min is None:
@@ -868,6 +884,11 @@ def run_pipeline(media: str, workdir: str, *,
     available = sum(_duration(candidate) for candidate in candidates)
     _emit(on_stage, "judge", "done",
           f"AI 判定后剩 {len(judged)} 条可用子句 / {len(candidates)} 段可用句单元")
+    grouping = semantic_groups.prepare(candidates, workdir, model, ai_timeout, ai_call,
+        lambda sid, status, message: _emit(on_stage, sid, status, message), config, product_name)
+    if grouping is not None:
+        ai_calls += grouping["ai_calls"]
+
     if available < target_seconds[0] - target_tolerance:
         _emit(on_stage, "order", "start",
               f"可用句单元总时长仅 {available:.2f}s，低于目标下限 "
@@ -875,13 +896,18 @@ def run_pipeline(media: str, workdir: str, *,
     else:
         _emit(on_stage, "order",
               "start", f"AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    with response_check(lambda data: _validate_order(
-            data, candidates, target_seconds, target_tolerance, available)):
-        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available),
+    def validate_plugin_order(data):
+        validated = _validate_order(data, candidates, target_seconds, target_tolerance, available)
+        semantic_groups.validate_order(data, grouping)
+        return validated
+    with response_check(validate_plugin_order):
+        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available)
+                        + semantic_groups.order_suffix(grouping),
                         ORDER_SCHEMA, ai_timeout)
     ai_calls += 1
     main_product, ordered_ids, total_seconds, sections = _validate_order(
         order, candidates, target_seconds, target_tolerance, available)
+    semantic_groups.validate_order(order, grouping)
     main_product = product_name or main_product
     position = {cid: index for index, cid in enumerate(ordered_ids)}
     member_candidate = {member: candidate["id"]
@@ -900,6 +926,7 @@ def run_pipeline(media: str, workdir: str, *,
     total_seconds = breath["total_seconds"] if breath else cleanup["total_seconds"]
     _dump(os.path.join(workdir, "order.json"), {
         **({"breath_detection": breath} if breath is not None else {}),
+        **({"semantic_groups": grouping} if grouping is not None else {}),
         "filler_cleanup": cleanup, "stage": "order", "main_product": main_product, "sections": sections,
         "ordered_ids": ordered_ids, "total_seconds": round(total_seconds, 3),
     })
