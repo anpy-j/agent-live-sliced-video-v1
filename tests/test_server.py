@@ -390,6 +390,13 @@ class JobApiTest(unittest.TestCase):
         self.assertFalse((workspace / "order.json").exists())
         self.assertEqual(video.read_bytes(), b"old-video")
 
+    def test_cloud_server_persists_without_credentials(self):
+        self.app.update_settings({"cloud_server": "http://192.168.1.240:8088/"})
+        reopened = Application(self.root)
+        self.assertEqual(reopened.settings()["cloud_server"], "http://192.168.1.240:8088")
+        with self.assertRaises(ValueError):
+            self.app.update_settings({"cloud_server": "file:///tmp/server"})
+
     def test_update_settings_validates_ai_engine(self):
         self.assertEqual(self.app.update_settings({"ai_engine": "jev"})["ai_engine"], "jev")
         with self.assertRaisesRegex(ValueError, "ai_engine"):

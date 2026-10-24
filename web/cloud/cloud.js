@@ -4,10 +4,11 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const device = localStorage.livecutDevice || (localStorage.livecutDevice = crypto.randomUUID());
   const desktop = new URLSearchParams(location.search).has('desktop');
-  let token = sessionStorage.livecutToken || '', server = localStorage.livecutServer || '', username = localStorage.livecutUsername || '';
+  let server = localStorage.livecutServer || '';
+  sessionStorage.removeItem('livecutToken');
   let products = [], tab = 'videos', filter = '', day = '', offset = 0, running = false, catalog = [];
   let shown = new Map(), activeQueue = '';
-  const accountKey = () => `${server}|${username}`;
+  const accountKey = () => `${server}|${localStorage.livecutUsername || 'livecut'}`;
   let messageTimer;
   const say = msg => { clearTimeout(messageTimer);$('#message').textContent = msg;if(!msg.includes('\n'))messageTimer=setTimeout(()=>{$('#message').textContent='';},8000); };
   const formatDate = value => value ? new Date(typeof value === 'number' ? value * 1000 : value).toLocaleString('zh-CN') : '未知';
@@ -32,17 +33,18 @@
   }
   async function api(path,body,method) {
     const response = await fetch(`${server}/api/livecut/v1${path}`, {method:method || (body?'POST':'GET'),
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:body?JSON.stringify(body):undefined});
+      headers:{'Content-Type':'application/json',},body:body?JSON.stringify(body):undefined});
     const data = await response.json().catch(()=>({detail:'服务器未返回有效 JSON，请检查地址'}));
     if (!response.ok) {
-      if(response.status===401 && path!=='/auth/login') {token='';sessionStorage.removeItem('livecutToken');showLogin();}
       const error = new Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail));error.status=response.status;throw error;
     }
     return data;
   }
   function showLogin() {
     $('#loginPanel').hidden=false;$('#workspace').hidden=true;
-    $('#loginForm [name=server]').value=server;$('#loginForm [name=username]').value=username;
+    $('#loginForm [name=server]').value=server;
+    $('#loginForm').hidden=desktop;
+    $('#connectionHint').textContent=server?'服务器连接失败，请检查地址或服务状态。':'请先在系统设置中保存云端服务器地址。';
   }
   async function refresh() {
     products=(await api('/products')).products;
@@ -129,11 +131,11 @@
     });
   }
   async function processQueue() {
-    if(running||!token||!navigator.onLine)return;running=true;
+    if(running||!server||!navigator.onLine)return;running=true;
     try {
       const rows=(await queueStore('getAll')).filter(r=>r.account===accountKey()&&!r.error);
       for(const row of rows) {
-        if(!token)break;activeQueue=row.id;
+activeQueue=row.id;
         try {
           row.state=row.kind==='record'?'同步剪辑记录':'上传中';await queueStore('put',row);if(tab==='queue')await render();
           if(row.edit&&!row.payload.edit_id){const edit=await api('/edit-records',row.edit);row.payload.edit_id=edit.id;await queueStore('put',row);}
@@ -148,7 +150,7 @@
         }catch(e){row.state='等待重试';row.error=e.message;await queueStore('put',row);say(e.message);}
         finally{activeQueue='';}
       }
-      if(rows.length&&token)await refresh();
+      if(rows.length&&server)await refresh();
     }catch(e){say(e.message);}finally{running=false;}
   }
   async function download(id) {
@@ -167,18 +169,28 @@
     }
   }
   async function act(fn){try{await fn();}catch(e){say(e.message);}}
+  async function connect() {
+    showLogin();
+    if(!server)return;
+    try {await refresh();processQueue();}catch(e){showLogin();say(e.message);}
+  }
   $('#loginForm').onsubmit=e=>{e.preventDefault();act(async()=>{
-    if(running)throw new Error('请等待当前上传完成后再切换账号');
-    const form=e.target;const url=new URL(form.server.value.trim());
-    if(!['http:','https:'].includes(url.protocol))throw new Error('服务器地址须使用 HTTP 或 HTTPS');
-    if(url.username||url.password||url.search||url.hash)throw new Error('请输入不包含账号、查询参数的服务器地址');
-    server=url.href.replace(/\/$/,'');username=form.username.value;
-    const data=await api('/auth/login',{username,password:form.password.value});token=data.token;form.password.value='';sessionStorage.livecutToken=token;
-    localStorage.livecutServer=server;localStorage.livecutUsername=username;await refresh();say('已连接');processQueue();
+    if(running)throw new Error('请等待当前上传完成');
+    const url=new URL(e.target.server.value.trim());
+    if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw new Error('请输入有效的 HTTP 或 HTTPS 服务器地址');
+    server=url.href.replace(/\/$/,'');localStorage.livecutServer=server;
+    await connect();
   });};
-  $('#settingsButton').onclick=()=>act(async()=>{if(running)throw new Error('请等待上传完成');if(token)await api('/auth/logout',{}).catch(()=>{});token='';sessionStorage.removeItem('livecutToken');showLogin();});
+  $('#settingsButton').onclick=()=>{if(desktop)window.parent.location.hash='/settings/runtime';else {showLogin();$('#loginForm').hidden=false;}};
   $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;offset=0;act(render);});
   $('#closePreview').onclick=()=>$('#preview').close();$('#preview').addEventListener('close',()=>{$('#preview video').pause();$('#preview video').removeAttribute('src');});
   addEventListener('online',processQueue);
-  showLogin();if(token&&server)act(async()=>{await refresh();processQueue();});
+  async function initialize() {
+    if(desktop) {
+      try {const response=await fetch('/api/settings');if(!response.ok)throw new Error('系统设置读取失败');const settings=await response.json();server=(settings.cloud_server||'').trim().replace(/\/$/,'');}
+      catch(e){showLogin();say(e.message);return;}
+    }
+    await connect();
+  }
+  initialize();
 })();

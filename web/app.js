@@ -737,6 +737,7 @@ async function renderSettings(tab='ai'){
     <section class="settings-card">${cardHead('◇','本地运行环境','内置切片内核随应用版本一起升级。')}
     <div class="settings-form settings-two-fields"><label>内置切片内核<input value="${escapeHtml(data.engine_path||'')}" readonly><small>${data.engine_bundled?'使用项目自带内核。':'当前使用外部引擎路径。'}</small></label>
     <label>引擎 Python<input name="engine_python" value="${escapeHtml(data.engine_python||'')}"><small>建议使用项目独立的 Python 3.13 环境。</small></label></div></section>
+    <section class="settings-card">${cardHead('↗','云端服务器','保存后自动连接云端管理，无需账号密码。')}<div class="settings-form"><label>服务器地址<input name="cloud_server" type="url" value="${escapeHtml(data.cloud_server||'')}" placeholder="http://192.168.1.240:8088"><small>地址保存在本机，重启后继续使用。</small></label></div></section>
     <section class="settings-card">${cardHead('↗','Agent 接入','配置 Skill 文件与 MCP 服务。')}<div class="settings-form"><label>Skill 路径<input name="skill_path" value="${escapeHtml(data.skill_path||'')}"></label>
     <label class="settings-checkbox"><input type="checkbox" name="mcp_enabled" ${data.mcp_enabled?'checked':''}><span>启用 MCP 服务<small>允许外部 Agent 提交剪辑任务。</small></span></label></div></section>
     <p class="form-error" id="settingsError" role="alert"></p>${saveBar}

@@ -920,7 +920,7 @@ try {{
 
     def settings(self, *, refresh_models: bool = False) -> dict[str, Any]:
         keys = ["engine_python", "skill_path", "mcp_enabled", "mcp_token",
-                "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir", "ai_fallbacks"]
+                "ai_engine", "ai_provider", "ai_model", "jev_base_url", "export_dir", "ai_fallbacks", "cloud_server"]
         result = {key: self.store.get_setting(key) for key in keys}
         result["ai_fallbacks"] = result.get("ai_fallbacks") or []
         raw_jev_key = str(self.store.get_setting("jev_api_key") or "").strip()
@@ -974,7 +974,14 @@ try {{
 
     def update_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
         allowed = {"engine_python", "skill_path", "mcp_enabled", "ai_engine", "ai_provider",
-                   "ai_model", "jev_api_key", "jev_base_url", "export_dir", "ai_fallbacks"}
+                   "ai_model", "jev_api_key", "jev_base_url", "export_dir", "ai_fallbacks", "cloud_server"}
+        if "cloud_server" in payload:
+            address = str(payload["cloud_server"] or "").strip().rstrip("/")
+            parsed = urllib.parse.urlsplit(address)
+            if address and (parsed.scheme not in {"http", "https"} or not parsed.hostname
+                            or parsed.username or parsed.password or parsed.query or parsed.fragment):
+                raise ValueError("请输入有效的 HTTP 或 HTTPS 云端服务器地址")
+            payload = {**payload, "cloud_server": address}
         if "ai_engine" in payload and str(payload["ai_engine"]) not in {"llm", "jev"}:
             raise ValueError("ai_engine 必须是 llm 或 jev")
         if "ai_provider" in payload and str(payload["ai_provider"]) not in {
