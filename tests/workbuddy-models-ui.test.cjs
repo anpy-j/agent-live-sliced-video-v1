@@ -6,7 +6,7 @@ const output=path.join(root,'.runtime','workbuddy-models-ui');
 let browser,refreshCount=0,hold=false,release;
 const errors=[],saves=[];
 const settings={ai_provider:'workbuddy',ai_model:'saved-model',engine_path:'fixture',ai_engine:'llm',
-  ai_models:{workbuddy:[{id:'auto',name:'自动选择'},{id:'old-model',name:'Old'}],codex:[{id:'auto',name:'默认配置'}]},
+  ai_models:{workbuddy:[{id:'auto',name:'自动选择'},{id:'old-model',name:'Old'},{id:'hy-fixture',name:'HY Fixture'}],codex:[{id:'auto',name:'默认配置'},{id:'gpt-fixture',name:'GPT Fixture'}],api:[{id:'api-fixture',name:'API Fixture'}]},
   ai_model_catalogs:{workbuddy:{source:'builtin',count:2,confirmed:false}}};
 const server=http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost'),route=url.pathname;
@@ -44,11 +44,11 @@ async function run(){
  assert.equal(await page.locator('[name="jev_base_url"]').isVisible(),true);
  await page.locator('[name="ai_engine"]').selectOption('llm');
  await page.locator('#fallbackProvider').selectOption('codex');
- await page.locator('#fallbackModel').fill('gpt-fixture');await page.locator('#addFallback').click();
+ await page.locator('#fallbackModel').selectOption('gpt-fixture');await page.locator('#addFallback').click();
  await page.locator('#fallbackProvider').selectOption('workbuddy');
- await page.locator('#fallbackModel').fill('hy-fixture');await page.locator('#addFallback').click();
+ await page.locator('#fallbackModel').selectOption('hy-fixture');await page.locator('#addFallback').click();
  await page.locator('#fallbackProvider').selectOption('api');
- await page.locator('#fallbackModel').fill('api-fixture');await page.locator('#addFallback').click();
+ await page.locator('#fallbackModel').selectOption('api-fixture');await page.locator('#addFallback').click();
  assert.equal(await page.locator('#fallbackList li').count(),3);
  await page.locator('#addFallback').click();assert.match(await page.locator('#fallbackError').textContent(),/已在列表/);
  await page.locator('[data-fallback-up="2"]').click();
@@ -59,7 +59,11 @@ async function run(){
  await page.evaluate(()=>{document.activeElement?.blur();window.scrollTo(0,0)});
  await page.screenshot({path:path.join(output,'settings-desktop.png'),fullPage:true});
  await page.locator('#aiModel').waitFor();assert.equal(await page.locator('#aiModel').inputValue(),'saved-model');
+ await page.locator('#fallbackProvider').selectOption('workbuddy');
+ await page.locator('#fallbackModel').selectOption('hy-fixture');
  await page.locator('#refreshModels').click();await page.locator('#aiModel option[value="glm-5.3"]').waitFor({state:'attached'});
+ assert.equal(await page.locator('#fallbackModel').inputValue(),'hy-fixture','Refreshing must preserve fallback selection');
+ assert.equal(await page.locator('#fallbackModel option[value="glm-5.3"]').count(),1,'Fallback selector must share the refreshed catalog');
  assert.equal(await page.locator('#aiModel').inputValue(),'saved-model','Missing saved model must not silently reset');
  assert.match(await page.locator('#modelCatalogStatus').textContent(),/客户端目录/);
  await page.locator('#aiModel').selectOption('glm-5.3');await page.locator('#settingsForm button[type="submit"]').click();

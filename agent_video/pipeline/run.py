@@ -22,6 +22,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from agent_video.pipeline.judge_progress import progress_writer
@@ -62,8 +63,16 @@ def _duration(clause: dict[str, Any]) -> float:
 
 
 def _dump(path: str, value: Any) -> None:
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(value, handle, ensure_ascii=False, indent=1)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False,
+                dir=os.path.dirname(os.path.abspath(path)), suffix=".tmp") as handle:
+            temporary = handle.name
+            json.dump(value, handle, ensure_ascii=False, indent=1)
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.isfile(temporary):
+            os.unlink(temporary)
 
 
 def _load_required(path: str, label: str) -> dict[str, Any]:
@@ -350,6 +359,73 @@ def _validate_decisions(data: dict[str, Any],
     return result
 
 
+def _sanitize_order_ids(data, candidates):
+    """Remove references outside the S3-approved candidate set, never invent clips."""
+    allowed = {candidate["id"] for candidate in candidates}
+    removed = []
+
+    def clean(ids):
+        result = []
+        for cid in ids:
+            if isinstance(cid, int) and not isinstance(cid, bool) and cid in allowed:
+                result.append(cid)
+            else:
+                removed.append(cid)
+        return result
+
+    result = copy.deepcopy(data)
+    sections = result.get("sections")
+    if isinstance(sections, list):
+        kept = []
+        for section in sections:
+            if isinstance(section, dict) and isinstance(section.get("ids"), list):
+                original = section["ids"]
+                section["ids"] = clean(original)
+                if original and not section["ids"]:
+                    continue
+            kept.append(section)
+        result["sections"] = kept
+    if isinstance(result.get("ordered_ids"), list):
+        result["ordered_ids"] = clean(result["ordered_ids"])
+    return result, removed
+
+
+def _request_order(model, prompt, candidates, target, tolerance, available,
+                   grouping, workdir, on_stage, ai_timeout):
+    """Repair invalid references locally; retry an unusable arrangement once."""
+    attempts = []
+    feedback = ""
+
+    def validate(data):
+        normalized, _ = _sanitize_order_ids(data, candidates)
+        validated = _validate_order(normalized, candidates, target, tolerance, available)
+        semantic_groups.validate_order(normalized, grouping)
+        return normalized, validated
+
+    for attempt in range(2):
+        try:
+            with response_check(validate):
+                raw = ai_call(model, prompt + feedback, ORDER_SCHEMA, ai_timeout)
+            normalized, validated = validate(raw)
+        except AIReturnError as exc:
+            attempts.append({"attempt": attempt + 1, "error": str(exc)})
+            _dump(os.path.join(workdir, "order.recovery.json"), {"attempts": attempts})
+            if attempt:
+                raise
+            _emit(on_stage, "order", "start", f"S4 编排暂不可用，自动重试：{exc}")
+            feedback = (f"\n上次返回未通过校验：{exc}。请重新编排，"
+                        "只使用本次候选列表的 id，保持 sections 与 ordered_ids 一致。")
+            continue
+        _, removed = _sanitize_order_ids(raw, candidates)
+        attempts.append({"attempt": attempt + 1, "removed_ids": removed,
+                         "raw": raw, "normalized": normalized})
+        _dump(os.path.join(workdir, "order.recovery.json"), {"attempts": attempts})
+        if removed:
+            _emit(on_stage, "order", "start",
+                  f"S4 已自动移除非法/越界 ID：{removed}，保留有效片段继续剪辑")
+        return normalized, validated, attempt + 1
+
+
 def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
                     target: tuple[float, float],
                     tolerance: float,
@@ -360,6 +436,7 @@ def _validate_order(data: dict[str, Any], candidates: list[dict[str, Any]],
     hook 必须开头，cta 若存在必须收尾；其余角色的先后不做过细限制，避免规则过死
     导致模型反复失败。合规/去噪不在这里判断（由 S2/S3 负责）。
     """
+    data, _ = _sanitize_order_ids(data, candidates)
     main_product = data.get("main_product")
     if not isinstance(main_product, str) or not main_product.strip():
         raise AIReturnError("S4 返回缺少 main_product")
@@ -563,7 +640,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         usable = [clause for clause in clauses if clause.get("usable")]
         if not usable:
             raise RuleFilterEmpty("S2 数据中没有可供 AI 判定的子句")
-        units = build_units(usable, merge_min=merge_min, merge_max=merge_max,
+        units = build_units(clauses, merge_min=merge_min, merge_max=merge_max,
                             silence_gap=DEFAULT_SILENCE_GAP)
         batches = list(_judge_batches(units, judge_batch))
         concurrency_note = f"，并发 {judge_concurrency}" if judge_concurrency > 1 else ""
@@ -585,7 +662,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         judged = [clause for clause in clauses if clause.get("usable")]
         if not judged:
             raise AIReturnError("S3 判定后没有任何可用子句")
-        candidates = order_candidates(usable)
+        candidates = order_candidates(clauses)
         _emit(on_stage, "judge", "done",
               f"AI 判定后剩 {len(judged)} 条可用子句；S4 已清空")
         return {"stage": stage, "usable": len(judged), "candidates": len(candidates)}
@@ -594,7 +671,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
         judged_data = _load_required(os.path.join(workdir, "timeline.json"), "S3 AI 判定数据")
         clauses = copy.deepcopy(judged_data["clauses"])
         usable = [clause for clause in clauses if clause.get("usable")]
-        candidates = order_candidates(usable)
+        candidates = order_candidates(clauses)
         order_path = os.path.join(workdir, "order.json")
         if not os.path.isfile(order_path):
             raise PipelineError("S4 排序结果不存在，请先执行 S4 排序编排")
@@ -603,11 +680,15 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
                 order_data = json.load(handle)
         except (OSError, ValueError) as exc:
             raise PipelineError(f"S4 排序结果无法读取：{exc}") from exc
-        position = {cid: index for index, cid
-                    in enumerate(order_data.get("ordered_ids") or [])}
+        if not isinstance(order_data, dict):
+            raise PipelineError("S4 排序结果损坏，请重新执行 S4 排序编排")
+        ordered_ids = order_data.get("ordered_ids")
         by_id = {candidate["id"]: candidate for candidate in candidates}
-        ordered_clauses = sorted((by_id[cid] for cid in position if cid in by_id),
-                                 key=lambda candidate: position[candidate["id"]])
+        if (not isinstance(ordered_ids, list) or not ordered_ids
+                or any(type(cid) is not int or cid not in by_id for cid in ordered_ids)
+                or len(set(ordered_ids)) != len(ordered_ids)):
+            raise PipelineError("S4 排序结果与上游候选不一致，请重新执行 S4 排序编排")
+        ordered_clauses = [by_id[cid] for cid in ordered_ids]
         ordered_clauses = _restore_s4_cleaning(order_data, ordered_clauses)
         from ..breath import restore
         ordered_clauses = restore(order_data.get("breath_detection"), ordered_clauses)
@@ -655,7 +736,7 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     judged_data = _load_required(os.path.join(workdir, "timeline.json"), "S3 AI 判定数据")
     clauses = copy.deepcopy(judged_data["clauses"])
     usable = [clause for clause in clauses if clause.get("usable")]
-    candidates = order_candidates(usable)
+    candidates = order_candidates(clauses)
     config = plugin_config if plugin_config is not None else plugin_configuration()
     if stage in PLUGIN_IDS and not config.get("enabled"):
         raise PipelineError("语义归组插件已关闭，请重新执行 S4")
@@ -672,17 +753,11 @@ def run_pipeline_stage(media: str, workdir: str, stage: str, *,
     else:
         _emit(on_stage, "order", "start",
               f"单独重跑 AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    def validate_plugin_order(data):
-        validated = _validate_order(data, candidates, target_seconds, target_tolerance, available)
-        semantic_groups.validate_order(data, grouping)
-        return validated
-    with response_check(validate_plugin_order):
-        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available)
-                        + semantic_groups.order_suffix(grouping),
-                        ORDER_SCHEMA, ai_timeout)
-    main_product, ordered_ids, total_seconds, sections = _validate_order(
-        order, candidates, target_seconds, target_tolerance, available)
-    semantic_groups.validate_order(order, grouping)
+    order, validated, _ = _request_order(
+        model, _order_prompt(candidates, target_seconds, product_name, available)
+        + semantic_groups.order_suffix(grouping), candidates, target_seconds,
+        target_tolerance, available, grouping, workdir, on_stage, ai_timeout)
+    main_product, ordered_ids, total_seconds, sections = validated
     main_product = product_name or main_product
     position = {cid: index for index, cid in enumerate(ordered_ids)}
     member_candidate = {member: candidate["id"]
@@ -764,9 +839,12 @@ def run_pipeline(media: str, workdir: str, *,
     timeline_path = os.path.join(workdir, "timeline.json")
     clauses_path = os.path.join(workdir, "clauses.json")
     source_name = virtual_timeline.title if virtual_timeline is not None else media
+    from ..s1_cache import direct_input_key, seal_direct_snapshot, valid_direct_snapshot
+    direct_key = (direct_input_key(media, asr_backend, asr_model, max_duration, min_duration)
+                  if virtual_timeline is None and os.path.isfile(media) else None)
     cached_timeline: dict[str, Any] | None = None
     if transcript is None and asr_fn is None:
-        for candidate_path in (timeline_path, clauses_path):
+        for candidate_path in (clauses_path, timeline_path):
             if os.path.isfile(candidate_path):
                 try:
                     with open(candidate_path, encoding="utf-8") as handle:
@@ -775,7 +853,9 @@ def run_pipeline(media: str, workdir: str, *,
                             and os.path.normcase(os.path.normpath(str(data.get("source", ""))))
                             == os.path.normcase(os.path.normpath(source_name))
                             and isinstance(data.get("clauses"), list)
-                            and len(data["clauses"]) > 0):
+                            and len(data["clauses"]) > 0
+                            and (virtual_timeline is not None or direct_key is not None
+                                 and valid_direct_snapshot(data, direct_key))):
                         cached_timeline = data
                         break
                 except Exception:
@@ -837,6 +917,8 @@ def run_pipeline(media: str, workdir: str, *,
                         "clauses": clauses}
 
         timeline["words"] = words
+        if direct_key is not None:
+            seal_direct_snapshot(timeline, direct_key)
         _dump(timeline_path, timeline)
         _dump(clauses_path, timeline)
         _emit(on_stage, "asr", "done", f"切出 {len(clauses)} 个子句")
@@ -855,7 +937,7 @@ def run_pipeline(media: str, workdir: str, *,
     ai_calls = 0
 
     # S2.5 —— 句单元聚合（确定性）：给 S3 提供上下文，逐子句结论不变
-    units = build_units(usable, merge_min=merge_min, merge_max=merge_max,
+    units = build_units(clauses, merge_min=merge_min, merge_max=merge_max,
                         silence_gap=DEFAULT_SILENCE_GAP)
 
     # S3 —— AI 判定：按批切分，单次调用有界，避免一次编排 400 条超时
@@ -880,7 +962,7 @@ def run_pipeline(media: str, workdir: str, *,
     if not judged:
         raise AIReturnError("S3 判定后没有任何可用子句")
     # S4 候选 = 同一句单元内连续的可用子句并为一段（保证半句话不会单独入片）
-    candidates = order_candidates(usable)
+    candidates = order_candidates(clauses)
     available = sum(_duration(candidate) for candidate in candidates)
     _emit(on_stage, "judge", "done",
           f"AI 判定后剩 {len(judged)} 条可用子句 / {len(candidates)} 段可用句单元")
@@ -896,18 +978,12 @@ def run_pipeline(media: str, workdir: str, *,
     else:
         _emit(on_stage, "order",
               "start", f"AI 排序编排（目标 {target_seconds[0]:g}~{target_seconds[1]:g}s）")
-    def validate_plugin_order(data):
-        validated = _validate_order(data, candidates, target_seconds, target_tolerance, available)
-        semantic_groups.validate_order(data, grouping)
-        return validated
-    with response_check(validate_plugin_order):
-        order = ai_call(model, _order_prompt(candidates, target_seconds, product_name, available)
-                        + semantic_groups.order_suffix(grouping),
-                        ORDER_SCHEMA, ai_timeout)
-    ai_calls += 1
-    main_product, ordered_ids, total_seconds, sections = _validate_order(
-        order, candidates, target_seconds, target_tolerance, available)
-    semantic_groups.validate_order(order, grouping)
+    order, validated, order_calls = _request_order(
+        model, _order_prompt(candidates, target_seconds, product_name, available)
+        + semantic_groups.order_suffix(grouping), candidates, target_seconds,
+        target_tolerance, available, grouping, workdir, on_stage, ai_timeout)
+    ai_calls += order_calls
+    main_product, ordered_ids, total_seconds, sections = validated
     main_product = product_name or main_product
     position = {cid: index for index, cid in enumerate(ordered_ids)}
     member_candidate = {member: candidate["id"]

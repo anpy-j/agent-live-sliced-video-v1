@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
@@ -91,6 +92,9 @@ def prepare(candidates, workdir, model, timeout, call, emit, config, product_nam
         return None
     payload = [{k: c[k] for k in ("id", "text", "start", "end", "members")} for c in candidates]
     fingerprint = hashlib.sha256(json.dumps({"version": VERSION, "model": model,
+        "ai_configuration": {key: os.environ.get(key, "") for key in (
+            "PIPELINE_AI_ENGINE", "PIPELINE_AI_PROVIDER", "PIPELINE_AI_MODEL", "PIPELINE_AI_FALLBACKS",
+            "LIVE_CUT_API_BASE_URL", "TYPESAFE_BASE_URL")},
         "product": product_name, "candidates": payload}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     folder = Path(workdir) / "plugins" / "semantic_groups"
     ids = {c["id"] for c in candidates}

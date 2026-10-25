@@ -307,7 +307,8 @@ async function renderJianyingDrafts(force=false){
       const note=String(draft.note||'');
       const info=[`已剪辑 ${editCount} 次（按成功产出累计）`,timeline?`最长时间线：${timeline.name||timeline.title||'时间线'} · ${durationText(seconds)}`:draft.timeline_error||'未发现有效时间线',`成片名称：${draft.suggested_title}`,draft.folder?`文件夹：${draft.folder}`:'',note?`备注：${note}`:'',draft.modified_at?`更新：${formatTime(draft.modified_at)}`:''].filter(Boolean).join('\n');
       const noteBadge=note?`<span class="draft-note" title="${escapeHtml(note)}">${escapeHtml(note)}</span>`:'';
-      const stateBadge=activeCount?`<span class="draft-state busy${note?' shifted':''}">剪辑中 · ${activeCount}</span>`:!timeline?`<span class="draft-state unavailable${note?' shifted':''}">需检查</span>`:'';
+      const unavailableLabel=/时间线为空|没有任何片段|没有找到视频轨道/.test(draft.timeline_error||'')?'无视频片段':'读取失败';
+      const stateBadge=activeCount?`<span class="draft-state busy${note?' shifted':''}">剪辑中 · ${activeCount}</span>`:!timeline?`<span class="draft-state unavailable${note?' shifted':''}" title="${escapeHtml(draft.timeline_error||'未发现可剪辑的时间线')}">${unavailableLabel}</span>`:'';
       const folderTag=draft.folder?`<span class="draft-folder-tag" title="文件夹：${escapeHtml(draft.folder)}">${icons.folder}${escapeHtml(draft.folder)}</span>`:'';
       return `<article class="compact-draft" data-draft-card="${escapeHtml(draft.id)}" title="${escapeHtml(info)}"><div class="compact-cover">${noteBadge}<div class="draft-placeholder">${icons.video}</div>${draft.cover_url?`<img loading="lazy" decoding="async" src="${escapeHtml(draft.cover_url)}" alt="${escapeHtml(draft.name)}封面">`:''}${stateBadge}<button type="button" class="draft-edit" data-edit-jianying="${escapeHtml(draft.id)}" ${timeline?'':'disabled'} aria-label="剪辑 ${escapeHtml(draft.name)}"><span>${timeline?'开始剪辑':'无法剪辑'}</span></button></div><h2 title="${escapeHtml(draft.name)}">${escapeHtml(draft.name)}</h2><div class="compact-draft-meta"><span>${timeline?clock:'无法读取'}</span><span class="draft-edit-count" title="按成功产出累计；重新生成成片也计入次数">已剪辑 ${editCount} 次</span>${folderTag}</div></article>`;
     }).join('');
@@ -697,7 +698,7 @@ async function renderSettings(tab='ai'){
         <ol id="fallbackList" class="settings-fallback-list"></ol>
         <div class="settings-fallback-picker">
           <label>提供方<select id="fallbackProvider">${opts(providerNames,'codex')}</select></label>
-          <label>模型<input id="fallbackModel" list="fallbackModelOptions" placeholder="选择或填写模型 ID" maxlength="200" autocomplete="off"><datalist id="fallbackModelOptions"></datalist></label>
+          <label>模型<select id="fallbackModel" aria-label="备用模型"></select></label>
           <button type="button" class="button ghost" id="addFallback">添加备用</button>
         </div>
         <small class="settings-fallback-note">可混用不同提供方；请先完成对应客户端登录。API 模型共用下方配置的服务地址和密钥。添加后点击「保存设置」生效。</small>
@@ -760,15 +761,14 @@ async function renderSettings(tab='ai'){
   };
   const updateFallbackModels=(reset=true)=>{
     const provider=$('#fallbackProvider').value;
-    const models=data.ai_models?.[provider]||[];
-    $('#fallbackModelOptions').innerHTML=models.filter(item=>item.id).map(item=>`<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`).join('');
-    if(reset)$('#fallbackModel').value=models.find(item=>item.id)?.id||(provider==='api'?'':'auto');
+    const selected=reset?'auto':$('#fallbackModel').value;
+    $('#fallbackModel').innerHTML=modelOpts(provider,selected);
   };
   $('#fallbackProvider').addEventListener('change',()=>updateFallbackModels());
   $('#addFallback').addEventListener('click',()=>{
     const item={provider:$('#fallbackProvider').value,model:$('#fallbackModel').value.trim()};
     const error=$('#fallbackError');error.textContent='';
-    if(!item.model||(item.provider==='api'&&item.model==='auto')){error.textContent='请填写具体模型 ID';return;}
+    if(!item.model||(item.provider==='api'&&item.model==='auto')){error.textContent='请选择具体模型；API 模型请先在下方配置';return;}
     if(fallbacks.some(saved=>saved.provider===item.provider&&saved.model===item.model)){error.textContent='该备用模型已在列表中';return;}
     if(fallbacks.length>=20)return;
     fallbacks.push(item);paintFallbacks();

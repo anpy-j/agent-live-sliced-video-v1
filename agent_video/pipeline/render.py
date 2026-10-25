@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 import sys
@@ -38,7 +39,7 @@ def build_segments(ordered_clauses: list[dict[str, Any]],
     for clause in ordered_clauses:
         start, end = selector(clause)
         start, end = float(start), float(end)
-        if end <= start:
+        if not all(math.isfinite(t) for t in (start, end)) or start < 0 or end <= start:
             raise RenderError(
                 f"子句 {clause.get('id')} 的画面范围非法：{start}-{end}")
         segments.append({
@@ -58,8 +59,14 @@ def build_virtual_segments(ordered_clauses: list[dict[str, Any]],
     for clause in ordered_clauses:
         c_start = float(clause["start"])
         c_end = float(clause["end"])
+        if not all(math.isfinite(t) for t in (c_start, c_end)) or c_start < 0 or c_end <= c_start:
+            raise RenderError(f"子句 {clause.get('id')} 的时间线范围无效")
         slices = virtual_timeline.map_timeline_range(c_start, c_end)
+        cursor = c_start
         for piece in slices:
+            if abs(float(piece["timeline_start"]) - cursor) > .002:
+                raise RenderError(f"子句 {clause.get('id')} 跨越时间线空档或重叠，不能完整映射，请检查草稿")
+            cursor = float(piece["timeline_end"])
             segments.append({
                 "id": clause["id"],
                 "timeline_id": piece["timeline_id"],
@@ -75,6 +82,8 @@ def build_virtual_segments(ordered_clauses: list[dict[str, Any]],
                 "end": piece["source_end"],
                 "text": clause.get("text", ""),
             })
+        if not slices or abs(cursor - c_end) > .002:
+            raise RenderError(f"子句 {clause.get('id')} 未完整映射到原素材，已停止渲染以避免漏片")
     if not segments:
         raise RenderError("虚拟时间线映射后渲染片段为空")
     return segments

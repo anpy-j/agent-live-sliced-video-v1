@@ -27,6 +27,8 @@ from agent_video.engine.scripts.prep import is_cjk
 DEFAULT_MIN_DURATION = 0.8
 DEFAULT_MAX_SIMILARITY = 0.9
 _NORMALIZE_RE = re.compile(r"[^\u4e00-\u9fffA-Za-z0-9]+")
+_NEGATIONS_RE = re.compile(r"[不没无未非]")
+_NUMBERS_RE = re.compile(r"\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿]+")
 
 # 显式关闭账号词表（只用通用基础层）的取值。
 _PROFILE_OFF = {"none", "off", "no", "0"}
@@ -102,23 +104,27 @@ def filter_clauses(clauses: list[dict[str, Any]],
 
     apply_rules(clauses, pinyin_rules if pinyin_rules is not None else load_rules())
 
-    kept: list[str] = []
+    kept: list[tuple[str, tuple]] = []
     for clause in clauses:
         if not clause["usable"]:
             continue
         key = normalize(str(clause.get("text") or ""))
+        # Similar spelling is not sufficient evidence when polarity or amounts
+        # differ. Keep both for S3/S4 instead of deleting a conflicting claim.
+        text = str(clause.get("text") or "")
+        protected = (tuple(_NEGATIONS_RE.findall(text)), tuple(_NUMBERS_RE.findall(text)))
         duplicate = False
-        for previous in kept:
-            if key and (key == previous
-                        or difflib.SequenceMatcher(None, key, previous).ratio()
-                        >= max_similarity):
+        for previous, previous_protected in kept:
+            if key and protected == previous_protected and (
+                    key == previous or difflib.SequenceMatcher(None, key, previous).ratio()
+                    >= max_similarity):
                 duplicate = True
                 break
         if duplicate:
             clause["usable"] = False
             clause["reason"] = "duplicate"
         else:
-            kept.append(key)
+            kept.append((key, protected))
     return clauses
 
 

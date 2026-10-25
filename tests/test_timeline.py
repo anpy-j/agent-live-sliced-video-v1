@@ -267,12 +267,20 @@ def test_extract_virtual_timeline_audio(tmp_path):
     )
     vt = VirtualTimeline(timeline_id="vt_audio", segments=[seg])
 
-    with patch("subprocess.run") as mock_run, patch("shutil.copy2") as mock_copy:
-        mock_run.return_value = MagicMock(returncode=0)
+    import wave
+    import shutil
+    def encode(cmd, **kwargs):
+        with wave.open(cmd[-1], 'wb') as wav:
+            wav.setparams((1, 2, 16000, 0, 'NONE', 'not compressed'))
+            wav.writeframes(b'\0\0' * 320000)
+        return MagicMock(returncode=0)
+    with patch("subprocess.run", side_effect=encode) as mock_run, patch("shutil.copy2", wraps=shutil.copy2) as mock_copy:
         out_wav = extract_virtual_timeline_audio(vt, tmp_path / "cache" / "virtual_audio.wav")
         assert Path(out_wav).name == "virtual_audio.wav"
         assert mock_run.called
         assert mock_copy.called
+        with wave.open(out_wav, 'rb') as wav:
+            assert wav.getnframes() == 320000
 
 
 def test_build_virtual_segments_and_render_timeline():

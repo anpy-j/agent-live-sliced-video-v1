@@ -84,6 +84,15 @@ class SemanticGroupsTest(unittest.TestCase):
         self.prepare()
         self.assertEqual(len(self.calls), 3)
 
+    def test_provider_or_api_endpoint_change_invalidates_cache(self):
+        with patch.dict(os.environ, {'PIPELINE_AI_PROVIDER': 'api', 'LIVE_CUT_API_BASE_URL': 'https://first.invalid'}):
+            self.prepare()
+            self.assertEqual(self.prepare()['ai_calls'], 0)
+            with patch.dict(os.environ, {'LIVE_CUT_API_BASE_URL': 'https://second.invalid'}):
+                self.assertEqual(self.prepare()['ai_calls'], 2)
+            with patch.dict(os.environ, {'PIPELINE_AI_PROVIDER': 'workbuddy'}):
+                self.assertEqual(self.prepare()['ai_calls'], 2)
+
     def test_invalid_extraction_and_groups_are_rejected(self):
         for items in ([], [{'id': True}], [dict(id=0, subject='外套', claims=[], conditions='', standalone=True)]):
             with self.assertRaises(AIReturnError):

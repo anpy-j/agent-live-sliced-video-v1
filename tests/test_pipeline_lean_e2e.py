@@ -58,6 +58,10 @@ def fake_ai(model, prompt, schema, timeout):
 @unittest.skipUnless(FFMPEG, "ffmpeg 不可用")
 class LeanPipelineEndToEndTest(unittest.TestCase):
     def setUp(self):
+        # Base-pipeline fixtures do not implement the optional plugin schemas.
+        plugins = patch.object(pipeline_run, "plugin_configuration", return_value={"enabled": False})
+        plugins.start()
+        self.addCleanup(plugins.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.media = os.path.join(self.temp.name, "media.mp4")
@@ -120,6 +124,23 @@ class LeanPipelineEndToEndTest(unittest.TestCase):
         self.assertEqual(manifest["judge_retries"], 1)
         self.assertEqual(manifest["ai_calls"], 3)  # 1 次失败 + 1 次重试 + 1 次排序
         self.assertTrue(os.path.isfile(os.path.join(self.workdir, manifest["output"])))
+
+    def test_invalid_s4_id_is_removed_and_video_still_renders(self):
+        def invalid_order(model, prompt, schema, timeout):
+            data = fake_ai(model, prompt, schema, timeout)
+            if schema is not DECISION_SCHEMA:
+                data["sections"][0]["ids"].append(620)
+                data["ordered_ids"].append(620)
+            return data
+
+        with patch.object(pipeline_run, "ai_call", side_effect=invalid_order):
+            manifest = self.run_pipeline()
+        self.assertEqual(manifest["ai_calls"], 2)
+        self.assertTrue(os.path.isfile(os.path.join(self.workdir, manifest["output"])))
+        selection = json.loads(Path(self.workdir, "order.json").read_text(encoding="utf-8"))
+        self.assertNotIn(620, selection["ordered_ids"])
+        self.assertNotIn(620, [cid for section in selection["sections"] for cid in section["ids"]])
+        self.assertAlmostEqual(manifest["total_seconds"], 8.4, places=2)
 
     def test_contiguous_fragments_merge_and_long_unit_extends_duration(self):
         words = [
@@ -195,6 +216,8 @@ class LeanPipelineEndToEndTest(unittest.TestCase):
                 {"id": 2, "start": 5.5, "end": 8.0, "text": "颜色也非常百搭。"},
             ],
         }
+        from agent_video.s1_cache import direct_input_key, seal_direct_snapshot
+        seal_direct_snapshot(cached_timeline, direct_input_key(self.media))
         with open(os.path.join(workdir, "clauses.json"), "w", encoding="utf-8") as f:
             json.dump(cached_timeline, f)
 

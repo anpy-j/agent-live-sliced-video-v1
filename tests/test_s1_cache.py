@@ -89,14 +89,18 @@ class S1CacheTest(unittest.TestCase):
 
     def test_geometry_speed_and_version_changes_invalidate(self):
         self.seed()
-        for field, value in (("source_start", 1), ("source_end", 3),
-                             ("speed", 2), ("timeline_end", 3)):
-            with self.subTest(field=field):
-                segment = self.timeline.segments[0]
-                before = getattr(segment, field)
-                setattr(segment, field, value)
+        import copy
+        original = copy.deepcopy(self.timeline.segments[0])
+        for changes in ({"source_start": 1, "source_end": 3},
+                        {"source_end": 3, "speed": 1.5},
+                        {"speed": 2, "source_end": 4},
+                        {"timeline_end": 3, "source_end": 3}):
+            with self.subTest(changes=changes):
+                self.timeline.segments[0] = copy.deepcopy(original)
+                for field, value in changes.items():
+                    setattr(self.timeline.segments[0], field, value)
                 self.assertIsNone(s1_cache.prepare(self.new, self.timeline, "v1")[1])
-                setattr(segment, field, before)
+        self.timeline.segments[0] = original
         self.assertIsNone(s1_cache.prepare(self.new, self.timeline, "v3")[1])
 
     def test_old_unverified_data_and_audio_are_regenerated(self):

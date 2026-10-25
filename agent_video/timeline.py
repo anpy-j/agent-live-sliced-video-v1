@@ -12,10 +12,12 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
 import subprocess
+import wave
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -484,7 +486,17 @@ def discover_virtual_timelines(target: str | Path) -> dict[str, Any]:
         draft_file = timelines_root / timeline_id / "draft_content.json"
         if not draft_file.is_file():
             continue
-        timeline = load_virtual_timeline(draft_file)
+        try:
+            timeline = load_virtual_timeline(draft_file)
+        except ValueError as exc:
+            # Jianying keeps empty child timelines alongside populated ones.
+            # They must not prevent discovery of the other editable timelines.
+            if str(exc) in (
+                "剪映草稿时间线为空，没有可剪辑的视频片段",
+                "剪映视频轨道中没有任何片段",
+            ):
+                continue
+            raise
         result.append({
             "timeline_id": timeline_id,
             "name": name,
@@ -606,6 +618,7 @@ def extract_virtual_timeline_audio(
     """
     if not timeline.segments:
         raise ValueError("虚拟时间线没有任何片段，无法提取音频")
+    validate_audio_timeline(timeline)
 
     output_wav = os.path.abspath(str(output_wav))
     os.makedirs(os.path.dirname(output_wav), exist_ok=True)
@@ -617,15 +630,19 @@ def extract_virtual_timeline_audio(
 
     manifest_path = output_wav + ".manifest.json"
     cache_key = {
+        "contract": 2,
         "timeline_id": timeline.timeline_id,
         "duration": round(timeline.total_duration, 3),
         "segments": [seg.to_dict() for seg in timeline.segments],
+        "sources": [{"path": str(Path(path).resolve()), "size": Path(path).stat().st_size,
+                     "mtime_ns": Path(path).stat().st_mtime_ns} for path in timeline.source_paths],
     }
 
     if os.path.isfile(output_wav) and os.path.isfile(manifest_path):
         try:
             stored_manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
             if stored_manifest.get("key") == cache_key:
+                _validate_timeline_wav(output_wav, round(timeline.total_duration * 16000))
                 return output_wav
         except Exception:
             pass
@@ -634,6 +651,7 @@ def extract_virtual_timeline_audio(
     seg_dir.mkdir(parents=True, exist_ok=True)
 
     seg_files: list[str] = []
+    emitted_samples = 0
     for idx, seg in enumerate(timeline.segments):
         if not os.path.isfile(seg.source_path):
             if not seg.source_path:
@@ -644,8 +662,10 @@ def extract_virtual_timeline_audio(
 
         seg_wav = str(seg_dir / f"seg_{idx:04d}.wav")
         seg_duration = seg.source_duration
-        if seg_duration <= 0.01:
-            continue
+        samples = round(seg.timeline_end * 16000) - emitted_samples
+        emitted_samples += samples
+        if samples <= 0:
+            raise ValueError(f"片段 {seg.segment_id} 短于音频采样精度，无法可靠映射")
 
         cmd = [
             "ffmpeg", "-y", "-v", "error",
@@ -655,11 +675,18 @@ def extract_virtual_timeline_audio(
             "-vn",
         ]
         filters = []
-        if abs(seg.speed - 1.0) > 1e-4:
-            filters.append(f"atempo={seg.speed:.6f}")
+        speed = seg.speed
+        while speed < .5:
+            filters.append("atempo=0.5"); speed /= .5
+        while speed > 2:
+            filters.append("atempo=2.0"); speed /= 2
+        if abs(speed - 1.0) > 1e-8:
+            filters.append(f"atempo={speed:.9f}")
         filters.extend([
             "aresample=16000",
             "aformat=sample_fmts=s16:channel_layouts=mono",
+            "apad",
+            f"atrim=end_sample={samples}",
             "asetpts=PTS-STARTPTS",
         ])
         cmd += ["-filter:a", ",".join(filters), "-c:a", "pcm_s16le", seg_wav]
@@ -672,27 +699,57 @@ def extract_virtual_timeline_audio(
     if not seg_files:
         raise RuntimeError("没有成功提取出任何片段音频")
 
-    # 拼接全部片段音频
-    if len(seg_files) == 1:
-        shutil.copy2(seg_files[0], output_wav)
-    else:
-        concat_list_file = Path(workdir) / "timeline_concat_list.txt"
-        with open(concat_list_file, "w", encoding="utf-8") as f:
-            for sf in seg_files:
-                # 兼容 Windows 路径安全写法
-                safe_path = sf.replace("\\", "/")
-                f.write(f"file '{safe_path}'\n")
+    # Publish only complete, sample-aligned audio. Interrupted extraction cannot
+    # overwrite the last complete cache with a partial WAV.
+    pending_wav = output_wav + ".partial.wav"
+    try:
+        if len(seg_files) == 1:
+            shutil.copy2(seg_files[0], pending_wav)
+        else:
+            concat_list_file = Path(workdir) / "timeline_concat_list.txt"
+            with open(concat_list_file, "w", encoding="utf-8") as f:
+                for sf in seg_files:
+                    safe_path = sf.replace("\\", "/").replace("'", "'\\''")
+                    f.write(f"file '{safe_path}'\n")
+            concat_cmd = [
+                "ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
+                "-i", str(concat_list_file), "-c", "copy", pending_wav,
+            ]
+            res = subprocess.run(concat_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if res.returncode != 0:
+                raise RuntimeError(f"拼接时间线音频失败: {res.stderr.strip()[-500:]}")
+        _validate_timeline_wav(pending_wav, round(timeline.total_duration * 16000))
+        os.replace(pending_wav, output_wav)
+    finally:
+        Path(pending_wav).unlink(missing_ok=True)
 
-        concat_cmd = [
-            "ffmpeg", "-y", "-v", "error",
-            "-f", "concat", "-safe", "0",
-            "-i", str(concat_list_file),
-            "-c", "copy",
-            output_wav,
-        ]
-        res = subprocess.run(concat_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-        if res.returncode != 0:
-            raise RuntimeError(f"拼接时间线音频失败: {res.stderr.strip()[-500:]}")
-
-    Path(manifest_path).write_text(json.dumps({"key": cache_key}, ensure_ascii=False, indent=2), encoding="utf-8")
+    pending_manifest = Path(manifest_path + ".tmp")
+    pending_manifest.write_text(json.dumps({"key": cache_key}, ensure_ascii=False, indent=2), encoding="utf-8")
+    pending_manifest.replace(manifest_path)
     return output_wav
+
+
+def validate_audio_timeline(timeline):
+    """Concatenated audio supports one contiguous, non-overlapping video track."""
+    cursor = 0.0
+    for seg in timeline.segments:
+        values = (seg.timeline_start, seg.timeline_end, seg.source_start, seg.source_end, seg.speed)
+        if (not all(math.isfinite(v) for v in values) or seg.timeline_start < 0 or seg.source_start < 0
+                or seg.timeline_end <= seg.timeline_start or seg.source_end <= seg.source_start or seg.speed <= 0):
+            raise ValueError(f"片段 {seg.segment_id} 的时间或倍速无效，请检查剪映时间线")
+        if abs(seg.timeline_start - cursor) > .002:
+            raise ValueError(f"片段 {seg.segment_id} 前存在空档或重叠，无法保证音画映射；请在剪映整理为连续时间线")
+        if abs(seg.source_duration - seg.timeline_duration * seg.speed) > max(.01, seg.timeline_duration * .000051):
+            raise ValueError(f"片段 {seg.segment_id} 的源时长、目标时长与倍速不一致，请重新保存剪映时间线")
+        cursor = seg.timeline_end
+
+
+def _validate_timeline_wav(path, expected_samples):
+    with wave.open(str(path), "rb") as wav:
+        if (wav.getframerate() != 16000 or wav.getnchannels() != 1 or wav.getsampwidth() != 2
+                or abs(wav.getnframes() - expected_samples) > 1):
+            raise ValueError("时间线音频长度与目标时间轴不一致，已停止以避免错剪")
+        if wav.getnframes():
+            wav.setpos(wav.getnframes() - 1)
+            if len(wav.readframes(1)) != 2:
+                raise ValueError("时间线音频数据截断，必须重新提取")

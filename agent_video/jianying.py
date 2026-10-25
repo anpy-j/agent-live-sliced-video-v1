@@ -223,7 +223,7 @@ def list_jianying_drafts(
     misses: list[tuple[str, Path, str]] = []
     for _, draft_path, draft_id, signature in prepared:
         cached = _cached_timeline_summaries(draft_id)
-        if cached is None or cached.get("sig") != signature:
+        if cached is None or cached.get("sig") != signature or cached.get("error"):
             misses.append((draft_id, draft_path, signature))
     if misses:
         workers = 2 if sys.platform == "darwin" else _DISCOVERY_WORKERS

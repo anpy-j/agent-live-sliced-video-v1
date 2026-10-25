@@ -153,7 +153,8 @@ def _merge_short(groups: list[list[dict]],
         return group[-1]["e"] - group[0]["s"]
 
     def room(previous: list[dict], group: list[dict]) -> bool:
-        return duration(previous) + duration(group) <= max_duration + 1e-9
+        # The exported interval includes the gap, not just the spoken durations.
+        return group[-1]["e"] - previous[0]["s"] <= max_duration + 1e-9
 
     first: list[list[dict]] = []
     for group in groups:

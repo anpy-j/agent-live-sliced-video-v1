@@ -55,11 +55,19 @@ def build_units(clauses: list[dict[str, Any]], *,
     units: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
     for clause in clauses:
+        # Rejections are physical boundaries, even if their duration is shorter
+        # than the silence threshold. Do not erase them before building units.
+        if clause.get("usable") is False:
+            clause.pop("unit", None)
+            if current is not None:
+                units.append(current)
+                current = None
+            continue
         if current is None:
             current = _new_unit(clause)
             continue
         gap = float(clause["start"]) - current["end"]
-        contiguous = gap < silence_gap - 1e-9
+        contiguous = -1e-6 <= gap < silence_gap - 1e-9
         fits = float(clause["end"]) - current["start"] <= merge_max + 1e-9
         grow = (_duration(current) < merge_min - 1e-9
                 or _continues(current["text"], str(clause.get("text") or "")))
@@ -87,13 +95,15 @@ def _merge_run(run: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def order_candidates(clauses: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """按句单元把已判定子句收敛成 S4 候选：同一单元内连续的可用子句并为一段。"""
+    """Build candidates from ALL rows; rejected rows must remain as boundaries."""
     candidates: list[dict[str, Any]] = []
     run: list[dict[str, Any]] = []
     previous_unit: Any = None
     for clause in clauses:
         unit = clause.get("unit")
-        if run and unit != previous_unit:
+        gap = float(clause["start"]) - float(run[-1]["end"]) if run else 0
+        if run and (unit is None or unit != previous_unit
+                    or not -1e-6 <= gap < DEFAULT_SILENCE_GAP - 1e-9):
             candidates.append(_merge_run(run))
             run = []
         previous_unit = unit

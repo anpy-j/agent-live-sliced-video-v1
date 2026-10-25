@@ -1,6 +1,11 @@
 {
-  "revision": "ff8d6dd6d21f992d",
+  "revision": "1f36e83de62bcf44",
   "features": {
+    "semantic_groups": {
+      "version": "v1",
+      "stage": "S3–S4",
+      "enabled": true
+    },
     "breath": {
       "version": "v1",
       "stage": "S4",
@@ -14,7 +19,7 @@
     "filler": {
       "version": "v1",
       "stage": "S4",
-      "enabled": false
+      "enabled": true
     }
   }
 }

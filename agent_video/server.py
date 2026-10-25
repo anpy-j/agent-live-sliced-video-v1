@@ -143,7 +143,7 @@ class Application:
             from .pipeline.units import order_candidates
             clauses = json.loads((workspace / "timeline.json").read_text(encoding="utf-8"))["clauses"]
             order = json.loads((workspace / "order.json").read_text(encoding="utf-8"))
-            candidates = {c["id"]: c for c in order_candidates([c for c in clauses if c.get("usable")])}
+            candidates = {c["id"]: c for c in order_candidates(clauses)}
             try:
                 selected = [candidates[cid] for cid in order["ordered_ids"]]
             except KeyError:

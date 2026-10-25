@@ -191,6 +191,7 @@ class FillerRulesTest(unittest.TestCase):
 
     def test_s1_cache_preserves_word_boundaries(self):
         work = self.root / 'job'
+        (self.root / 'source.mp4').write_bytes(b'fixture source identity')
         self.run_sample(work)
         with patch.object(pipeline, 'ai_call', side_effect=self.fake_ai), patch.object(pipeline, 'render_video'):
             manifest = pipeline.run_pipeline(str(self.root / 'source.mp4'), str(work), target_seconds=(2, 4))

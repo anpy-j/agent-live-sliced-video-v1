@@ -87,6 +87,27 @@ def decrypt_jianying_file(
         raise JianyingDecryptError("剪映加密草稿解密仅支持 Windows 和 macOS")
     source_path = Path(source).expanduser().resolve()
     directory = find_jianying_install_dir(install_dir)
+    # A newer DLL can expose the same private ABI but return an empty string.
+    # Try other installed versions only after a failed read; validate every result.
+    directories = [directory]
+    if install_dir is None:
+        local = os.environ.get("LOCALAPPDATA")
+        apps = Path(local) / "JianyingPro" / "Apps" if local else None
+        if apps is not None and apps.is_dir():
+            directories.extend(
+                candidate.resolve() for candidate in sorted(apps.iterdir(), key=_version_key, reverse=True)
+                if (candidate / "videoeditor.dll").is_file() and candidate.resolve() != directory
+            )
+    failures: list[str] = []
+    for candidate in directories:
+        try:
+            return _decrypt_with_install(source_path, candidate, timeout)
+        except JianyingDecryptError as exc:
+            failures.append(f"{candidate.name}: {exc}")
+    raise JianyingDecryptError("；".join(failures))
+
+
+def _decrypt_with_install(source_path: Path, directory: Path, timeout: float) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="livecut-jianying-") as temporary:
         output = Path(temporary) / "draft.dec.json"
         launcher = ([sys.executable, "--jianying-decrypt"] if getattr(sys, "frozen", False)
@@ -183,6 +204,9 @@ def _worker_decrypt(source: Path, output: Path, install_dir: Path) -> None:
 
 
 def _main() -> int:
+    # The parent decodes UTF-8, including when Windows uses a different code page.
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--worker-decrypt", action="store_true")
     parser.add_argument("source", nargs="?")

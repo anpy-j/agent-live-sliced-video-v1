@@ -474,10 +474,12 @@ class JobRunner:
         if stage_id not in ({"filter", "judge", "order", "review", "render"} if is_v2 else
                             {"filter", "judge", "order", "render"} | (PLUGIN_IDS if job.get("pipeline_version", "v1") == "v1" and job.get("job_type") != "remix" else set())):
             raise ValueError("仅支持重新执行 S2、S3、S4 或渲染")
-        if job["status"] in {"queued", "running"}:
+        if job["status"] in {"queued", "running", "pausing", "paused"} or self._current == job_id:
             self.cancel(job_id)
             with self._condition:
-                self._condition.wait_for(lambda: self._current != job_id, timeout=5.0)
+                stopped = self._condition.wait_for(lambda: self._current != job_id, timeout=5.0)
+                if not stopped:
+                    raise ValueError("当前任务仍在停止和保存，请稍后重跑，避免同时写入同一任务")
         self._cancelled.discard(job_id)
         workspace = Path(job.get("workspace") or "")
         if is_v2:
@@ -886,6 +888,8 @@ class JobRunner:
             if job_id:
                 self._set_render_progress(job_id, 0, len(segment_groups), "导出片段")
             for index, segment_group in enumerate(segment_groups, start=1):
+                if job_id and job_id in self._cancelled:
+                    raise JobCancelled()
                 target = Path(next_available_output(str(sub), f"{index:02d}"))
                 render_fn(source, segment_group, str(target), str(workspace), index=index)
                 exported.append(target)
@@ -900,6 +904,9 @@ class JobRunner:
     def _succeed(self, job_id: str, workspace: Path, manifest: dict[str, Any],
                  export_dir: str | None = None, export_mode: str = "merge",
                  output_stem: str | None = None, media: str | None = None) -> None:
+        if job_id in self._cancelled:
+            self._finish(job_id, "cancelled", "任务已取消")
+            return
         if manifest.get("workflow") == "remix":
             artifacts = [
                 ("asr", "json", "集合片段文字", workspace / "timeline.json", "application/json"),
@@ -939,6 +946,9 @@ class JobRunner:
             try:
                 exported = self._export_outputs(workspace, manifest, export_dir,
                                                 export_mode, output_stem, media, job_id=job_id)
+            except JobCancelled:
+                self._finish(job_id, "cancelled", "任务已取消")
+                return
             except Exception as exc:  # noqa: BLE001 - 未完成交付不能标为完成
                 self._fail(job_id, "render", f"导出到自定义位置失败：{exc}")
                 return
@@ -948,6 +958,9 @@ class JobRunner:
                                             f"成片（导出）· {path.name}", path, "video/mp4")
                 self.store.add_event(job_id, "render", "success", "exported",
                                      f"已导出 {len(exported)} 个文件到 {export_dir}")
+        if job_id in self._cancelled:
+            self._finish(job_id, "cancelled", "任务已取消")
+            return
         render_stage = next((s for s in (self.store.get_job(job_id) or {}).get("stages", [])
                              if s["stage_id"] == "render"), {})
         render_result = render_stage.get("result") or {}
@@ -970,6 +983,9 @@ class JobRunner:
 
     def _succeed_stage(self, job_id: str, workspace: Path, stage_id: str,
                        result: dict[str, Any], job: dict[str, Any]) -> None:
+        if job_id in self._cancelled:
+            self._finish(job_id, "cancelled", "任务已取消")
+            return
         # 渲染是最后一个节点：直接按出片收尾（登记产物、导出、交付事件）。
         if stage_id == "render":
             self._succeed(job_id, workspace, result,

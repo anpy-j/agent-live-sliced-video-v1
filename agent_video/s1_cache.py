@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
-from .timeline import VirtualTimeline
+from .timeline import VirtualTimeline, validate_audio_timeline
 
 
 SNAPSHOT = "s1-cache.json"
@@ -16,7 +17,35 @@ def _digest(value):
                                      separators=(",", ":")).encode()).hexdigest()
 
 
+def transcription_signature(backend=None, model=None):
+    glossary = Path(__file__).parent / "engine" / "scripts" / "glossary.py"
+    return {"backend": backend or os.environ.get("DOUYIN_WHISPER_BACKEND", "auto"),
+            "model": model or os.environ.get("DOUYIN_WHISPER_MODEL", ""),
+            "batch": os.environ.get("DOUYIN_WHISPER_BATCH", "0"),
+            "glossary": hashlib.sha256(glossary.read_bytes()).hexdigest()}
+
+
+def direct_input_key(media, backend=None, model=None, max_duration=6., min_duration=.8):
+    from .engine.scripts.prep import fingerprint
+    return _digest({"contract": 1, "source": fingerprint(media),
+                    "asr": transcription_signature(backend, model),
+                    "max_duration": max_duration, "min_duration": min_duration})
+
+
+def seal_direct_snapshot(data, key):
+    data["s1_cache"] = {"input_key": key, "data_digest": _digest(
+        {k: v for k, v in data.items() if k != "s1_cache"})}
+
+
+def valid_direct_snapshot(data, key):
+    snapshot = data.get("s1_cache")
+    return (isinstance(snapshot, dict) and snapshot.get("input_key") == key
+            and snapshot.get("data_digest") == _digest({k: v for k, v in data.items() if k != "s1_cache"}))
+
+
 def input_key(timeline: VirtualTimeline, version: str) -> str:
+    if version == "v1":
+        validate_audio_timeline(timeline)
     files = []
     for name in timeline.source_paths:
         path = Path(name)
@@ -24,7 +53,8 @@ def input_key(timeline: VirtualTimeline, version: str) -> str:
         files.append({"path": str(path.resolve()), "size": metadata.st_size,
                       "mtime_ns": metadata.st_mtime_ns})
     # Bump this contract when S1's transcription/splitting semantics change.
-    return _digest({"contract": 2, "pipeline_version": version,
+    return _digest({"contract": 4 if version == "v1" else 2, "pipeline_version": version,
+                    **({"asr": transcription_signature()} if version == "v1" else {}),
                     "timeline": timeline.to_dict(), "files": files})
 
 
