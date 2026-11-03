@@ -4,8 +4,45 @@ from unittest.mock import patch
 import pytest
 
 from agent_video.jianying import _discovery_cache, list_jianying_drafts
-from agent_video.jianying_crypto import JianyingDecryptError, decrypt_jianying_file
+from agent_video.jianying_crypto import (
+    JianyingDecryptError, decrypt_jianying_file, find_jianying_install_dir,
+    _worker_decrypt,
+)
 from agent_video.timeline import discover_virtual_timelines
+
+
+def test_private_runtime_survives_app_version_cleanup(tmp_path, monkeypatch):
+    compat = tmp_path / "LiveCut" / "jianying-runtime" / "11.6"
+    compat.mkdir(parents=True)
+    (compat / "videoeditor.dll").touch()
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.delenv("JIANYING_INSTALL_DIR", raising=False)
+    monkeypatch.delenv("JY_INSTALL_DIR", raising=False)
+    assert find_jianying_install_dir() == compat
+
+
+def test_running_server_worker_recovers_using_separate_process(tmp_path, monkeypatch):
+    compat = tmp_path / "compat"
+    source, output = tmp_path / "draft.json", tmp_path / "decoded.json"
+    source.write_bytes(b"original encrypted draft")
+    with patch("agent_video.jianying_crypto._compatibility_directories", return_value=[compat]), patch(
+        "agent_video.jianying_crypto._worker_decrypt_once",
+        side_effect=JianyingDecryptError("ok=True, size=0"),
+    ), patch("agent_video.jianying_crypto._decrypt_with_install", return_value={"tracks": []}) as child:
+        _worker_decrypt(source, output, tmp_path / "newest")
+    assert json.loads(output.read_text("utf-8")) == {"tracks": []}
+    assert child.call_args.args[1] == compat
+    assert source.read_bytes() == b"original encrypted draft"
+
+
+def test_broken_compatibility_runtime_does_not_recursively_retry(tmp_path):
+    with patch("agent_video.jianying_crypto._compatibility_directories", return_value=[tmp_path]), patch(
+        "agent_video.jianying_crypto._worker_decrypt_once",
+        side_effect=JianyingDecryptError("incompatible"),
+    ), patch("agent_video.jianying_crypto._decrypt_with_install") as child:
+        with pytest.raises(JianyingDecryptError, match="incompatible"):
+            _worker_decrypt(tmp_path / "draft.json", tmp_path / "out.json", tmp_path)
+        child.assert_not_called()
 
 
 def test_decrypt_retries_other_installed_version(tmp_path, monkeypatch):

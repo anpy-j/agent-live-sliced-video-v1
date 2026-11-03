@@ -33,12 +33,26 @@ def _version_key(path: Path) -> tuple[int, ...]:
     return values or (0,)
 
 
+def _compatibility_directories() -> list[Path]:
+    """Private, verified runtime copies survive Jianying's update cleanup."""
+    local = os.environ.get("LOCALAPPDATA")
+    if not local:
+        return []
+    root = Path(local) / "LiveCut" / "jianying-runtime"
+    if not root.is_dir():
+        return []
+    return [p.resolve() for p in sorted(root.iterdir(), key=_version_key, reverse=True)
+            if (p / "videoeditor.dll").is_file()]
+
+
 def find_jianying_install_dir(explicit: str | Path | None = None) -> Path:
     """Find a Jianying version directory that directly contains videoeditor.dll."""
     candidates: list[Path] = []
     for value in (explicit, os.environ.get("JIANYING_INSTALL_DIR"), os.environ.get("JY_INSTALL_DIR")):
         if value:
             candidates.append(Path(value).expanduser())
+
+    candidates.extend(_compatibility_directories())
 
     local = os.environ.get("LOCALAPPDATA")
     if local:
@@ -91,6 +105,7 @@ def decrypt_jianying_file(
     # Try other installed versions only after a failed read; validate every result.
     directories = [directory]
     if install_dir is None:
+        directories.extend(p for p in _compatibility_directories() if p != directory)
         local = os.environ.get("LOCALAPPDATA")
         apps = Path(local) / "JianyingPro" / "Apps" if local else None
         if apps is not None and apps.is_dir():
@@ -163,6 +178,28 @@ class _StringArg:
 
 
 def _worker_decrypt(source: Path, output: Path, install_dir: Path) -> None:
+    try:
+        _worker_decrypt_once(source, output, install_dir)
+        return
+    except Exception as exc:
+        failure = exc
+    # Existing servers can still launch a fresh worker with an obsolete selected
+    # runtime. Recover here too, without restarting or interrupting active jobs.
+    # Use another process: mixing two versions' dependent DLLs is unsafe.
+    compatibility = _compatibility_directories()
+    if install_dir.resolve() in compatibility:
+        raise failure
+    for directory in compatibility:
+        try:
+            parsed = _decrypt_with_install(source, directory, 90)
+            output.write_text(json.dumps(parsed, ensure_ascii=False), encoding="utf-8")
+            return
+        except JianyingDecryptError:
+            continue
+    raise failure
+
+
+def _worker_decrypt_once(source: Path, output: Path, install_dir: Path) -> None:
     if sys.platform != "win32":
         raise JianyingDecryptError("worker requires Windows")
     dll_path = install_dir / "videoeditor.dll"
